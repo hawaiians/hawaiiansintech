@@ -16,7 +16,7 @@ export default function newMember({ pageTitle }) {
       <Nav backUrl="/" />
       <Heading>Howzit! Come get involved!</Heading>
       <Subheading centered>
-        Take a look at some ways you can get involved with us:
+        Take a look at our checklist of ways you can get involved with us:
       </Subheading>
       <div className="checkbox-list">
         <CheckBox big fadeOnCheck marginBottom="2rem">
