@@ -7,10 +7,10 @@ import Nav from "@/components/Nav";
 import NihoShimmer from "@/components/NihoShimmer";
 import SplitSection from "@/components/SplitSection";
 import { Title } from "@/components/Title.js";
+import { DISCORD_URL, PM_URL } from "@/lib/links";
 import { motion } from "framer-motion";
 import Head from "next/head";
 import theme from "styles/theme";
-import { DISCORD_URL } from "./about";
 
 const item = {
   hidden: { opacity: 0, y: "15%" },
@@ -361,7 +361,7 @@ export default function HackathonPage({ pageTitle }) {
         <SplitSection title="Partnered with">
           <DataList gap="1rem 4rem">
             <DataListItem subHeading="Purple Maiʻa" subHeadingLight>
-              <a href={"https://purplemaia.org/"}>
+              <a href={PM_URL}>
                 <img src="/images/purpleMaia.png" className="imgLink" />
               </a>
             </DataListItem>

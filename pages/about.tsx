@@ -1,6 +1,7 @@
 import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
 import { Title } from "@/components/Title.js";
+import { DISCORD_URL } from "@/lib/links";
 import { motion } from "framer-motion";
 import Head from "next/head";
 import Link from "next/link";
@@ -20,8 +21,6 @@ const container = {
     },
   },
 };
-
-export const DISCORD_URL = "https://hawaiiansintech.org/discord";
 
 export async function getStaticProps() {
   return {

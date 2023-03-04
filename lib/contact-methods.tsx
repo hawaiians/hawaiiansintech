@@ -1,5 +1,5 @@
 import { AccordionLink } from "@/components/Accordion";
-import { DISCORD_URL } from "@/pages/about";
+import { DISCORD_URL } from "@/lib/links";
 
 export const CONTACT_METHODS: { label: string; body: React.ReactNode }[] = [
   {
