@@ -59,6 +59,8 @@ export default function Button({
         focus:ring-8
         focus:ring-brown-500/30
         active:border-transparent
+        dark:bg-brown-800/25
+        dark:focus:ring-8
         `,
         disabled &&
           "cursor-not-allowed bg-tan-300 text-stone-700 opacity-50 ring-0 hover:border-transparent",

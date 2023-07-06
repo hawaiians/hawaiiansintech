@@ -36,9 +36,30 @@ export default function Label({
         </motion.aside>
       ) : null}
       <main>
-        <h3 className="my-0 text-xl font-semibold text-stone-700">{label}</h3>
+        <h3
+          className={`my-0
+            text-xl
+            font-semibold
+            text-stone-700
+            dark:font-medium
+            dark:text-stone-300
+
+          `}
+        >
+          {label}
+        </h3>
         {labelTranslation && (
-          <h4 className="my-0 text-sm font-semibold italic text-brown-600">
+          <h4
+            className={`
+              my-0
+              text-sm
+              font-semibold
+              italic
+              text-brown-600
+              dark:font-medium
+              dark:text-brown-600
+            `}
+          >
             {labelTranslation}
           </h4>
         )}

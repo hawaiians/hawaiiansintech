@@ -57,7 +57,7 @@ export default function Input({
           `w-full
           rounded
           border-transparent
-          bg-tan-100
+          bg-tan-50
           px-4
           py-3
           text-xl
@@ -67,7 +67,12 @@ export default function Input({
           focus:ring-8
           focus:ring-brown-500/30
           disabled:cursor-not-allowed
-          disabled:opacity-50`,
+          disabled:opacity-50
+          dark:border-2
+          dark:border-tan-900/40
+          dark:bg-tan-100/5
+          dark:placeholder:font-light
+          dark:placeholder:text-stone-500`,
           { "ring-8": error, "ring-red-500/50": error },
           centered && "text-center",
           fullHeight && "h-full"
