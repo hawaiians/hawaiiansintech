@@ -151,8 +151,8 @@ export default function admin(props: {
     setShowDashboard(false);
   };
 
-  const handleDashboard = () => {
-    if (!checkUserIsAdmin(userData.uid)) {
+  const handleDashboard = async () => {
+    if (!(await checkUserIsAdmin(userData.uid))) {
       setError({
         headline: "Eh you not one admin!",
         body:
