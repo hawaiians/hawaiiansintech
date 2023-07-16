@@ -10,16 +10,20 @@ import {
 } from "@/lib/api";
 import { ADMIN_EMAILS } from "@/lib/email/utils";
 import { FirebaseTablesEnum, StatusEnum } from "@/lib/enums";
+import { LINKEDIN_URL } from "@/lib/linkedin";
 import MemberCard from "@/lib/memberCard";
 import { useEmailCloaker } from "helpers";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { signInWithGoogle, signOutWithGoogle } from "../lib/firebase";
 
 interface User {
   name: string;
-  uid: string;
   email: Array<string>;
   emailIsVerified: boolean;
+  uid?: string;
+  token?: string;
+  profilePicture?: string;
 }
 
 const checkUserIsAdmin = async (user_id: string) => {
@@ -63,6 +67,7 @@ export async function getStaticProps() {
     props: {
       nonApprovedMembers: nonApprovedmembers,
       approvedMembers: approvedmembers,
+      linkedInUrl: LINKEDIN_URL,
     },
     revalidate: 60,
   };
@@ -92,7 +97,9 @@ export async function getEmails(
 export default function admin(props: {
   nonApprovedMembers: MemberPublic[];
   approvedMembers: MemberPublic[];
+  linkedInUrl: string;
 }) {
+  const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [userData, setUserData] = useState(null);
   const [error, setError] = useState<ErrorMessageProps>(undefined);
@@ -114,9 +121,11 @@ export default function admin(props: {
     if (sessionStorage.getItem("user")) {
       const userData: User = {
         name: sessionStorage.getItem("user"),
-        uid: sessionStorage.getItem("uid"),
         email: useEmailCloaker(sessionStorage.getItem("email")),
         emailIsVerified: Boolean(sessionStorage.getItem("emailIsVerified")),
+        uid: sessionStorage.getItem("uid"),
+        token: sessionStorage.getItem("token"),
+        profilePicture: sessionStorage.getItem("profilePicture"),
       };
       setIsLoggedIn(true);
       setUserData(userData);
@@ -182,19 +191,35 @@ export default function admin(props: {
   return (
     <div className="content">
       <div className="simple-nav">
-        <h3>
+        <h3 style={{ marginRight: "1rem" }}>
           {isLoggedIn ? "Signed in as: " + userData.name : "Not Signed In"}
         </h3>
+        {isLoggedIn && userData.profilePicture && (
+          <img src={userData.profilePicture} width={100} height={100} />
+        )}
         <div className="auth-button">
-          <Button
-            size={ButtonSize.Small}
-            customWidth="16rem"
-            customWidthSmall="28rem"
-            customFontSize="1.5rem"
-            onClick={isLoggedIn ? handleSignOut : signInWithGoogle}
-          >
-            {isLoggedIn ? "Log Out" : "Log in"}
-          </Button>
+          {!isLoggedIn && (
+            <div style={{ marginRight: "1rem" }}>
+              <Button
+                size={ButtonSize.Small}
+                customWidth="10rem"
+                customFontSize="1rem"
+                onClick={() => router.push(props.linkedInUrl)}
+              >
+                Linked login
+              </Button>
+            </div>
+          )}
+          <div>
+            <Button
+              size={ButtonSize.Small}
+              customWidth="10rem"
+              customFontSize="1rem"
+              onClick={isLoggedIn ? handleSignOut : signInWithGoogle}
+            >
+              {isLoggedIn ? "Log out" : "Google login"}
+            </Button>
+          </div>
         </div>
       </div>
       <div className="dashboard">
@@ -300,6 +325,8 @@ export default function admin(props: {
         }
 
         .auth-button {
+          display: flex;
+          justify-content: space-between;
           position: absolute;
           right: 0;
           top: 1.2rem;
