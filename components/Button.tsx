@@ -4,6 +4,7 @@ import LoadingSpinner from "./LoadingSpinner";
 export enum ButtonVariant {
   Primary = "primary",
   Secondary = "secondary",
+  Tertiary = "tertiary",
 }
 
 export enum ButtonSize {
@@ -20,6 +21,7 @@ interface ButtonProps {
   size?: ButtonSize;
   variant?: ButtonVariant;
   type?: "button" | "submit" | "reset";
+  heightLarge?: boolean;
 }
 
 export default function Button({
@@ -31,6 +33,7 @@ export default function Button({
   size = ButtonSize.Default,
   variant = ButtonVariant.Primary,
   type,
+  heightLarge,
 }: ButtonProps) {
   const handleOnClick = (e) => {
     if (disabled) {
@@ -67,8 +70,11 @@ export default function Button({
           "cursor-progress border-transparent bg-brown-600/25 text-transparent hover:border-transparent",
         variant === ButtonVariant.Secondary &&
           "bg-tan-300 text-stone-700 hover:border-tan-500/20 hover:text-stone-900 focus:ring-tan-400/20",
+        variant === ButtonVariant.Tertiary &&
+          "rounded-3xl border-4 border-brown-600 bg-transparent text-stone-700 hover:border-brown-800 hover:text-stone-900",
         size === ButtonSize.Small &&
-          "rounded-md px-4 py-2 text-base tracking-normal"
+          "rounded-md px-4 py-2 text-base tracking-normal",
+        heightLarge && "py-7"
       )}
       onClick={handleOnClick}
       disabled={disabled || loading}
