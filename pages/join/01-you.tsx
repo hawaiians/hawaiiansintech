@@ -4,8 +4,14 @@ import BasicInformationForm from "@/components/intake-form/BasicInformation";
 import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
 import Plausible from "@/components/Plausible";
+import {
+  SessionStorageEnum,
+  SignInTypeImgEnum,
+  SignInTypeNameEnum,
+} from "@/lib/enums";
 import { useStorage } from "@/lib/hooks";
 import { clearAllStoredFields } from "@/lib/utils";
+import { capitalizeFirstLetters } from "helpers";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -25,6 +31,10 @@ export default function JoinStep1({ pageTitle }) {
   const [name, setName] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [website, setWebsite] = useState<string>("");
+  const [loginName, setLoginName] = useState<string>("");
+  const [loginTypeName, setLoginTypeName] = useState<SignInTypeNameEnum>();
+  const [loginTypeImage, setLoginTypeImage] = useState<SignInTypeImgEnum>();
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
   // clear fields if param `r` is present
   useEffect(() => {
@@ -39,6 +49,31 @@ export default function JoinStep1({ pageTitle }) {
   }, [r]);
 
   useEffect(() => {
+    if (
+      typeof sessionStorage === "undefined" ||
+      sessionStorage.getItem(SessionStorageEnum.USER_NAME) === null
+    ) {
+      sessionStorage.setItem(SessionStorageEnum.PREVIOUS_PAGE, "/join/01-you");
+      router.push({ pathname: `/login` });
+    } else {
+      setName(
+        capitalizeFirstLetters(
+          sessionStorage.getItem(SessionStorageEnum.USER_NAME)
+        )
+      );
+      setLoginName(sessionStorage.getItem(SessionStorageEnum.USER_NAME));
+      setLoginTypeName(
+        sessionStorage.getItem(
+          SessionStorageEnum.SIGN_IN_TYPE_NAME
+        ) as SignInTypeNameEnum
+      );
+      setLoginTypeImage(
+        sessionStorage.getItem(
+          SessionStorageEnum.SIGN_IN_TYPE_IMAGE
+        ) as SignInTypeImgEnum
+      );
+      setIsLoggedIn(true);
+    }
     let storedName = getItem("jfName");
     let storedLocation = getItem("jfLocation");
     let storedWebsite = getItem("jfWebsite");
@@ -72,8 +107,16 @@ export default function JoinStep1({ pageTitle }) {
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav backUrl="/" />
-
+      <Nav
+        backUrl="/"
+        signedIn={
+          isLoggedIn && {
+            name: loginName,
+            type_name: loginTypeName,
+            type_image: loginTypeImage,
+          }
+        }
+      />
       <Heading>Welcome to our little hui.</Heading>
       <Subheading centered>
         To join the directory, we just ask that you are{" "}

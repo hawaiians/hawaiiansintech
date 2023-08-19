@@ -40,3 +40,24 @@ export enum FirebaseTablesEnum {
 export enum FirebaseDefaultValuesEnum {
   LAST_MODIFIED_BY = "new_member_form",
 }
+
+export enum SignInTypeNameEnum {
+  GOOGLE = "Google",
+  LINKEDIN = "LinkedIn",
+}
+
+export enum SignInTypeImgEnum {
+  GOOGLE = "/images/googleLogo.png",
+  LINKEDIN = "/images/linkedInLogo.png",
+}
+
+export enum SessionStorageEnum {
+  PREVIOUS_PAGE = "previousPage",
+  USER_NAME = "userName",
+  USER_ID = "uid",
+  USER_EMAIL = "email",
+  PROFILE_PICTURE = "profilePicture",
+  EMAIL_IS_VERIFIED = "emailIsVerified",
+  SIGN_IN_TYPE_NAME = "signInTypeName",
+  SIGN_IN_TYPE_IMAGE = "signInTypeImage",
+}

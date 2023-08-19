@@ -22,7 +22,7 @@ export default function BasicInformationForm({
 
   const renderButton = () => {
     if (!onReset) return <></>;
-    if (initial.name || initial.location || initial.website)
+    if (initial.location || initial.website)
       return (
         <div className="mb-4 flex items-center rounded-lg border-2 border-tan-400 bg-tan-300 py-2 pl-3 pr-2 text-xs text-tan-800">
           <h4 className="grow-1 w-full">

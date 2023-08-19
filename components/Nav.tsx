@@ -1,6 +1,9 @@
 import HitLogo from "@/components/HitLogo";
 import { Icon, IconAsset, IconColor } from "@/components/icon/icon";
+import { SignInTypeImgEnum, SignInTypeNameEnum } from "@/lib/enums";
+import { signOut } from "@/lib/firebase";
 import Link from "next/link";
+import Button, { ButtonSize, ButtonVariant } from "./Button";
 
 interface NavProps {
   backUrl?: string;
@@ -8,9 +11,19 @@ interface NavProps {
   primaryNav?: {
     show?: boolean;
   };
+  signedIn?: {
+    name?: string;
+    type_name?: SignInTypeNameEnum;
+    type_image?: SignInTypeImgEnum;
+  };
 }
 
-export default function Nav({ backUrl, children, primaryNav }: NavProps) {
+export default function Nav({
+  backUrl,
+  children,
+  primaryNav,
+  signedIn,
+}: NavProps) {
   let logo = <HitLogo inline />;
   if (backUrl) {
     logo = (
@@ -73,6 +86,26 @@ export default function Nav({ backUrl, children, primaryNav }: NavProps) {
           </div>
         ) : null}
       </nav>
+      {signedIn?.name ? (
+        <div className="ml-8 flex items-center justify-center text-xs text-green-600">
+          Signed in with
+          <img
+            src={signedIn.type_image}
+            alt="sign in type"
+            className="ml-1 mr-1 h-4"
+          />
+          {signedIn.type_name} as {signedIn.name}
+          <div className="ml-2">
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.ExtraSmall}
+              onClick={signOut}
+            >
+              Sign Out
+            </Button>
+          </div>
+        </div>
+      ) : null}
       {children ? <div>{children}</div> : null}
       {logo}
     </header>

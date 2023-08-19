@@ -8,6 +8,11 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 import { getStorage } from "firebase/storage";
+import {
+  SessionStorageEnum,
+  SignInTypeImgEnum,
+  SignInTypeNameEnum,
+} from "./enums";
 
 export const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -26,32 +31,61 @@ export const storage = getStorage(app);
 export const signInWithGoogle = () => {
   signInWithPopup(auth, provider)
     .then((result) => {
-      sessionStorage.setItem("user", result.user.displayName);
-      sessionStorage.setItem("uid", result.user.uid);
-      sessionStorage.setItem("email", result.user.email);
       sessionStorage.setItem(
-        "emailIsVerified",
+        SessionStorageEnum.USER_NAME,
+        result.user.displayName
+      );
+      sessionStorage.setItem(SessionStorageEnum.USER_ID, result.user.uid);
+      sessionStorage.setItem(SessionStorageEnum.USER_EMAIL, result.user.email);
+      sessionStorage.setItem(
+        SessionStorageEnum.EMAIL_IS_VERIFIED,
         String(result.user.emailVerified)
       );
+      sessionStorage.setItem(
+        SessionStorageEnum.SIGN_IN_TYPE_NAME,
+        SignInTypeNameEnum.GOOGLE
+      );
+      sessionStorage.setItem(
+        SessionStorageEnum.SIGN_IN_TYPE_IMAGE,
+        SignInTypeImgEnum.GOOGLE
+      );
+      location.reload();
     })
     .catch((error) => {
-      console.log("Error signing in with popup:", error);
+      console.error("Error signing in with popup:", error);
     });
 };
 export const signInWithLinkedInData = (linkedInData: LinkedInData) => {
   signInWithCustomToken(auth, linkedInData.token)
     .then((result) => {
       const name = linkedInData.firstName + " " + linkedInData.lastName;
-      sessionStorage.setItem("user", name);
-      sessionStorage.setItem("email", linkedInData.email);
-      sessionStorage.setItem("profilePicture", linkedInData.profilePicture);
+      sessionStorage.setItem(SessionStorageEnum.USER_NAME, name);
+      sessionStorage.setItem(SessionStorageEnum.USER_EMAIL, linkedInData.email);
+      sessionStorage.setItem(
+        SessionStorageEnum.PROFILE_PICTURE,
+        linkedInData.profilePicture
+      );
+      sessionStorage.setItem(
+        SessionStorageEnum.SIGN_IN_TYPE_NAME,
+        SignInTypeNameEnum.LINKEDIN
+      );
+      sessionStorage.setItem(
+        SessionStorageEnum.SIGN_IN_TYPE_IMAGE,
+        SignInTypeImgEnum.LINKEDIN
+      );
     })
     .catch((error) => {
-      console.log("Error signing in with linkedInData:", error);
+      console.error("Error signing in with linkedInData:", error);
     });
 };
-export const signOutWithGoogle = () => {
+export const signOut = () => {
   auth.signOut();
-  sessionStorage.removeItem("user");
+  sessionStorage.removeItem(SessionStorageEnum.USER_NAME);
+  sessionStorage.removeItem(SessionStorageEnum.USER_ID);
+  sessionStorage.removeItem(SessionStorageEnum.USER_EMAIL);
+  sessionStorage.removeItem(SessionStorageEnum.PROFILE_PICTURE);
+  sessionStorage.removeItem(SessionStorageEnum.EMAIL_IS_VERIFIED);
+  sessionStorage.removeItem(SessionStorageEnum.SIGN_IN_TYPE_NAME);
+  sessionStorage.removeItem(SessionStorageEnum.SIGN_IN_TYPE_IMAGE);
   location.reload();
 };

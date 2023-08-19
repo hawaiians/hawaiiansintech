@@ -1,5 +1,6 @@
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { signInWithLinkedInData } from "@/lib/firebase";
+import { handlePreviousPage } from "helpers";
 import { useRouter } from "next/router";
 
 export async function getServerSideProps() {
@@ -28,12 +29,12 @@ const handleFetchAuth = async (code, id, secret, redirect, router) => {
   });
   const linkedInData = await resp.json();
   signInWithLinkedInData(linkedInData);
-  router.push("/admin");
+  handlePreviousPage(router);
 };
 
 export default function oauth(props) {
   const router = useRouter();
-  const code = useRouter().query.code;
+  const code = router.query.code;
 
   handleFetchAuth(
     code,

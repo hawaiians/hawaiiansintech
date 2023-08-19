@@ -6,6 +6,7 @@ import { clsx } from "clsx";
 import * as addrs from "email-addresses";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
+import { SessionStorageEnum } from "./lib/enums";
 
 export function scrollToTop() {
   window.scrollTo({
@@ -79,4 +80,24 @@ export function useEmailCloaker(initialValue) {
 
 export function cn(...inputs) {
   return twMerge(clsx(inputs));
+}
+
+export function handlePreviousPage(router) {
+  if (typeof sessionStorage === "undefined") {
+    console.warn("Session storage is not supported by this browser.");
+    router.push("/");
+  }
+  if (sessionStorage.getItem(SessionStorageEnum.PREVIOUS_PAGE) === null) {
+    console.warn("The previous page wasn't set in session storage.");
+    router.push("/");
+  } else {
+    router.push(sessionStorage.getItem(SessionStorageEnum.PREVIOUS_PAGE));
+  }
+}
+
+export function capitalizeFirstLetters(string) {
+  return string
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 }

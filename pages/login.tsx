@@ -1,12 +1,15 @@
 import Button, { ButtonVariant } from "@/components/Button";
-import { Heading } from "@/components/Heading";
+import { Heading, Subheading } from "@/components/Heading";
 import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
 import Plausible from "@/components/Plausible";
+import { SessionStorageEnum, SignInTypeImgEnum } from "@/lib/enums";
 import { signInWithGoogle } from "@/lib/firebase";
 import { LINKEDIN_URL } from "@/lib/linkedin";
+import { handlePreviousPage } from "helpers";
 import Head from "next/head";
 import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 
 export async function getStaticProps() {
   return {
@@ -19,20 +22,25 @@ export async function getStaticProps() {
 
 export default function Login({ pageTitle, linkedInUrl }) {
   const router = useRouter();
-  const googleSignIn = async () => {
-    signInWithGoogle();
-    if (typeof sessionStorage === "undefined") {
-      console.log("Session storage is not supported by this browser.");
-      router.push("/");
+  const [userLoggedIn, setUserLoggedIn] = useState<boolean>(false);
+  const [showJoinListPrompt, setShowJoinListPrompt] = useState<boolean>(false);
+  useEffect(() => {
+    if (
+      typeof sessionStorage !== "undefined" &&
+      sessionStorage.getItem(SessionStorageEnum.PREVIOUS_PAGE) ===
+        "/join/01-you"
+    ) {
+      setShowJoinListPrompt(true);
     }
-    if (sessionStorage.getItem("previousPage") === null) {
-      console.error("Looks like the previous page wasn't set");
-      router.push("/");
-    } else {
-      router.push(sessionStorage.getItem("previousPage"));
+    if (
+      typeof sessionStorage !== "undefined" &&
+      sessionStorage.getItem(SessionStorageEnum.USER_NAME) !== null
+    ) {
+      console.log("user name found, redirecting to join");
+      setUserLoggedIn(true);
+      handlePreviousPage(router);
     }
-  };
-
+  });
   return (
     <>
       <Head>
@@ -40,9 +48,14 @@ export default function Login({ pageTitle, linkedInUrl }) {
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav backUrl="/" />
-      <section className="mx-auto max-w-2xl space-y-4 px-4">
-        <Heading>E Komo Mai!</Heading>
+      <Nav backUrl="/"></Nav>
+      <Heading>E Komo Mai!</Heading>
+      {showJoinListPrompt && (
+        <Subheading centered>
+          Before we get you on the list, let's get you signed in
+        </Subheading>
+      )}
+      <section className="mx-auto max-w-2xl space-y-4 px-4 pt-4">
         <Button
           fullWidth
           heightLarge
@@ -51,7 +64,7 @@ export default function Login({ pageTitle, linkedInUrl }) {
         >
           <div className="relative">
             <img
-              src="/images/linkedInLogo.png"
+              src={SignInTypeImgEnum.LINKEDIN}
               alt="LinkedIn Logo"
               className="absolute left-3 h-full"
             />
@@ -63,12 +76,12 @@ export default function Login({ pageTitle, linkedInUrl }) {
         </Button>
         <Button
           fullWidth
-          onClick={() => signInWithGoogle()}
+          onClick={signInWithGoogle}
           variant={ButtonVariant.Tertiary}
         >
           <div className="relative h-7">
             <img
-              src="/images/googleLogo.png"
+              src={SignInTypeImgEnum.GOOGLE}
               alt="Google Logo"
               className="absolute left-3 h-full"
             />

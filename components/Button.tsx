@@ -8,6 +8,7 @@ export enum ButtonVariant {
 }
 
 export enum ButtonSize {
+  ExtraSmall = "extra-small",
   Small = "small",
   Default = "default",
 }
@@ -72,9 +73,11 @@ export default function Button({
           "bg-tan-300 text-stone-700 hover:border-tan-500/20 hover:text-stone-900 focus:ring-tan-400/20",
         variant === ButtonVariant.Tertiary &&
           "rounded-3xl border-4 border-brown-600 bg-transparent text-stone-700 hover:border-brown-800 hover:text-stone-900",
+        size === ButtonSize.ExtraSmall &&
+          "rounded-md border-4 px-1 py-0 text-xs font-normal tracking-normal",
         size === ButtonSize.Small &&
           "rounded-md px-4 py-2 text-base tracking-normal",
-        heightLarge && "py-7"
+        heightLarge && "py-8"
       )}
       onClick={handleOnClick}
       disabled={disabled || loading}
