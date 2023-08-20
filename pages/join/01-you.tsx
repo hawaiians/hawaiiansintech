@@ -2,7 +2,7 @@ import ProgressBar from "@/components/form/ProgressBar";
 import { Heading, Subheading } from "@/components/Heading";
 import BasicInformationForm from "@/components/intake-form/BasicInformation";
 import MetaTags from "@/components/Metatags";
-import Nav from "@/components/Nav";
+import Nav, { SignInProps } from "@/components/Nav";
 import Plausible from "@/components/Plausible";
 import {
   SessionStorageEnum,
@@ -15,13 +15,51 @@ import { capitalizeFirstLetters } from "helpers";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-
 export async function getStaticProps() {
   return {
     props: {
       pageTitle: "Join · Hawaiians in Technology",
     },
   };
+}
+
+export function checkIfLoggedIn(
+  router: any,
+  setSignInProps: (signInProps: SignInProps) => void,
+  setIsLoggedIn: (isLoggedIn: boolean) => void,
+  setName?: (name: string) => void,
+  setEmail?: (email: string) => void,
+  setLinkedInPicture?: (picture: string) => void
+) {
+  if (
+    typeof sessionStorage === "undefined" ||
+    sessionStorage.getItem(SessionStorageEnum.USER_NAME) === null
+  ) {
+    sessionStorage.setItem(SessionStorageEnum.PREVIOUS_PAGE, "/join/01-you");
+    router.push({ pathname: `/login` });
+  } else {
+    setName &&
+      setName(
+        capitalizeFirstLetters(
+          sessionStorage.getItem(SessionStorageEnum.USER_NAME)
+        )
+      );
+    setEmail && setEmail(sessionStorage.getItem(SessionStorageEnum.USER_EMAIL));
+    setLinkedInPicture &&
+      setLinkedInPicture(
+        sessionStorage.getItem(SessionStorageEnum.PROFILE_PICTURE)
+      );
+    setSignInProps({
+      name: sessionStorage.getItem(SessionStorageEnum.USER_NAME),
+      type_name: sessionStorage.getItem(
+        SessionStorageEnum.SIGN_IN_TYPE_NAME
+      ) as SignInTypeNameEnum,
+      type_image: sessionStorage.getItem(
+        SessionStorageEnum.SIGN_IN_TYPE_IMAGE
+      ) as SignInTypeImgEnum,
+    });
+    setIsLoggedIn(true);
+  }
 }
 
 export default function JoinStep1({ pageTitle }) {
@@ -31,9 +69,7 @@ export default function JoinStep1({ pageTitle }) {
   const [name, setName] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [website, setWebsite] = useState<string>("");
-  const [loginName, setLoginName] = useState<string>("");
-  const [loginTypeName, setLoginTypeName] = useState<SignInTypeNameEnum>();
-  const [loginTypeImage, setLoginTypeImage] = useState<SignInTypeImgEnum>();
+  const [signInProps, setSignInProps] = useState<SignInProps>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
   // clear fields if param `r` is present
@@ -49,31 +85,7 @@ export default function JoinStep1({ pageTitle }) {
   }, [r]);
 
   useEffect(() => {
-    if (
-      typeof sessionStorage === "undefined" ||
-      sessionStorage.getItem(SessionStorageEnum.USER_NAME) === null
-    ) {
-      sessionStorage.setItem(SessionStorageEnum.PREVIOUS_PAGE, "/join/01-you");
-      router.push({ pathname: `/login` });
-    } else {
-      setName(
-        capitalizeFirstLetters(
-          sessionStorage.getItem(SessionStorageEnum.USER_NAME)
-        )
-      );
-      setLoginName(sessionStorage.getItem(SessionStorageEnum.USER_NAME));
-      setLoginTypeName(
-        sessionStorage.getItem(
-          SessionStorageEnum.SIGN_IN_TYPE_NAME
-        ) as SignInTypeNameEnum
-      );
-      setLoginTypeImage(
-        sessionStorage.getItem(
-          SessionStorageEnum.SIGN_IN_TYPE_IMAGE
-        ) as SignInTypeImgEnum
-      );
-      setIsLoggedIn(true);
-    }
+    checkIfLoggedIn(router, setSignInProps, setIsLoggedIn, setName);
     let storedName = getItem("jfName");
     let storedLocation = getItem("jfLocation");
     let storedWebsite = getItem("jfWebsite");
@@ -107,16 +119,7 @@ export default function JoinStep1({ pageTitle }) {
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav
-        backUrl="/"
-        signedIn={
-          isLoggedIn && {
-            name: loginName,
-            type_name: loginTypeName,
-            type_image: loginTypeImage,
-          }
-        }
-      />
+      <Nav backUrl="/" signedIn={isLoggedIn && signInProps} />
       <Heading>Welcome to our little hui.</Heading>
       <Subheading centered>
         To join the directory, we just ask that you are{" "}

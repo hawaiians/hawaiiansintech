@@ -17,6 +17,10 @@ export async function getServerSideProps() {
 }
 
 const handleFetchAuth = async (code, id, secret, redirect, router) => {
+  if ("error" in router.query) {
+    router.push("/login");
+    return;
+  }
   const resp = await fetch("/api/linkedin-data", {
     method: "POST",
     headers: { "Content-Type": "application/json" },

@@ -3,10 +3,11 @@ import ErrorMessage, {
   ErrorMessageProps,
 } from "@/components/form/ErrorMessage";
 import Input from "@/components/form/Input";
+import Label from "@/components/form/Label";
 import ProgressBar from "@/components/form/ProgressBar";
 import { Heading } from "@/components/Heading";
 import MetaTags from "@/components/Metatags";
-import Nav from "@/components/Nav";
+import Nav, { SignInProps } from "@/components/Nav";
 import Plausible from "@/components/Plausible";
 import { useStorage } from "@/lib/hooks";
 import { clearAllStoredFields, useInvalid } from "@/lib/utils";
@@ -16,6 +17,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import * as Yup from "yup";
+import { checkIfLoggedIn } from "./01-you";
 
 export async function getStaticProps() {
   return {
@@ -46,6 +48,11 @@ export default function JoinStep4({ pageTitle }) {
   const [validateAfterSubmit, setValidateAfterSubmit] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ErrorMessageProps>(undefined);
+  const [signInProps, setSignInProps] = useState<SignInProps>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+
+  const [linkedInPicture, setLinkedInPicture] = useState<string>("");
+  const [savedPicture, setSavedPicture] = useState<boolean>(true);
 
   const createMember = async () => {
     return new Promise((resolve, reject) => {
@@ -84,6 +91,14 @@ export default function JoinStep4({ pageTitle }) {
 
   // check localStorage and set pre-defined fields
   useEffect(() => {
+    checkIfLoggedIn(
+      router,
+      setSignInProps,
+      setIsLoggedIn,
+      undefined,
+      setEmail,
+      setLinkedInPicture
+    );
     let storedName = getItem("jfName");
     let storedLocation = getItem("jfLocation");
     let storedWebsite = getItem("jfWebsite");
@@ -137,7 +152,7 @@ export default function JoinStep4({ pageTitle }) {
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav backUrl="03-company" />
+      <Nav backUrl="03-company" signedIn={isLoggedIn && signInProps} />
 
       <Heading>Welcome to our little hui.</Heading>
 
@@ -158,9 +173,11 @@ export default function JoinStep4({ pageTitle }) {
           }}
           validationSchema={Yup.object().shape({
             email: Yup.string()
-              .email("That email doesn't look right. Please try again.")
+              .email(
+                "Aiyah, looks like we had some issues with the email on your account. Please try again later."
+              )
               .required(
-                "It's important that we can reach you. Email is required."
+                "Aiyah, looks like we had some issues with the email on your account. Please try again later."
               ),
             ageGate: Yup.boolean()
               .oneOf([true], "You must check this box to continue.")
@@ -190,16 +207,19 @@ export default function JoinStep4({ pageTitle }) {
                     </Link>
                   </p>
                 </div>
+                <Label
+                  label={
+                    signInProps
+                      ? `Lastly, we'll use the email on your ${signInProps.type_name} account`
+                      : "Lastly, we'll use the email on your account"
+                  }
+                />{" "}
                 <Input
                   name="email"
-                  label="What’s your email?"
-                  labelTranslation="He aha kou wahi leka uila?"
                   onBlur={props.handleBlur}
                   placeholder="Email Address"
+                  disabled
                   value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                  }}
                   error={props.touched.email && props.errors.email}
                 />
                 <label className="inline-block">
@@ -251,6 +271,33 @@ export default function JoinStep4({ pageTitle }) {
                     </p>
                   )}
                 </label>
+                <label className="inline-block">
+                  <input
+                    type="checkbox"
+                    name="save-my-picture"
+                    checked={savedPicture}
+                    onChange={() => setSavedPicture(!savedPicture)}
+                    className={`
+                    accent-ring
+                    focus:ring-6
+                    mr-2
+                    h-5
+                    w-5
+                    rounded
+                    accent-brown-600
+                    focus:ring-opacity-50
+                  `}
+                  />
+                  Please save my LinkedIn profile picture to use on my member
+                  entry:
+                </label>
+                <div className="mx-auto">
+                  <img
+                    src={linkedInPicture}
+                    alt="profile picture"
+                    className="ml-1 mr-1 h-40"
+                  />
+                </div>
                 <div className="mx-auto w-full max-w-md px-4">
                   <Button fullWidth loading={loading} type="submit">
                     Submit

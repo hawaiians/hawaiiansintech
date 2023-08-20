@@ -4,7 +4,7 @@ import WorkExperience, {
   WorkExperienceInitialProps,
 } from "@/components/intake-form/WorkExperience";
 import MetaTags from "@/components/Metatags";
-import Nav from "@/components/Nav";
+import Nav, { SignInProps } from "@/components/Nav";
 import Plausible from "@/components/Plausible";
 import { getFilters } from "@/lib/api";
 import { FirebaseTablesEnum } from "@/lib/enums";
@@ -13,6 +13,7 @@ import { FORM_LINKS, useInvalid } from "@/lib/utils";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { checkIfLoggedIn } from "./01-you";
 
 export async function getStaticProps() {
   let focuses = (await getFilters(FirebaseTablesEnum.FOCUSES)) ?? [];
@@ -28,18 +29,19 @@ export async function getStaticProps() {
 export default function JoinStep2({ focuses, pageTitle }) {
   const router = useRouter();
   const { getItem, setItem, removeItem } = useStorage();
-
   const [focusesSelected, setFocusesSelected] = useState<string[]>([]);
   const [focusSuggested, setFocusSuggested] = useState<string>("");
   const [title, setTitle] = useState<string>("");
   const [deferTitle, setDeferTitle] = useState<"true">();
   const [yearsExperience, setYearsExperience] = useState<string>();
-
+  const [signInProps, setSignInProps] = useState<SignInProps>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   // check invalid situation via previous required entries
   useInvalid({ currentPage: "02-work" });
 
   // check localStorage and set pre-defined fields
   useEffect(() => {
+    checkIfLoggedIn(router, setSignInProps, setIsLoggedIn);
     let storedFocuses = getItem("jfFocuses");
     let storedFocusSuggested = getItem("jfFocusSuggested");
     let storedTitle = getItem("jfTitle");
@@ -88,7 +90,7 @@ export default function JoinStep2({ focuses, pageTitle }) {
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav backUrl="01-you" />
+      <Nav backUrl="01-you" signedIn={isLoggedIn && signInProps} />
 
       <Heading>Welcome to our little hui.</Heading>
 

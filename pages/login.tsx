@@ -22,7 +22,6 @@ export async function getStaticProps() {
 
 export default function Login({ pageTitle, linkedInUrl }) {
   const router = useRouter();
-  const [userLoggedIn, setUserLoggedIn] = useState<boolean>(false);
   const [showJoinListPrompt, setShowJoinListPrompt] = useState<boolean>(false);
   useEffect(() => {
     if (
@@ -37,7 +36,6 @@ export default function Login({ pageTitle, linkedInUrl }) {
       sessionStorage.getItem(SessionStorageEnum.USER_NAME) !== null
     ) {
       console.log("user name found, redirecting to join");
-      setUserLoggedIn(true);
       handlePreviousPage(router);
     }
   });

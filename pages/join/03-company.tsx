@@ -12,7 +12,7 @@ import Selectable, {
 } from "@/components/form/Selectable";
 import { Heading } from "@/components/Heading";
 import MetaTags from "@/components/Metatags";
-import Nav from "@/components/Nav";
+import Nav, { SignInProps } from "@/components/Nav";
 import Plausible from "@/components/Plausible";
 import { getFilters } from "@/lib/api";
 import { CompanySizeEnum, FirebaseTablesEnum } from "@/lib/enums";
@@ -23,6 +23,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import theme from "styles/theme";
 import { scrollToTop } from "../../helpers";
+import { checkIfLoggedIn } from "./01-you";
 
 const NEXT_PAGE = "04-contact";
 
@@ -53,6 +54,8 @@ export default function JoinStep3({ industries, pageTitle }) {
   const [error, setError] = useState<ErrorMessageProps>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [columnCount, setColumnCount] = useState<2 | 3>(3);
+  const [signInProps, setSignInProps] = useState<SignInProps>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
   const totalIndustriesSelected =
     industriesSelected.length + (industrySuggested ? 1 : 0);
@@ -71,6 +74,7 @@ export default function JoinStep3({ industries, pageTitle }) {
 
   // check localStorage and set pre-defined fields
   useEffect(() => {
+    checkIfLoggedIn(router, setSignInProps, setIsLoggedIn);
     let storedIndustries = getItem("jfIndustries");
     let storedDeferIndustry = getItem("jfDeferIndustry");
     let storedCompanySize = getItem("jfCompanySize");
@@ -157,7 +161,7 @@ export default function JoinStep3({ industries, pageTitle }) {
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav backUrl="02-work" />
+      <Nav backUrl="02-work" signedIn={isLoggedIn && signInProps} />
 
       <Heading>Welcome to our little hui.</Heading>
       <section className="mx-auto mb-4 mt-0 max-w-3xl space-y-6 px-8">

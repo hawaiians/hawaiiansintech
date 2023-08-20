@@ -5,17 +5,19 @@ import { signOut } from "@/lib/firebase";
 import Link from "next/link";
 import Button, { ButtonSize, ButtonVariant } from "./Button";
 
+export interface SignInProps {
+  type_image: SignInTypeImgEnum;
+  type_name: SignInTypeNameEnum;
+  name: string;
+}
+
 interface NavProps {
   backUrl?: string;
   children?: React.ReactNode;
   primaryNav?: {
     show?: boolean;
   };
-  signedIn?: {
-    name?: string;
-    type_name?: SignInTypeNameEnum;
-    type_image?: SignInTypeImgEnum;
-  };
+  signedIn?: SignInProps;
 }
 
 export default function Nav({
@@ -87,7 +89,7 @@ export default function Nav({
         ) : null}
       </nav>
       {signedIn?.name ? (
-        <div className="ml-8 flex items-center justify-center text-xs text-green-600">
+        <div className="ml-12 flex items-center justify-center text-xs text-green-600">
           Signed in with
           <img
             src={signedIn.type_image}

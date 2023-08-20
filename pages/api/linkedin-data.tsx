@@ -81,6 +81,7 @@ const getLinkedInData = async (access_token: string): Promise<LinkedInData> => {
 };
 
 export default async function handler(req, res) {
+  // TODO: add error handling
   const access_token: string = await getAccessToken(
     req.body.code,
     req.body.id,
