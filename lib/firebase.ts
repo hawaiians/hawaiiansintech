@@ -60,6 +60,7 @@ export const signInWithLinkedInData = (linkedInData: LinkedInData) => {
     .then((result) => {
       const name = linkedInData.firstName + " " + linkedInData.lastName;
       sessionStorage.setItem(SessionStorageEnum.USER_NAME, name);
+      sessionStorage.setItem(SessionStorageEnum.USER_ID, linkedInData.token);
       sessionStorage.setItem(SessionStorageEnum.USER_EMAIL, linkedInData.email);
       sessionStorage.setItem(
         SessionStorageEnum.PROFILE_PICTURE,

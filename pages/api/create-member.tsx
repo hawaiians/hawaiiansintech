@@ -5,6 +5,7 @@ import {
 import {
   FirebaseDefaultValuesEnum,
   FirebaseTablesEnum,
+  SignInTypeNameEnum,
   StatusEnum,
 } from "@/lib/enums";
 import { db } from "@/lib/firebase";
@@ -29,18 +30,6 @@ import { useEmailCloaker } from "helpers";
 SendGrid.setApiKey(process.env.SENDGRID_API_KEY);
 Client.setApiKey(process.env.SENDGRID_API_KEY);
 
-const addPendingReviewRecord = async (
-  docReviewRef: DocumentReference,
-  collectionName: string
-) => {
-  const collectionRef = collection(db, "review");
-  const docRef = doc(collectionRef, collectionName);
-  await updateDoc(docRef, {
-    [collectionName]: arrayUnion(docReviewRef),
-    last_modified: serverTimestamp(),
-  });
-};
-
 const addLabelRef = async (
   label: string,
   collectionName: string
@@ -60,7 +49,6 @@ const addLabelRef = async (
       members: [],
     });
   }
-  addPendingReviewRecord(docRef, collectionName);
   return docRef;
 };
 
@@ -76,9 +64,11 @@ const addMemberToLabels = async (
   }
 };
 
-const addSecureEmail = async (
+const addSecureEmailAndAuth = async (
   email: string,
-  memberDocRef: DocumentReference
+  memberDocRef: DocumentReference,
+  authType: SignInTypeNameEnum,
+  uid: string
 ) => {
   await initializeAdmin();
   const collectionRef = admin
@@ -90,12 +80,16 @@ const addSecureEmail = async (
     last_modified_by: FirebaseDefaultValuesEnum.LAST_MODIFIED_BY,
     email: email,
     member: memberDocRef.path,
+    linkedin_token: authType === SignInTypeNameEnum.LINKEDIN ? uid : "",
+    google_uid: authType === SignInTypeNameEnum.GOOGLE ? uid : "",
   };
   await docRef.set(data);
   return docRef;
 };
 
-const addMember = async (member: MemberFields): Promise<DocumentReference> => {
+const addMember = async (
+  member: MemberFieldsEgressFirebase
+): Promise<DocumentReference> => {
   const collectionRef = collection(db, FirebaseTablesEnum.MEMBERS);
   const maskedEmail = useEmailCloaker(member.email);
   const maskedEmailString = `${maskedEmail[0]}...${maskedEmail[1]}${maskedEmail[2]}`;
@@ -107,11 +101,14 @@ const addMember = async (member: MemberFields): Promise<DocumentReference> => {
     requests: "",
     status: StatusEnum.PENDING,
     unsubscribed: member.unsubscribed,
+    linkedin_picture: member.linkedin_picture ? member.linkedin_picture : "",
   };
-  delete data.email; // Don't store email in the member record
+  // Don't store email, uid, auth_type in the general member record
+  delete data.email;
+  delete data.auth_type;
+  delete data.uid;
   const docRef = await addDoc(collectionRef, data);
-  addPendingReviewRecord(docRef, FirebaseTablesEnum.MEMBERS);
-  addSecureEmail(member.email, docRef);
+  addSecureEmailAndAuth(member.email, docRef, member.auth_type, member.uid);
   return docRef;
 };
 
@@ -149,7 +146,7 @@ const idsToRefs = async (
   return refs;
 };
 
-interface MemberFields {
+interface MemberFieldsApiBody {
   name: string;
   email: string;
   location: string;
@@ -164,24 +161,47 @@ interface MemberFields {
   companySize?: string;
   recordID?: string;
   unsubscribed?: boolean;
+  linkedInPicture?: string;
+  userId?: string;
+  authType?: SignInTypeNameEnum;
+}
+
+interface MemberFieldsEgressFirebase {
+  name: string;
+  email: string;
+  location: string;
+  link: string;
+  company_size: string;
+  focuses: DocumentReference[];
+  industries: DocumentReference[];
+  regions: DocumentReference[];
+  title: string;
+  years_experience: string;
+  unsubscribed: boolean;
+  linkedin_picture: string;
+  uid: string;
+  auth_type: SignInTypeNameEnum;
 }
 
 const addToFirebase = async (
-  fields: MemberFields
+  fields: MemberFieldsApiBody
 ): Promise<DocumentReference> => {
   let member = {
-    company_size: fields.companySize,
+    name: fields.name,
     email: fields.email,
+    location: fields.location,
+    link: fields.website, //TODO: Remove "website" input param and replace with "link"
+    company_size: fields.companySize,
     focuses: [],
     industries: [],
-    link: fields.website, //TODO: Remove "website" input param and replace with "link"
-    location: fields.location,
-    name: fields.name,
     regions: [],
     title: fields.title,
     years_experience: fields.yearsExperience,
     unsubscribed: fields.unsubscribed,
-  };
+    linkedin_picture: fields.linkedInPicture,
+    uid: fields.userId,
+    auth_type: fields.authType,
+  } as MemberFieldsEgressFirebase;
 
   // Handle focuses
   let focuses: DocumentReference[] = [];

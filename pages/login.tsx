@@ -35,7 +35,6 @@ export default function Login({ pageTitle, linkedInUrl }) {
       typeof sessionStorage !== "undefined" &&
       sessionStorage.getItem(SessionStorageEnum.USER_NAME) !== null
     ) {
-      console.log("user name found, redirecting to join");
       handlePreviousPage(router);
     }
   });

@@ -9,6 +9,7 @@ import { Heading } from "@/components/Heading";
 import MetaTags from "@/components/Metatags";
 import Nav, { SignInProps } from "@/components/Nav";
 import Plausible from "@/components/Plausible";
+import { SignInTypeNameEnum } from "@/lib/enums";
 import { useStorage } from "@/lib/hooks";
 import { clearAllStoredFields, useInvalid } from "@/lib/utils";
 import { Field, Formik } from "formik";
@@ -51,8 +52,9 @@ export default function JoinStep4({ pageTitle }) {
   const [signInProps, setSignInProps] = useState<SignInProps>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
+  const [userId, setUserId] = useState<string>("");
   const [linkedInPicture, setLinkedInPicture] = useState<string>("");
-  const [savedPicture, setSavedPicture] = useState<boolean>(true);
+  const [savePicture, setSavePicture] = useState<boolean>(true);
 
   const createMember = async () => {
     return new Promise((resolve, reject) => {
@@ -74,6 +76,10 @@ export default function JoinStep4({ pageTitle }) {
           companySize,
           email,
           unsubscribed: !subscribed,
+          linkedInPicture:
+            savePicture && linkedInPicture ? linkedInPicture : "",
+          userId: userId,
+          authType: signInProps.type_name,
         }),
       }).then(
         (response: Response) => {
@@ -97,7 +103,8 @@ export default function JoinStep4({ pageTitle }) {
       setIsLoggedIn,
       undefined,
       setEmail,
-      setLinkedInPicture
+      setLinkedInPicture,
+      setUserId
     );
     let storedName = getItem("jfName");
     let storedLocation = getItem("jfLocation");
@@ -271,13 +278,16 @@ export default function JoinStep4({ pageTitle }) {
                     </p>
                   )}
                 </label>
-                <label className="inline-block">
-                  <input
-                    type="checkbox"
-                    name="save-my-picture"
-                    checked={savedPicture}
-                    onChange={() => setSavedPicture(!savedPicture)}
-                    className={`
+                {signInProps &&
+                  signInProps.type_name === SignInTypeNameEnum.LINKEDIN && (
+                    <>
+                      <label className="inline-block">
+                        <input
+                          type="checkbox"
+                          name="save-my-picture"
+                          checked={savePicture}
+                          onChange={() => setSavePicture(!savePicture)}
+                          className={`
                     accent-ring
                     focus:ring-6
                     mr-2
@@ -287,17 +297,19 @@ export default function JoinStep4({ pageTitle }) {
                     accent-brown-600
                     focus:ring-opacity-50
                   `}
-                  />
-                  Please save my LinkedIn profile picture to use on my member
-                  entry:
-                </label>
-                <div className="mx-auto">
-                  <img
-                    src={linkedInPicture}
-                    alt="profile picture"
-                    className="ml-1 mr-1 h-40"
-                  />
-                </div>
+                        />
+                        Please save my LinkedIn profile picture to use on my
+                        member entry:
+                      </label>
+                      <div className="mx-auto">
+                        <img
+                          src={linkedInPicture}
+                          alt="profile picture"
+                          className="ml-1 mr-1 h-40"
+                        />
+                      </div>
+                    </>
+                  )}
                 <div className="mx-auto w-full max-w-md px-4">
                   <Button fullWidth loading={loading} type="submit">
                     Submit

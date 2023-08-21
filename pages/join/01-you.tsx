@@ -29,11 +29,13 @@ export function checkIfLoggedIn(
   setIsLoggedIn: (isLoggedIn: boolean) => void,
   setName?: (name: string) => void,
   setEmail?: (email: string) => void,
-  setLinkedInPicture?: (picture: string) => void
+  setLinkedInPicture?: (picture: string) => void,
+  setUserId?: (userId: string) => void
 ) {
   if (
     typeof sessionStorage === "undefined" ||
-    sessionStorage.getItem(SessionStorageEnum.USER_NAME) === null
+    sessionStorage.getItem(SessionStorageEnum.USER_NAME) === null ||
+    sessionStorage.getItem(SessionStorageEnum.USER_ID) === null
   ) {
     sessionStorage.setItem(SessionStorageEnum.PREVIOUS_PAGE, "/join/01-you");
     router.push({ pathname: `/login` });
@@ -49,6 +51,7 @@ export function checkIfLoggedIn(
       setLinkedInPicture(
         sessionStorage.getItem(SessionStorageEnum.PROFILE_PICTURE)
       );
+    setUserId && setUserId(sessionStorage.getItem(SessionStorageEnum.USER_ID));
     setSignInProps({
       name: sessionStorage.getItem(SessionStorageEnum.USER_NAME),
       type_name: sessionStorage.getItem(
