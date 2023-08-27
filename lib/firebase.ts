@@ -8,11 +8,7 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 import { getStorage } from "firebase/storage";
-import {
-  LoginTypeImgEnum,
-  LoginTypeNameEnum,
-  SessionStorageEnum,
-} from "./enums";
+import { LoginTypeImgEnum, LoginTypeNameEnum, StorageEnum } from "./enums";
 
 export const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -33,32 +29,26 @@ export const signInWithGoogle = () => {
     .then((result) => {
       if (!result.user.emailVerified) {
         sessionStorage.setItem(
-          SessionStorageEnum.LOGIN_ERROR_MESSAGE,
+          StorageEnum.LOGIN_ERROR_MESSAGE,
           "Your Google email is not verified. Please sign in with a verified account."
         );
       } else {
+        sessionStorage.setItem(StorageEnum.USER_NAME, result.user.displayName);
+        sessionStorage.setItem(StorageEnum.USER_ID, result.user.uid);
+        sessionStorage.setItem(StorageEnum.USER_EMAIL, result.user.email);
         sessionStorage.setItem(
-          SessionStorageEnum.USER_NAME,
-          result.user.displayName
-        );
-        sessionStorage.setItem(SessionStorageEnum.USER_ID, result.user.uid);
-        sessionStorage.setItem(
-          SessionStorageEnum.USER_EMAIL,
-          result.user.email
-        );
-        sessionStorage.setItem(
-          SessionStorageEnum.EMAIL_IS_VERIFIED,
+          StorageEnum.EMAIL_IS_VERIFIED,
           String(result.user.emailVerified)
         );
         sessionStorage.setItem(
-          SessionStorageEnum.LOGIN_TYPE_NAME,
+          StorageEnum.LOGIN_TYPE_NAME,
           LoginTypeNameEnum.GOOGLE
         );
         sessionStorage.setItem(
-          SessionStorageEnum.LOGIN_TYPE_IMAGE,
+          StorageEnum.LOGIN_TYPE_IMAGE,
           LoginTypeImgEnum.GOOGLE
         );
-        sessionStorage.setItem(SessionStorageEnum.LOGIN_ERROR_MESSAGE, "");
+        sessionStorage.setItem(StorageEnum.LOGIN_ERROR_MESSAGE, "");
       }
       location.reload();
     })
@@ -70,22 +60,22 @@ export const signInWithLinkedInData = (linkedInData: LinkedInData) => {
   signInWithCustomToken(auth, linkedInData.token)
     .then((result) => {
       const name = linkedInData.firstName + " " + linkedInData.lastName;
-      sessionStorage.setItem(SessionStorageEnum.USER_NAME, name);
-      sessionStorage.setItem(SessionStorageEnum.USER_ID, linkedInData.token);
-      sessionStorage.setItem(SessionStorageEnum.USER_EMAIL, linkedInData.email);
+      sessionStorage.setItem(StorageEnum.USER_NAME, name);
+      sessionStorage.setItem(StorageEnum.USER_ID, linkedInData.token);
+      sessionStorage.setItem(StorageEnum.USER_EMAIL, linkedInData.email);
       sessionStorage.setItem(
-        SessionStorageEnum.PROFILE_PICTURE,
+        StorageEnum.PROFILE_PICTURE,
         linkedInData.profilePicture
       );
       sessionStorage.setItem(
-        SessionStorageEnum.LOGIN_TYPE_NAME,
+        StorageEnum.LOGIN_TYPE_NAME,
         LoginTypeNameEnum.LINKEDIN
       );
       sessionStorage.setItem(
-        SessionStorageEnum.LOGIN_TYPE_IMAGE,
+        StorageEnum.LOGIN_TYPE_IMAGE,
         LoginTypeImgEnum.LINKEDIN
       );
-      sessionStorage.setItem(SessionStorageEnum.LOGIN_ERROR_MESSAGE, "");
+      sessionStorage.setItem(StorageEnum.LOGIN_ERROR_MESSAGE, "");
     })
     .catch((error) => {
       console.error("Error signing in with linkedInData:", error);
@@ -93,12 +83,12 @@ export const signInWithLinkedInData = (linkedInData: LinkedInData) => {
 };
 export const signOut = () => {
   auth.signOut();
-  sessionStorage.removeItem(SessionStorageEnum.USER_NAME);
-  sessionStorage.removeItem(SessionStorageEnum.USER_ID);
-  sessionStorage.removeItem(SessionStorageEnum.USER_EMAIL);
-  sessionStorage.removeItem(SessionStorageEnum.PROFILE_PICTURE);
-  sessionStorage.removeItem(SessionStorageEnum.EMAIL_IS_VERIFIED);
-  sessionStorage.removeItem(SessionStorageEnum.LOGIN_TYPE_NAME);
-  sessionStorage.removeItem(SessionStorageEnum.LOGIN_TYPE_IMAGE);
+  sessionStorage.removeItem(StorageEnum.USER_NAME);
+  sessionStorage.removeItem(StorageEnum.USER_ID);
+  sessionStorage.removeItem(StorageEnum.USER_EMAIL);
+  sessionStorage.removeItem(StorageEnum.PROFILE_PICTURE);
+  sessionStorage.removeItem(StorageEnum.EMAIL_IS_VERIFIED);
+  sessionStorage.removeItem(StorageEnum.LOGIN_TYPE_NAME);
+  sessionStorage.removeItem(StorageEnum.LOGIN_TYPE_IMAGE);
   location.reload();
 };

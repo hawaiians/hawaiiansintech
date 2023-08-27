@@ -4,7 +4,7 @@ import { Heading, Subheading } from "@/components/Heading";
 import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
 import Plausible from "@/components/Plausible";
-import { LoginTypeImgEnum, SessionStorageEnum } from "@/lib/enums";
+import { LoginTypeImgEnum, StorageEnum } from "@/lib/enums";
 import { signInWithGoogle } from "@/lib/firebase";
 import { LINKEDIN_URL } from "@/lib/linkedin";
 import { handlePreviousPage } from "helpers";
@@ -25,21 +25,15 @@ export default function Login({ pageTitle, linkedInUrl }) {
   const router = useRouter();
   const [showJoinListPrompt, setShowJoinListPrompt] = useState<boolean>(false);
   const [loginError, setLoginError] = useState<string>("");
+
   useEffect(() => {
     if (typeof sessionStorage !== "undefined") {
-      if (
-        sessionStorage.getItem(SessionStorageEnum.PREVIOUS_PAGE) ===
-        "/join/01-you"
-      )
+      if (sessionStorage.getItem(StorageEnum.PREVIOUS_PAGE) === "/join/01-you")
         setShowJoinListPrompt(true);
-      if (sessionStorage.getItem(SessionStorageEnum.USER_NAME) !== null)
+      if (sessionStorage.getItem(StorageEnum.USER_NAME) !== null)
         handlePreviousPage(router);
-      if (
-        sessionStorage.getItem(SessionStorageEnum.LOGIN_ERROR_MESSAGE) !== null
-      )
-        setLoginError(
-          sessionStorage.getItem(SessionStorageEnum.LOGIN_ERROR_MESSAGE)
-        );
+      if (sessionStorage.getItem(StorageEnum.LOGIN_ERROR_MESSAGE) !== null)
+        setLoginError(sessionStorage.getItem(StorageEnum.LOGIN_ERROR_MESSAGE));
     }
   });
   return (

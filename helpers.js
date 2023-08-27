@@ -2,12 +2,11 @@
 add when converting helper file to typescript
 // import { clsx, type ClassValue } from "clsx";
 */
+import { StorageEnum } from "@/lib/enums";
 import { clsx } from "clsx";
 import * as addrs from "email-addresses";
 import { useState } from "react";
 import { twMerge } from "tailwind-merge";
-import { SessionStorageEnum } from "./lib/enums";
-
 export function scrollToTop() {
   window.scrollTo({
     top: 0,
@@ -87,11 +86,11 @@ export function handlePreviousPage(router) {
     console.warn("Session storage is not supported by this browser.");
     router.push("/");
   }
-  if (sessionStorage.getItem(SessionStorageEnum.PREVIOUS_PAGE) === null) {
+  if (sessionStorage.getItem(StorageEnum.PREVIOUS_PAGE) === null) {
     console.warn("The previous page wasn't set in session storage.");
     router.push("/");
   } else {
-    router.push(sessionStorage.getItem(SessionStorageEnum.PREVIOUS_PAGE));
+    router.push(sessionStorage.getItem(StorageEnum.PREVIOUS_PAGE));
   }
 }
 

@@ -51,7 +51,7 @@ export enum LoginTypeImgEnum {
   LINKEDIN = "/images/linkedInLogo.png",
 }
 
-export enum SessionStorageEnum {
+export enum StorageEnum {
   PREVIOUS_PAGE = "previousPage",
   USER_NAME = "userName",
   USER_ID = "uid",

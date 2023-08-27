@@ -4,11 +4,7 @@ import BasicInformationForm from "@/components/intake-form/BasicInformation";
 import MetaTags from "@/components/Metatags";
 import Nav, { SignInProps } from "@/components/Nav";
 import Plausible from "@/components/Plausible";
-import {
-  LoginTypeImgEnum,
-  LoginTypeNameEnum,
-  SessionStorageEnum,
-} from "@/lib/enums";
+import { LoginTypeImgEnum, LoginTypeNameEnum, StorageEnum } from "@/lib/enums";
 import { useStorage } from "@/lib/hooks";
 import { clearAllStoredFields } from "@/lib/utils";
 import { capitalizeFirstLetters } from "helpers";
@@ -34,31 +30,27 @@ export function checkIfLoggedIn(
 ) {
   if (
     typeof sessionStorage === "undefined" ||
-    sessionStorage.getItem(SessionStorageEnum.USER_NAME) === null ||
-    sessionStorage.getItem(SessionStorageEnum.USER_ID) === null
+    sessionStorage.getItem(StorageEnum.USER_NAME) === null ||
+    sessionStorage.getItem(StorageEnum.USER_ID) === null
   ) {
-    sessionStorage.setItem(SessionStorageEnum.PREVIOUS_PAGE, "/join/01-you");
+    sessionStorage.setItem(StorageEnum.PREVIOUS_PAGE, "/join/01-you");
     router.push({ pathname: `/login` });
   } else {
     setName &&
       setName(
-        capitalizeFirstLetters(
-          sessionStorage.getItem(SessionStorageEnum.USER_NAME)
-        )
+        capitalizeFirstLetters(sessionStorage.getItem(StorageEnum.USER_NAME))
       );
-    setEmail && setEmail(sessionStorage.getItem(SessionStorageEnum.USER_EMAIL));
+    setEmail && setEmail(sessionStorage.getItem(StorageEnum.USER_EMAIL));
     setLinkedInPicture &&
-      setLinkedInPicture(
-        sessionStorage.getItem(SessionStorageEnum.PROFILE_PICTURE)
-      );
-    setUserId && setUserId(sessionStorage.getItem(SessionStorageEnum.USER_ID));
+      setLinkedInPicture(sessionStorage.getItem(StorageEnum.PROFILE_PICTURE));
+    setUserId && setUserId(sessionStorage.getItem(StorageEnum.USER_ID));
     setSignInProps({
-      name: sessionStorage.getItem(SessionStorageEnum.USER_NAME),
+      name: sessionStorage.getItem(StorageEnum.USER_NAME),
       type_name: sessionStorage.getItem(
-        SessionStorageEnum.LOGIN_TYPE_NAME
+        StorageEnum.LOGIN_TYPE_NAME
       ) as LoginTypeNameEnum,
       type_image: sessionStorage.getItem(
-        SessionStorageEnum.LOGIN_TYPE_IMAGE
+        StorageEnum.LOGIN_TYPE_IMAGE
       ) as LoginTypeImgEnum,
     });
     setIsLoggedIn(true);
