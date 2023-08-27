@@ -41,12 +41,12 @@ export enum FirebaseDefaultValuesEnum {
   LAST_MODIFIED_BY = "new_member_form",
 }
 
-export enum SignInTypeNameEnum {
+export enum LoginTypeNameEnum {
   GOOGLE = "Google",
   LINKEDIN = "LinkedIn",
 }
 
-export enum SignInTypeImgEnum {
+export enum LoginTypeImgEnum {
   GOOGLE = "/images/googleLogo.png",
   LINKEDIN = "/images/linkedInLogo.png",
 }
@@ -58,6 +58,7 @@ export enum SessionStorageEnum {
   USER_EMAIL = "email",
   PROFILE_PICTURE = "profilePicture",
   EMAIL_IS_VERIFIED = "emailIsVerified",
-  SIGN_IN_TYPE_NAME = "signInTypeName",
-  SIGN_IN_TYPE_IMAGE = "signInTypeImage",
+  LOGIN_TYPE_NAME = "loginTypeName",
+  LOGIN_TYPE_IMAGE = "loginTypeImage",
+  LOGIN_ERROR_MESSAGE = "loginErrorMessage",
 }

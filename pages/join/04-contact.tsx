@@ -9,7 +9,7 @@ import { Heading } from "@/components/Heading";
 import MetaTags from "@/components/Metatags";
 import Nav, { SignInProps } from "@/components/Nav";
 import Plausible from "@/components/Plausible";
-import { SignInTypeNameEnum } from "@/lib/enums";
+import { LoginTypeNameEnum } from "@/lib/enums";
 import { useStorage } from "@/lib/hooks";
 import { clearAllStoredFields, useInvalid } from "@/lib/utils";
 import { Field, Formik } from "formik";
@@ -279,7 +279,7 @@ export default function JoinStep4({ pageTitle }) {
                   )}
                 </label>
                 {signInProps &&
-                  signInProps.type_name === SignInTypeNameEnum.LINKEDIN && (
+                  signInProps.type_name === LoginTypeNameEnum.LINKEDIN && (
                     <>
                       <label className="inline-block">
                         <input

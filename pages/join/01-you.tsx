@@ -5,9 +5,9 @@ import MetaTags from "@/components/Metatags";
 import Nav, { SignInProps } from "@/components/Nav";
 import Plausible from "@/components/Plausible";
 import {
+  LoginTypeImgEnum,
+  LoginTypeNameEnum,
   SessionStorageEnum,
-  SignInTypeImgEnum,
-  SignInTypeNameEnum,
 } from "@/lib/enums";
 import { useStorage } from "@/lib/hooks";
 import { clearAllStoredFields } from "@/lib/utils";
@@ -55,11 +55,11 @@ export function checkIfLoggedIn(
     setSignInProps({
       name: sessionStorage.getItem(SessionStorageEnum.USER_NAME),
       type_name: sessionStorage.getItem(
-        SessionStorageEnum.SIGN_IN_TYPE_NAME
-      ) as SignInTypeNameEnum,
+        SessionStorageEnum.LOGIN_TYPE_NAME
+      ) as LoginTypeNameEnum,
       type_image: sessionStorage.getItem(
-        SessionStorageEnum.SIGN_IN_TYPE_IMAGE
-      ) as SignInTypeImgEnum,
+        SessionStorageEnum.LOGIN_TYPE_IMAGE
+      ) as LoginTypeImgEnum,
     });
     setIsLoggedIn(true);
   }

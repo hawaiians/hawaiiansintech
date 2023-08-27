@@ -9,9 +9,9 @@ import {
 } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 import {
+  LoginTypeImgEnum,
+  LoginTypeNameEnum,
   SessionStorageEnum,
-  SignInTypeImgEnum,
-  SignInTypeNameEnum,
 } from "./enums";
 
 export const firebaseConfig = {
@@ -31,24 +31,35 @@ export const storage = getStorage(app);
 export const signInWithGoogle = () => {
   signInWithPopup(auth, provider)
     .then((result) => {
-      sessionStorage.setItem(
-        SessionStorageEnum.USER_NAME,
-        result.user.displayName
-      );
-      sessionStorage.setItem(SessionStorageEnum.USER_ID, result.user.uid);
-      sessionStorage.setItem(SessionStorageEnum.USER_EMAIL, result.user.email);
-      sessionStorage.setItem(
-        SessionStorageEnum.EMAIL_IS_VERIFIED,
-        String(result.user.emailVerified)
-      );
-      sessionStorage.setItem(
-        SessionStorageEnum.SIGN_IN_TYPE_NAME,
-        SignInTypeNameEnum.GOOGLE
-      );
-      sessionStorage.setItem(
-        SessionStorageEnum.SIGN_IN_TYPE_IMAGE,
-        SignInTypeImgEnum.GOOGLE
-      );
+      if (!result.user.emailVerified) {
+        sessionStorage.setItem(
+          SessionStorageEnum.LOGIN_ERROR_MESSAGE,
+          "Your Google email is not verified. Please sign in with a verified account."
+        );
+      } else {
+        sessionStorage.setItem(
+          SessionStorageEnum.USER_NAME,
+          result.user.displayName
+        );
+        sessionStorage.setItem(SessionStorageEnum.USER_ID, result.user.uid);
+        sessionStorage.setItem(
+          SessionStorageEnum.USER_EMAIL,
+          result.user.email
+        );
+        sessionStorage.setItem(
+          SessionStorageEnum.EMAIL_IS_VERIFIED,
+          String(result.user.emailVerified)
+        );
+        sessionStorage.setItem(
+          SessionStorageEnum.LOGIN_TYPE_NAME,
+          LoginTypeNameEnum.GOOGLE
+        );
+        sessionStorage.setItem(
+          SessionStorageEnum.LOGIN_TYPE_IMAGE,
+          LoginTypeImgEnum.GOOGLE
+        );
+        sessionStorage.setItem(SessionStorageEnum.LOGIN_ERROR_MESSAGE, "");
+      }
       location.reload();
     })
     .catch((error) => {
@@ -67,13 +78,14 @@ export const signInWithLinkedInData = (linkedInData: LinkedInData) => {
         linkedInData.profilePicture
       );
       sessionStorage.setItem(
-        SessionStorageEnum.SIGN_IN_TYPE_NAME,
-        SignInTypeNameEnum.LINKEDIN
+        SessionStorageEnum.LOGIN_TYPE_NAME,
+        LoginTypeNameEnum.LINKEDIN
       );
       sessionStorage.setItem(
-        SessionStorageEnum.SIGN_IN_TYPE_IMAGE,
-        SignInTypeImgEnum.LINKEDIN
+        SessionStorageEnum.LOGIN_TYPE_IMAGE,
+        LoginTypeImgEnum.LINKEDIN
       );
+      sessionStorage.setItem(SessionStorageEnum.LOGIN_ERROR_MESSAGE, "");
     })
     .catch((error) => {
       console.error("Error signing in with linkedInData:", error);
@@ -86,7 +98,7 @@ export const signOut = () => {
   sessionStorage.removeItem(SessionStorageEnum.USER_EMAIL);
   sessionStorage.removeItem(SessionStorageEnum.PROFILE_PICTURE);
   sessionStorage.removeItem(SessionStorageEnum.EMAIL_IS_VERIFIED);
-  sessionStorage.removeItem(SessionStorageEnum.SIGN_IN_TYPE_NAME);
-  sessionStorage.removeItem(SessionStorageEnum.SIGN_IN_TYPE_IMAGE);
+  sessionStorage.removeItem(SessionStorageEnum.LOGIN_TYPE_NAME);
+  sessionStorage.removeItem(SessionStorageEnum.LOGIN_TYPE_IMAGE);
   location.reload();
 };

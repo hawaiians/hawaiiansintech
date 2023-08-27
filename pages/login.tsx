@@ -1,9 +1,10 @@
 import Button, { ButtonVariant } from "@/components/Button";
+import ErrorMessage from "@/components/form/ErrorMessage";
 import { Heading, Subheading } from "@/components/Heading";
 import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
 import Plausible from "@/components/Plausible";
-import { SessionStorageEnum, SignInTypeImgEnum } from "@/lib/enums";
+import { LoginTypeImgEnum, SessionStorageEnum } from "@/lib/enums";
 import { signInWithGoogle } from "@/lib/firebase";
 import { LINKEDIN_URL } from "@/lib/linkedin";
 import { handlePreviousPage } from "helpers";
@@ -23,19 +24,22 @@ export async function getStaticProps() {
 export default function Login({ pageTitle, linkedInUrl }) {
   const router = useRouter();
   const [showJoinListPrompt, setShowJoinListPrompt] = useState<boolean>(false);
+  const [loginError, setLoginError] = useState<string>("");
   useEffect(() => {
-    if (
-      typeof sessionStorage !== "undefined" &&
-      sessionStorage.getItem(SessionStorageEnum.PREVIOUS_PAGE) ===
+    if (typeof sessionStorage !== "undefined") {
+      if (
+        sessionStorage.getItem(SessionStorageEnum.PREVIOUS_PAGE) ===
         "/join/01-you"
-    ) {
-      setShowJoinListPrompt(true);
-    }
-    if (
-      typeof sessionStorage !== "undefined" &&
-      sessionStorage.getItem(SessionStorageEnum.USER_NAME) !== null
-    ) {
-      handlePreviousPage(router);
+      )
+        setShowJoinListPrompt(true);
+      if (sessionStorage.getItem(SessionStorageEnum.USER_NAME) !== null)
+        handlePreviousPage(router);
+      if (
+        sessionStorage.getItem(SessionStorageEnum.LOGIN_ERROR_MESSAGE) !== null
+      )
+        setLoginError(
+          sessionStorage.getItem(SessionStorageEnum.LOGIN_ERROR_MESSAGE)
+        );
     }
   });
   return (
@@ -61,7 +65,7 @@ export default function Login({ pageTitle, linkedInUrl }) {
         >
           <div className="relative">
             <img
-              src={SignInTypeImgEnum.LINKEDIN}
+              src={LoginTypeImgEnum.LINKEDIN}
               alt="LinkedIn Logo"
               className="absolute left-3 h-full"
             />
@@ -78,7 +82,7 @@ export default function Login({ pageTitle, linkedInUrl }) {
         >
           <div className="relative h-7">
             <img
-              src={SignInTypeImgEnum.GOOGLE}
+              src={LoginTypeImgEnum.GOOGLE}
               alt="Google Logo"
               className="absolute left-3 h-full"
             />
@@ -87,6 +91,12 @@ export default function Login({ pageTitle, linkedInUrl }) {
             </div>
           </div>{" "}
         </Button>
+        {loginError !== "" && (
+          <ErrorMessage
+            headline={"Kala mai, small kine issue with your login:"}
+            body={loginError}
+          />
+        )}
       </section>
     </>
   );

@@ -1,13 +1,13 @@
 import HitLogo from "@/components/HitLogo";
 import { Icon, IconAsset, IconColor } from "@/components/icon/icon";
-import { SignInTypeImgEnum, SignInTypeNameEnum } from "@/lib/enums";
+import { LoginTypeImgEnum, LoginTypeNameEnum } from "@/lib/enums";
 import { signOut } from "@/lib/firebase";
 import Link from "next/link";
 import Button, { ButtonSize, ButtonVariant } from "./Button";
 
 export interface SignInProps {
-  type_image: SignInTypeImgEnum;
-  type_name: SignInTypeNameEnum;
+  type_image: LoginTypeImgEnum;
+  type_name: LoginTypeNameEnum;
   name: string;
 }
 

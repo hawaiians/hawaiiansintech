@@ -5,7 +5,7 @@ import {
 import {
   FirebaseDefaultValuesEnum,
   FirebaseTablesEnum,
-  SignInTypeNameEnum,
+  LoginTypeNameEnum,
   StatusEnum,
 } from "@/lib/enums";
 import { db } from "@/lib/firebase";
@@ -67,7 +67,7 @@ const addMemberToLabels = async (
 const addSecureEmailAndAuth = async (
   email: string,
   memberDocRef: DocumentReference,
-  authType: SignInTypeNameEnum,
+  authType: LoginTypeNameEnum,
   uid: string
 ) => {
   await initializeAdmin();
@@ -80,8 +80,8 @@ const addSecureEmailAndAuth = async (
     last_modified_by: FirebaseDefaultValuesEnum.LAST_MODIFIED_BY,
     email: email,
     member: memberDocRef.path,
-    linkedin_token: authType === SignInTypeNameEnum.LINKEDIN ? uid : "",
-    google_uid: authType === SignInTypeNameEnum.GOOGLE ? uid : "",
+    linkedin_token: authType === LoginTypeNameEnum.LINKEDIN ? uid : "",
+    google_uid: authType === LoginTypeNameEnum.GOOGLE ? uid : "",
   };
   await docRef.set(data);
   return docRef;
@@ -163,7 +163,7 @@ interface MemberFieldsApiBody {
   unsubscribed?: boolean;
   linkedInPicture?: string;
   userId?: string;
-  authType?: SignInTypeNameEnum;
+  authType?: LoginTypeNameEnum;
 }
 
 interface MemberFieldsEgressFirebase {
@@ -180,7 +180,7 @@ interface MemberFieldsEgressFirebase {
   unsubscribed: boolean;
   linkedin_picture: string;
   uid: string;
-  auth_type: SignInTypeNameEnum;
+  auth_type: LoginTypeNameEnum;
 }
 
 const addToFirebase = async (
