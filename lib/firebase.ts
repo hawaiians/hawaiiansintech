@@ -81,7 +81,7 @@ export const signInWithLinkedInData = (linkedInData: LinkedInData) => {
       console.error("Error signing in with linkedInData:", error);
     });
 };
-export const signOut = () => {
+export const signOut = (reload: boolean) => {
   auth.signOut();
   sessionStorage.removeItem(StorageEnum.USER_NAME);
   sessionStorage.removeItem(StorageEnum.USER_ID);
@@ -90,5 +90,5 @@ export const signOut = () => {
   sessionStorage.removeItem(StorageEnum.EMAIL_IS_VERIFIED);
   sessionStorage.removeItem(StorageEnum.LOGIN_TYPE_NAME);
   sessionStorage.removeItem(StorageEnum.LOGIN_TYPE_IMAGE);
-  location.reload();
+  if (reload) location.reload();
 };

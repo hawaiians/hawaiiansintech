@@ -1,15 +1,9 @@
 import HitLogo from "@/components/HitLogo";
 import { Icon, IconAsset, IconColor } from "@/components/icon/icon";
-import { LoginTypeImgEnum, LoginTypeNameEnum } from "@/lib/enums";
+import { StorageEnum } from "@/lib/enums";
 import { signOut } from "@/lib/firebase";
 import Link from "next/link";
 import Button, { ButtonSize, ButtonVariant } from "./Button";
-
-export interface SignInProps {
-  type_image: LoginTypeImgEnum;
-  type_name: LoginTypeNameEnum;
-  name: string;
-}
 
 interface NavProps {
   backUrl?: string;
@@ -17,14 +11,14 @@ interface NavProps {
   primaryNav?: {
     show?: boolean;
   };
-  signedIn?: SignInProps;
+  signInName?: string;
 }
 
 export default function Nav({
   backUrl,
   children,
   primaryNav,
-  signedIn,
+  signInName,
 }: NavProps) {
   let logo = <HitLogo inline />;
   if (backUrl) {
@@ -88,20 +82,20 @@ export default function Nav({
           </div>
         ) : null}
       </nav>
-      {signedIn?.name ? (
+      {signInName ? (
         <div className="ml-12 flex items-center justify-center text-xs text-green-600">
           Signed in with
           <img
-            src={signedIn.type_image}
+            src={sessionStorage.getItem(StorageEnum.LOGIN_TYPE_IMAGE)}
             alt="sign in type"
             className="ml-1 mr-1 h-4"
           />
-          {signedIn.type_name} as {signedIn.name}
+          {sessionStorage.getItem(StorageEnum.LOGIN_TYPE_NAME)} as {signInName}
           <div className="ml-2">
             <Button
               variant={ButtonVariant.Secondary}
               size={ButtonSize.ExtraSmall}
-              onClick={signOut}
+              onClick={() => signOut(true)}
             >
               Sign Out
             </Button>

@@ -12,18 +12,20 @@ import Selectable, {
 } from "@/components/form/Selectable";
 import { Heading } from "@/components/Heading";
 import MetaTags from "@/components/Metatags";
-import Nav, { SignInProps } from "@/components/Nav";
+import Nav from "@/components/Nav";
 import Plausible from "@/components/Plausible";
 import { getFilters } from "@/lib/api";
 import { CompanySizeEnum, FirebaseTablesEnum } from "@/lib/enums";
 import { useStorage, useWindowWidth } from "@/lib/hooks";
 import { FORM_LINKS, useInvalid } from "@/lib/utils";
+import { getAuth } from "firebase/auth";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
 import theme from "styles/theme";
 import { scrollToTop } from "../../helpers";
-import { checkIfLoggedIn } from "./01-you";
+import { getUserName, handleUser } from "./01-you";
 
 const NEXT_PAGE = "04-contact";
 
@@ -54,8 +56,7 @@ export default function JoinStep3({ industries, pageTitle }) {
   const [error, setError] = useState<ErrorMessageProps>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [columnCount, setColumnCount] = useState<2 | 3>(3);
-  const [signInProps, setSignInProps] = useState<SignInProps>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [user, authLoading, authStateError] = useAuthState(getAuth());
 
   const totalIndustriesSelected =
     industriesSelected.length + (industrySuggested ? 1 : 0);
@@ -74,7 +75,6 @@ export default function JoinStep3({ industries, pageTitle }) {
 
   // check localStorage and set pre-defined fields
   useEffect(() => {
-    checkIfLoggedIn(router, setSignInProps, setIsLoggedIn);
     let storedIndustries = getItem("jfIndustries");
     let storedDeferIndustry = getItem("jfDeferIndustry");
     let storedCompanySize = getItem("jfCompanySize");
@@ -93,7 +93,8 @@ export default function JoinStep3({ industries, pageTitle }) {
       setDeferIndustry("true");
     }
     if (storedCompanySize) setCompanySize(storedCompanySize);
-  }, []);
+    handleUser(authLoading, user, router, "/join/03-company");
+  }, [authLoading, user, router]);
 
   useEffect(() => {
     if (error) scrollToTop();
@@ -161,7 +162,10 @@ export default function JoinStep3({ industries, pageTitle }) {
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav backUrl="02-work" signedIn={isLoggedIn && signInProps} />
+      <Nav
+        backUrl="/"
+        signInName={typeof window !== "undefined" ? getUserName(user) : ""}
+      />
 
       <Heading>Welcome to our little hui.</Heading>
       <section className="mx-auto mb-4 mt-0 max-w-3xl space-y-6 px-8">

@@ -7,18 +7,21 @@ import Label from "@/components/form/Label";
 import ProgressBar from "@/components/form/ProgressBar";
 import { Heading } from "@/components/Heading";
 import MetaTags from "@/components/Metatags";
-import Nav, { SignInProps } from "@/components/Nav";
+import Nav from "@/components/Nav";
 import Plausible from "@/components/Plausible";
-import { LoginTypeNameEnum } from "@/lib/enums";
+import { LoginTypeNameEnum, StorageEnum } from "@/lib/enums";
+import { signOut } from "@/lib/firebase";
 import { useStorage } from "@/lib/hooks";
 import { clearAllStoredFields, useInvalid } from "@/lib/utils";
+import { getAuth } from "firebase/auth";
 import { Field, Formik } from "formik";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
 import * as Yup from "yup";
-import { checkIfLoggedIn } from "./01-you";
+import { getUserName, handleUser } from "./01-you";
 
 export async function getStaticProps() {
   return {
@@ -32,7 +35,6 @@ export default function JoinStep4({ pageTitle }) {
   const router = useRouter();
   const { getItem, setItem, removeItem } = useStorage();
   const [email, setEmail] = useState<string>("");
-  const [ageGateAccepted, setAgeGateAccepted] = useState<boolean>(false);
 
   const [name, setName] = useState<string>("");
   const [location, setLocation] = useState<string>("");
@@ -49,14 +51,14 @@ export default function JoinStep4({ pageTitle }) {
   const [validateAfterSubmit, setValidateAfterSubmit] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<ErrorMessageProps>(undefined);
-  const [signInProps, setSignInProps] = useState<SignInProps>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
-  const [userId, setUserId] = useState<string>("");
   const [linkedInPicture, setLinkedInPicture] = useState<string>("");
   const [savePicture, setSavePicture] = useState<boolean>(true);
+  const [user, authLoading, authStateError] = useAuthState(getAuth());
+  const [loginType, setLoginType] = useState<LoginTypeNameEnum>();
 
   const createMember = async () => {
+    const token = await user.getIdToken();
     return new Promise((resolve, reject) => {
       fetch("/api/create-member", {
         method: "POST",
@@ -78,8 +80,8 @@ export default function JoinStep4({ pageTitle }) {
           unsubscribed: !subscribed,
           linkedInPicture:
             savePicture && linkedInPicture ? linkedInPicture : "",
-          userId: userId,
-          authType: signInProps.type_name,
+          authType: loginType,
+          token: token,
         }),
       }).then(
         (response: Response) => {
@@ -97,15 +99,6 @@ export default function JoinStep4({ pageTitle }) {
 
   // check localStorage and set pre-defined fields
   useEffect(() => {
-    checkIfLoggedIn(
-      router,
-      setSignInProps,
-      setIsLoggedIn,
-      undefined,
-      setEmail,
-      setLinkedInPicture,
-      setUserId
-    );
     let storedName = getItem("jfName");
     let storedLocation = getItem("jfLocation");
     let storedWebsite = getItem("jfWebsite");
@@ -116,6 +109,11 @@ export default function JoinStep4({ pageTitle }) {
     let storedIndustries = getItem("jfIndustries");
     let storedIndustrySuggested = getItem("jfIndustrySuggested");
     let storedCompanySize = getItem("jfCompanySize");
+    let storedEmail = sessionStorage.getItem(StorageEnum.USER_EMAIL);
+    let storedLoginType = sessionStorage.getItem(StorageEnum.LOGIN_TYPE_NAME);
+    let storedLinkedInPicture = sessionStorage.getItem(
+      StorageEnum.PROFILE_PICTURE
+    );
 
     if (storedName) setName(storedName);
     if (storedLocation) setLocation(storedLocation);
@@ -127,7 +125,11 @@ export default function JoinStep4({ pageTitle }) {
     if (storedIndustries) setIndustriesSelected(JSON.parse(storedIndustries));
     if (storedIndustrySuggested) setIndustrySuggested(storedIndustrySuggested);
     if (storedCompanySize) setCompanySize(storedCompanySize);
-  }, []);
+    if (storedEmail) setEmail(storedEmail);
+    if (storedLoginType) setLoginType(storedLoginType as LoginTypeNameEnum);
+    if (storedLinkedInPicture) setLinkedInPicture(storedLinkedInPicture);
+    handleUser(authLoading, user, router, "/join/04-contact");
+  }, [authLoading, user, router]);
 
   const handleSubmit = async (values) => {
     setLoading(true);
@@ -137,6 +139,17 @@ export default function JoinStep4({ pageTitle }) {
     if (res.ok) {
       clearAllStoredFields("jf");
       router.push({ pathname: "thank-you" });
+    } else if (res.status === 401) {
+      setLoading(false);
+      setError({
+        headline: "Ah, looks like you got some auth issues: " + resJSON.error,
+        body: "We'll get you back to the login page in 5 seconds or so",
+      });
+      sessionStorage.setItem(StorageEnum.PREVIOUS_PAGE, "/join/04-contact");
+      setTimeout(() => {
+        signOut(false);
+        router.push({ pathname: `/login` });
+      }, 5000);
     } else if (res.status === 422) {
       setLoading(false);
       setError({
@@ -159,7 +172,10 @@ export default function JoinStep4({ pageTitle }) {
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav backUrl="03-company" signedIn={isLoggedIn && signInProps} />
+      <Nav
+        backUrl="/"
+        signInName={typeof window !== "undefined" ? getUserName(user) : ""}
+      />
 
       <Heading>Welcome to our little hui.</Heading>
 
@@ -215,11 +231,7 @@ export default function JoinStep4({ pageTitle }) {
                   </p>
                 </div>
                 <Label
-                  label={
-                    signInProps
-                      ? `Lastly, we'll use the email on your ${signInProps.type_name} account`
-                      : "Lastly, we'll use the email on your account"
-                  }
+                  label={`Lastly, we'll use the email on your ${loginType} account`}
                 />{" "}
                 <Input
                   name="email"
@@ -278,16 +290,15 @@ export default function JoinStep4({ pageTitle }) {
                     </p>
                   )}
                 </label>
-                {signInProps &&
-                  signInProps.type_name === LoginTypeNameEnum.LINKEDIN && (
-                    <>
-                      <label className="inline-block">
-                        <input
-                          type="checkbox"
-                          name="save-my-picture"
-                          checked={savePicture}
-                          onChange={() => setSavePicture(!savePicture)}
-                          className={`
+                {loginType === LoginTypeNameEnum.LINKEDIN && (
+                  <>
+                    <label className="inline-block">
+                      <input
+                        type="checkbox"
+                        name="save-my-picture"
+                        checked={savePicture}
+                        onChange={() => setSavePicture(!savePicture)}
+                        className={`
                     accent-ring
                     focus:ring-6
                     mr-2
@@ -297,19 +308,19 @@ export default function JoinStep4({ pageTitle }) {
                     accent-brown-600
                     focus:ring-opacity-50
                   `}
-                        />
-                        Please save my LinkedIn profile picture to use on my
-                        member entry:
-                      </label>
-                      <div className="mx-auto">
-                        <img
-                          src={linkedInPicture}
-                          alt="profile picture"
-                          className="ml-1 mr-1 h-40"
-                        />
-                      </div>
-                    </>
-                  )}
+                      />
+                      Please save my LinkedIn profile picture to use on my
+                      member entry:
+                    </label>
+                    <div className="mx-auto">
+                      <img
+                        src={linkedInPicture}
+                        alt="profile picture"
+                        className="ml-1 mr-1 h-40"
+                      />
+                    </div>
+                  </>
+                )}
                 <div className="mx-auto w-full max-w-md px-4">
                   <Button fullWidth loading={loading} type="submit">
                     Submit

@@ -1,16 +1,19 @@
 import Button, { ButtonVariant } from "@/components/Button";
 import ErrorMessage from "@/components/form/ErrorMessage";
 import { Heading, Subheading } from "@/components/Heading";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
 import Plausible from "@/components/Plausible";
 import { LoginTypeImgEnum, StorageEnum } from "@/lib/enums";
 import { signInWithGoogle } from "@/lib/firebase";
 import { LINKEDIN_URL } from "@/lib/linkedin";
+import { getAuth } from "firebase/auth";
 import { handlePreviousPage } from "helpers";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 export async function getStaticProps() {
   return {
@@ -25,17 +28,36 @@ export default function Login({ pageTitle, linkedInUrl }) {
   const router = useRouter();
   const [showJoinListPrompt, setShowJoinListPrompt] = useState<boolean>(false);
   const [loginError, setLoginError] = useState<string>("");
-
+  const auth = getAuth();
+  const [user, loading, error] = useAuthState(auth);
   useEffect(() => {
     if (typeof sessionStorage !== "undefined") {
       if (sessionStorage.getItem(StorageEnum.PREVIOUS_PAGE) === "/join/01-you")
         setShowJoinListPrompt(true);
-      if (sessionStorage.getItem(StorageEnum.USER_NAME) !== null)
-        handlePreviousPage(router);
+      if (user) handlePreviousPage(router);
       if (sessionStorage.getItem(StorageEnum.LOGIN_ERROR_MESSAGE) !== null)
         setLoginError(sessionStorage.getItem(StorageEnum.LOGIN_ERROR_MESSAGE));
     }
   });
+
+  if (loading) {
+    return (
+      <>
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100vh",
+          }}
+        >
+          <LoadingSpinner />
+          <div style={{ marginTop: "1rem" }}>Logging you in...</div>
+        </div>
+      </>
+    );
+  }
   return (
     <>
       <Head>

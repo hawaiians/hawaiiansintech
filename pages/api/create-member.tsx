@@ -12,7 +12,7 @@ import { db } from "@/lib/firebase";
 import { initializeAdmin } from "@/lib/firebase-admin";
 import Client from "@sendgrid/client";
 import SendGrid from "@sendgrid/mail";
-import * as admin from "firebase-admin";
+import admin from "firebase-admin";
 import {
   addDoc,
   arrayUnion,
@@ -80,7 +80,7 @@ const addSecureEmailAndAuth = async (
     last_modified_by: FirebaseDefaultValuesEnum.LAST_MODIFIED_BY,
     email: email,
     member: memberDocRef.path,
-    linkedin_token: authType === LoginTypeNameEnum.LINKEDIN ? uid : "",
+    linkedin_uid: authType === LoginTypeNameEnum.LINKEDIN ? uid : "",
     google_uid: authType === LoginTypeNameEnum.GOOGLE ? uid : "",
   };
   await docRef.set(data);
@@ -150,6 +150,7 @@ interface MemberFieldsApiBody {
   name: string;
   email: string;
   location: string;
+  verifiedUserId: string;
   website?: string;
   link?: string;
   focusesSelected?: string | string[];
@@ -162,7 +163,6 @@ interface MemberFieldsApiBody {
   recordID?: string;
   unsubscribed?: boolean;
   linkedInPicture?: string;
-  userId?: string;
   authType?: LoginTypeNameEnum;
 }
 
@@ -199,7 +199,7 @@ const addToFirebase = async (
     years_experience: fields.yearsExperience,
     unsubscribed: fields.unsubscribed,
     linkedin_picture: fields.linkedInPicture,
-    uid: fields.userId,
+    uid: fields.verifiedUserId,
     auth_type: fields.authType,
   } as MemberFieldsEgressFirebase;
 
@@ -269,15 +269,46 @@ const sendSgEmail = async ({
   });
 };
 
+class TokenVerificationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "TokenVerificationError";
+  }
+}
+
+const verifyToken = async (token: string): Promise<string> => {
+  try {
+    await initializeAdmin();
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    const uid = decodedToken.uid;
+
+    // Check if the token has expired
+    const now = Math.floor(Date.now() / 1000); // Convert to Unix timestamp (in seconds)
+    if (decodedToken.exp < now) {
+      throw new TokenVerificationError("Authentication token has expired");
+    }
+
+    return uid;
+  } catch (error) {
+    if (error.code === "auth/argument-error") {
+      throw new TokenVerificationError("Invalid authentication token");
+    }
+    const error_msg = "Error verifying token: " + error.message;
+    throw new TokenVerificationError(error_msg);
+  }
+};
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Only POST requests allowed" });
   }
   try {
+    const verifiedUserId = await verifyToken(req.body.token);
     const isEmailUsed = await emailExists(req.body.email);
     if (!isEmailUsed) {
       const docRef: DocumentReference = await addToFirebase({
         ...req.body,
+        verifiedUserId: verifiedUserId,
       }).then((body) => {
         console.log("✅ added member to firebase");
         return body;
@@ -297,6 +328,9 @@ export default async function handler(req, res) {
       });
     }
   } catch (error) {
+    if (error instanceof TokenVerificationError) {
+      return res.status(401).json({ error: error.message });
+    }
     return res.status(error.statusCode || 500).json({
       error: "Gonfunnit, looks like something went wrong!",
       body: "Please try again later.",
