@@ -4,7 +4,7 @@ import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
 import Plausible from "@/components/Plausible";
 import Tag from "@/components/Tag";
-import { MemberPublic } from "@/lib/api";
+import { DocumentData, MemberPublic } from "@/lib/api";
 import { StatusEnum } from "@/lib/enums";
 import { useStorage } from "@/lib/hooks";
 import { FORM_LINKS } from "@/lib/utils";
@@ -59,6 +59,7 @@ function RequestForm() {
   const { setItem, removeItem } = useStorage();
   const [members, setMembers] = useState<MemberPublic[]>([]);
   const [memberSelected, setMemberSelected] = useState<MemberPublic>();
+  const [regions, setRegions] = useState<DocumentData[]>([]);
 
   useEffect(() => {
     removeItem("userData");
@@ -67,6 +68,7 @@ function RequestForm() {
       .then((res) => res.json())
       .then((data) => {
         setMembers(data.members);
+        setRegions(data.regions);
       })
       .catch((err) => {
         console.error(err);
@@ -79,12 +81,15 @@ function RequestForm() {
     removeItem("editedData");
     // add all items in storage
     if (!memberSelected) return;
-    if (memberSelected) setItem("userData", JSON.stringify(memberSelected));
+    if (memberSelected) {
+      setItem("userData", JSON.stringify(memberSelected));
+      setItem("regions", JSON.stringify(regions));
+    }
   }, [memberSelected]);
 
   const handleSubmit = () => {
     router.push({
-      pathname: `/edit/${FORM_LINKS[0]}`,
+      pathname: `/edit/member`,
     });
   };
 
@@ -114,7 +119,7 @@ function RequestForm() {
           id="member-select"
           onChange={(e) => {
             setMemberSelected(
-              members.find((member) => member.id === e.target.value)
+              members.find((member) => member.id === e.target.value),
             );
           }}
         >

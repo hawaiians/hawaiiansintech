@@ -1,22 +1,14 @@
-import { DocumentData, getFirebaseTable, MemberEmail } from "@/lib/api";
-import { verifyAdminToken, verifyAuthHeader } from "@/lib/auth";
-import { FirebaseTablesEnum } from "@/lib/enums";
-import { db } from "@/lib/firebase";
+import { verifyAuthHeader, verifyEmailAuthToken } from "@/lib/auth";
 import { getEmails } from "@/lib/firebase-helpers/private/directory";
-import { doc, getDoc } from "firebase/firestore";
 import { NextApiRequest, NextApiResponse } from "next";
 
-interface getEmailsProps {
-  /**
-   * Required check if the user is admin via verifyAdminToken(token)
-   *  - If the user is an admin, returns secured emails
-   */
-  token?: string;
-}
-
-async function getMemberEmails({
+async function getMemberId({
   token,
-}: getEmailsProps): Promise<MemberEmail[]> {
+  res,
+}: {
+  token?: string;
+  res: NextApiResponse;
+}): Promise<string> {
   if (!token) {
     throw new Error("Missing token");
   }
@@ -24,12 +16,21 @@ async function getMemberEmails({
     throw new Error("This function can only be called on the server");
   }
 
-  const isAdmin = await verifyAdminToken(token);
-  if (!isAdmin) {
+  const memberEmail = await verifyEmailAuthToken(token);
+  if (!memberEmail) {
     throw new Error("Unauthorized");
   }
 
-  return await getEmails();
+  const getApprovedEmails = true; // Only get approved emails
+  const emails = await getEmails(getApprovedEmails);
+
+  const matchingMember = emails.find((email) => email.email === memberEmail);
+
+  if (!matchingMember) {
+    res.status(404).json({ error: "Member not found" });
+    return;
+  }
+  return matchingMember.id;
 }
 
 export default async function handler(
@@ -43,8 +44,9 @@ export default async function handler(
   try {
     const token = await verifyAuthHeader(req, res);
     if (!token) return;
-    const emails = await getMemberEmails({ token: token });
-    return res.status(200).send({ emails });
+    const memberId = await getMemberId({ token: token, res: res });
+    if (!memberId) return;
+    return res.status(200).send({ memberId });
   } catch (error) {
     return res.status(error.statusCode || 500).json({ error: error.message });
   }

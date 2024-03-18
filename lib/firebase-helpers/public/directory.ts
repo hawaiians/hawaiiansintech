@@ -15,36 +15,6 @@ import {
 } from "firebase/firestore";
 import { db } from "../../firebase";
 import { memberConverter } from "../../firestore-converters/member";
-import { FirebaseMemberFieldsEnum } from "@/lib/enums";
-
-export interface referencesToDelete {
-  memberRef: DocumentReference;
-  focuses: DocumentReference[];
-  industries: DocumentReference[];
-  regions: DocumentReference[];
-  secureMemberData: DocumentReference;
-}
-
-export async function getAllMemberReferencesToDelete(
-  uid: string,
-): Promise<referencesToDelete> {
-  const documentRef = doc(db, FirebaseTablesEnum.MEMBERS, uid).withConverter(
-    memberConverter,
-  );
-  const documentSnapshot = await getDoc(documentRef);
-  if (!documentSnapshot.exists()) {
-    return null;
-  }
-  const data = documentSnapshot.data();
-  const returnData = {
-    memberRef: documentRef,
-    focuses: data.focuses,
-    industries: data.industries,
-    regions: data.regions,
-    secureMemberData: doc(db, FirebaseTablesEnum.SECURE_MEMBER_DATA, uid),
-  };
-  return returnData;
-}
 
 export async function deleteReferences(
   memberRef: DocumentReference,

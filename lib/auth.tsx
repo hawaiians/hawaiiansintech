@@ -16,13 +16,16 @@ const verifyTokenExpiration = (decodedToken: admin.auth.DecodedIdToken) => {
   }
 };
 
-export const verifyApiToken = async (token: string): Promise<string> => {
+export const verifyEmailAuthToken = async (token: string): Promise<string> => {
   try {
     await initializeAdmin();
     const decodedToken = await admin.auth().verifyIdToken(token);
-    const uid = decodedToken.uid;
+    if (!decodedToken.email || !decodedToken.email_verified) {
+      throw new TokenVerificationError("Invalid email authentication token");
+    }
+    const email = decodedToken.email;
     verifyTokenExpiration(decodedToken);
-    return uid;
+    return email;
   } catch (error) {
     if (error.code === "auth/argument-error") {
       throw new TokenVerificationError("Invalid authentication token");
