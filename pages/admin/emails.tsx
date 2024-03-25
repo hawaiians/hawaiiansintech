@@ -9,7 +9,6 @@ import LoadingSpinner, {
 import MetaTags from "@/components/Metatags";
 import Plausible from "@/components/Plausible";
 import Tag, { TagVariant } from "@/components/Tag";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MemberEmail } from "@/lib/api";
 import { StatusEnum } from "@/lib/enums";
@@ -24,7 +23,7 @@ import { FC, useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { signInWithGoogle, signOutWithGoogle } from "../../lib/firebase";
 import AdminList from "@/components/admin/AdminList";
-import { Eye, EyeOff } from "lucide-react";
+import { Hand } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -32,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export async function getStaticProps() {
   return {
@@ -110,7 +110,7 @@ export default function EmailsPage(props: { pageTitle }) {
 }
 
 enum EmailDirectoryFilter {
-  Newsletter = "Newsletter",
+  Subscribed = "Subscribed",
   All = "All",
 }
 
@@ -119,18 +119,24 @@ enum EmailDirectoryObscure {
   Obscure = "Don't Show Emails",
 }
 
+enum EmailDirectoryFormat {
+  Full = "Format: Full",
+  EmailOnly = "Format: Email-only",
+}
+
 const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
   const [error, setError] = useState<ErrorMessageProps>(null);
   const [showCopiedNotification, setShowCopiedNotification] =
     useState<boolean>(false);
   const [tabVisible, setTabVisible] = useState<EmailDirectoryFilter>(
-    EmailDirectoryFilter.Newsletter,
+    EmailDirectoryFilter.Subscribed,
   );
-  const [showUnsubscribed, setShowUnsubscribed] = useState<boolean>(false);
   const [emailObscure, setEmailObscure] = useState<EmailDirectoryObscure>(
     EmailDirectoryObscure.Obscure,
   );
-  const [includeName, setIncludeName] = useState<boolean>(true);
+  const [emailFormat, setEmailFormat] = useState<EmailDirectoryFormat>(
+    EmailDirectoryFormat.Full,
+  );
   const [emailsShown, setEmailsShown] = useState<MemberEmail[]>(emails);
   const [selectedEmails, setSelectedEmails] = useState<MemberEmail[]>([]);
 
@@ -138,12 +144,17 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
     setEmailsShown(
       emails
         .filter((email) => {
-          if (email?.name === undefined || email?.email === undefined)
+          if (
+            email?.name === undefined ||
+            email?.email === undefined ||
+            email.status === StatusEnum.DECLINED ||
+            email.status === StatusEnum.PENDING
+          )
             return false;
           switch (tabVisible) {
             case EmailDirectoryFilter.All:
               return true;
-            case EmailDirectoryFilter.Newsletter:
+            case EmailDirectoryFilter.Subscribed:
               return !email?.unsubscribed;
             default:
               return false;
@@ -182,7 +193,7 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
     setError(null);
     const emailListText = emailList
       .map((em) => {
-        if (includeName) {
+        if (emailFormat === EmailDirectoryFormat.Full && em?.name) {
           return `${em?.name} <${em?.email}>`;
         }
         return `${em?.email}`;
@@ -232,7 +243,27 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
                 ))}
               </TabsList>
             </Tabs>
-
+            <div>
+              <Select
+                onValueChange={(option: EmailDirectoryFormat) =>
+                  setEmailFormat(option)
+                }
+                defaultValue={emailFormat}
+              >
+                <SelectTrigger className="h-8 gap-x-1">
+                  <SelectValue placeholder={emailFormat} />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(EmailDirectoryFormat).map(
+                    (option: EmailDirectoryFormat) => (
+                      <SelectItem value={option} key={`email-format-${option}`}>
+                        {option}
+                      </SelectItem>
+                    ),
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
             <div>
               <Select
                 onValueChange={(option: EmailDirectoryObscure) =>
@@ -254,94 +285,62 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
                 </SelectContent>
               </Select>
             </div>
-
-            {selectedEmails.length > 0 ? (
-              <Button
-                size={ButtonSize.Small}
-                variant={ButtonVariant.Secondary}
-                onClick={() => {
-                  if (selectedEmails.length >= 5) {
-                    const confirmDelete = window.confirm(
-                      `Are you sure you want to deselect all ${selectedEmails.length} members?`,
-                    );
-                    if (confirmDelete) {
-                      setSelectedEmails([]);
-                    }
-                  } else {
-                    setSelectedEmails([]);
-                  }
-                }}
-              >
-                Deselect All
-              </Button>
-            ) : (
-              <Button
-                size={ButtonSize.Small}
-                variant={ButtonVariant.Secondary}
-                onClick={() => {
-                  setSelectedEmails([...emails]);
-                }}
-              >
-                Select All
-              </Button>
-            )}
-            <Button
-              onClick={() => {
-                if (selectedEmails.length > 0) {
-                  handleCopyToClipboard(selectedEmails);
-                } else if (emailsShown) {
-                  handleCopyToClipboard(emailsShown);
-                }
-              }}
-              size={ButtonSize.Small}
-              variant={ButtonVariant.Invert}
-            >
-              {showCopiedNotification
-                ? "Copied! ✔️"
-                : selectedEmails.length > 0
-                ? `Copy Selected (${selectedEmails.length})`
-                : `Copy All (${emailsShown.length})`}
-            </Button>
           </>
         }
       />
 
-      <div className="mx-auto flex w-full flex-col">
-        <div className="w-full border-b border-tan-400 bg-tan-100">
-          <div className="mx-auto flex max-w-5xl justify-between gap-4 p-2">
-            {tabVisible === EmailDirectoryFilter.All ? (
-              <p className="flex flex-wrap gap-x-1 text-xs text-stone-500">
-                This list includes all email addresses, including unsubscribed
-                members. Do not send marketing or newsletter emails.
-              </p>
-            ) : (
-              <p className="text-xs text-stone-500">
-                This list includes all email addresses that will receive our
-                newsletter.{" "}
-                <span className="text-stone-400">
-                  (Excludes unsubscribed members)
-                </span>
-              </p>
-            )}
-            <div className="flex shrink-0 gap-4">
-              <div className="flex gap-x-2">
-                <Checkbox
-                  checked={includeName}
-                  onCheckedChange={() => {
-                    setIncludeName(!includeName);
-                  }}
-                  id="include-name"
-                />
-                <label
-                  htmlFor="include-name"
-                  className="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Prepend Name
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="flex gap-2">
+        <Button
+          onClick={() => {
+            if (selectedEmails.length > 0) {
+              handleCopyToClipboard(selectedEmails);
+            } else if (emailsShown) {
+              handleCopyToClipboard(emailsShown);
+            }
+          }}
+          size={ButtonSize.Small}
+          variant={ButtonVariant.Secondary}
+        >
+          {showCopiedNotification
+            ? "Copied! ✔️"
+            : selectedEmails.length > 0
+            ? `Copy Selected (${selectedEmails.length})`
+            : `Copy All (${emailsShown.length})`}
+        </Button>
+        {selectedEmails.length > 0 ? (
+          <Button
+            size={ButtonSize.Small}
+            variant={ButtonVariant.Outline}
+            onClick={() => {
+              if (selectedEmails.length >= 5) {
+                const confirmDelete = window.confirm(
+                  `Are you sure you want to deselect all ${selectedEmails.length} members?`,
+                );
+                if (confirmDelete) {
+                  setSelectedEmails([]);
+                }
+              } else {
+                setSelectedEmails([]);
+              }
+            }}
+          >
+            Deselect All
+          </Button>
+        ) : null}
+      </div>
+
+      {tabVisible === EmailDirectoryFilter.All && (
+        <Alert>
+          <Hand className="h-6 w-6" />
+          <AlertTitle>Heads up!</AlertTitle>
+          <AlertDescription>
+            This list includes all email addresses, including unsubscribed
+            members. Do not send marketing or newsletter emails.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <div className="mx-auto flex w-full flex-col gap-1">
         {error && (
           <ErrorMessage
             headline={error.headline}
@@ -356,7 +355,7 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
             <LoadingSpinner variant={LoadingSpinnerVariant.Invert} />
           </div>
         ) : (
-          emailsShown.map((em) => {
+          emailsShown.map((em, i) => {
             const selected = selectedEmails.find(
               (selectedEm) => em?.id === selectedEm?.id,
             );
@@ -368,16 +367,17 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
                   `
                   group
                   w-full
-                  border-b
+                  border-2
                   border-tan-300
                   hover:border-tan-600/40
                   hover:bg-tan-600/5
                   active:bg-brown-600/10
+                  rounded-lg
                 `,
                   selected &&
                     "border-brown-600/40 bg-brown-600/10 text-stone-800 hover:bg-brown-600/20 active:bg-brown-600/10",
                   em?.unsubscribed &&
-                    `border-red-400/50 bg-red-400/5 text-red-600 hover:border-red-400 hover:bg-red-400/20  active:bg-red-400/30`,
+                    `border-red-400/20 bg-red-400/5 text-red-600 hover:border-red-400 hover:bg-red-400/20  active:bg-red-400/30`,
                   em?.unsubscribed &&
                     selected &&
                     `border-red-400 bg-red-400/20 text-red-600 hover:bg-red-400/30  active:bg-red-400/20`,
@@ -395,24 +395,31 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
               >
                 <div
                   className={cn(`
-                  mx-auto
                   flex
-                  w-full
-                  max-w-5xl
                   items-center
                   gap-2
                 `)}
                 >
                   <div
                     className={cn(
-                      `mx-auto
+                      `pl-4 text-stone-500 opacity-50 group-hover:opacity-100`,
+                      selected && `text-brown-600 opacity-100`,
+                      em?.unsubscribed && `text-red-600`,
+                    )}
+                  >
+                    {selected ? (
+                      <CheckIcon width={20} height={20} />
+                    ) : (
+                      <PlusIcon width={20} height={20} />
+                    )}
+                  </div>
+                  <div
+                    className={cn(`
                     flex
                     w-full
-                    flex-col
                     gap-0.5
                     p-2
-                    text-left`,
-                    )}
+                    text-left`)}
                   >
                     <div className="flex grow flex-col items-start gap-1">
                       {em?.status && (
@@ -430,22 +437,25 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
                           {convertStringSnake(em?.status)}
                         </Tag>
                       )}
-                      <h3 className="text-xl font-semibold">{em?.name}</h3>
+                      <h3 className="text-base font-semibold">{em?.name}</h3>
                     </div>
                     <h5
                       className={cn(
-                        "inline-flex items-center gap-1 rounded bg-tan-500/10 px-2 py-1 text-xs",
+                        "inline-flex items-center gap-1 border-2 border-transparent rounded bg-tan-500/10 px-2 py-1 text-sm self-center",
+                        selected &&
+                          "text-brown-600 bg-brown-500/10 border-brown-600/10",
                         em?.unsubscribed && "bg-red-400/10 text-red-600",
+                        em?.unsubscribed && selected && "border-red-400/40",
                       )}
                     >
                       {em?.unsubscribed && (
                         <span className="font-medium">UNSUBSCRIBER</span>
                       )}
-                      {includeName && (
+                      {emailFormat === EmailDirectoryFormat.Full && (
                         <span
                           className={cn(
                             `inline-flex shrink-0 cursor-text select-text text-stone-500`,
-                            selected && "text-stone-600",
+                            selected && "text-inherit",
                             em?.unsubscribed && `text-red-600/60`,
                           )}
                         >
@@ -455,37 +465,17 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
                       <span
                         className={cn(
                           `flex-grow cursor-text select-text overflow-hidden overflow-ellipsis whitespace-nowrap text-stone-500`,
-                          selected && "text-stone-600",
+                          selected && "text-inherit",
                           em?.unsubscribed && `text-red-600/60`,
                         )}
                       >
-                        {includeName && `<`}
+                        {emailFormat === EmailDirectoryFormat.Full && `<`}
                         {emailObscure === EmailDirectoryObscure.Show
                           ? em?.email
                           : em?.emailAbbr}
-                        {includeName && `>`}
-                      </span>{" "}
-                      {em?.unsubscribed && (
-                        <span
-                          className={cn("shrink-0 text-xs text-red-600/60")}
-                        >
-                          Transactional / urgent emails only
-                        </span>
-                      )}
+                        {emailFormat === EmailDirectoryFormat.Full && `>`}
+                      </span>
                     </h5>
-                  </div>
-                  <div
-                    className={cn(
-                      `pr-4 text-stone-500 opacity-50 group-hover:opacity-100`,
-                      selected && `text-brown-600 opacity-100`,
-                      em?.unsubscribed && `text-red-600`,
-                    )}
-                  >
-                    {selected ? (
-                      <CheckIcon width={20} height={20} />
-                    ) : (
-                      <PlusIcon width={20} height={20} />
-                    )}
                   </div>
                 </div>
               </button>
