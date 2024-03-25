@@ -23,6 +23,15 @@ import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { signInWithGoogle, signOutWithGoogle } from "../../lib/firebase";
+import AdminList from "@/components/admin/AdminList";
+import { Eye, EyeOff } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export async function getStaticProps() {
   return {
@@ -105,6 +114,11 @@ enum EmailDirectoryFilter {
   All = "All",
 }
 
+enum EmailDirectoryObscure {
+  Show = "Show Emails",
+  Obscure = "Don't Show Emails",
+}
+
 const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
   const [error, setError] = useState<ErrorMessageProps>(null);
   const [showCopiedNotification, setShowCopiedNotification] =
@@ -113,9 +127,11 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
     EmailDirectoryFilter.Newsletter,
   );
   const [showUnsubscribed, setShowUnsubscribed] = useState<boolean>(false);
-  const [emailsShown, setEmailsShown] = useState<MemberEmail[]>(emails);
-  const [revealEmail, setRevealEmail] = useState<boolean>(false);
+  const [emailObscure, setEmailObscure] = useState<EmailDirectoryObscure>(
+    EmailDirectoryObscure.Obscure,
+  );
   const [includeName, setIncludeName] = useState<boolean>(true);
+  const [emailsShown, setEmailsShown] = useState<MemberEmail[]>(emails);
   const [selectedEmails, setSelectedEmails] = useState<MemberEmail[]>([]);
 
   useEffect(() => {
@@ -193,11 +209,11 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
   };
 
   return (
-    <>
-      <div className="sticky top-0 z-50 w-full bg-tan-400">
-        <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center gap-1 px-2 py-1">
-          <div className="flex grow items-center gap-2">
-            <h2 className="text-xl font-semibold leading-8">Emails</h2>
+    <AdminList>
+      <AdminList.Heading
+        label="Emails"
+        controls={
+          <>
             <Tabs
               defaultValue={Object.values(EmailDirectoryFilter)[0]}
               onValueChange={(value) =>
@@ -216,11 +232,32 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
                 ))}
               </TabsList>
             </Tabs>
-          </div>
-          <div className="flex items-center gap-2">
+
+            <div>
+              <Select
+                onValueChange={(option: EmailDirectoryObscure) =>
+                  setEmailObscure(option)
+                }
+                defaultValue={emailObscure}
+              >
+                <SelectTrigger className="h-8 gap-x-1">
+                  <SelectValue placeholder={emailObscure} />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.values(EmailDirectoryObscure).map(
+                    (option: EmailDirectoryObscure) => (
+                      <SelectItem value={option} key={`email-vis-${option}`}>
+                        {option}
+                      </SelectItem>
+                    ),
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
             {selectedEmails.length > 0 ? (
               <Button
-                size={ButtonSize.XSmall}
+                size={ButtonSize.Small}
                 variant={ButtonVariant.Secondary}
                 onClick={() => {
                   if (selectedEmails.length >= 5) {
@@ -239,7 +276,7 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
               </Button>
             ) : (
               <Button
-                size={ButtonSize.XSmall}
+                size={ButtonSize.Small}
                 variant={ButtonVariant.Secondary}
                 onClick={() => {
                   setSelectedEmails([...emails]);
@@ -256,7 +293,7 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
                   handleCopyToClipboard(emailsShown);
                 }
               }}
-              size={ButtonSize.XSmall}
+              size={ButtonSize.Small}
               variant={ButtonVariant.Invert}
             >
               {showCopiedNotification
@@ -265,9 +302,10 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
                 ? `Copy Selected (${selectedEmails.length})`
                 : `Copy All (${emailsShown.length})`}
             </Button>
-          </div>
-        </div>
-      </div>
+          </>
+        }
+      />
+
       <div className="mx-auto flex w-full flex-col">
         <div className="w-full border-b border-tan-400 bg-tan-100">
           <div className="mx-auto flex max-w-5xl justify-between gap-4 p-2">
@@ -288,21 +326,6 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
             <div className="flex shrink-0 gap-4">
               <div className="flex gap-x-2">
                 <Checkbox
-                  checked={!revealEmail}
-                  onCheckedChange={() => {
-                    setRevealEmail(!revealEmail);
-                  }}
-                  id="obscure-email"
-                />
-                <label
-                  htmlFor="obscure-email"
-                  className="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Obscure Email
-                </label>
-              </div>
-              <div className="flex gap-x-2">
-                <Checkbox
                   checked={includeName}
                   onCheckedChange={() => {
                     setIncludeName(!includeName);
@@ -320,15 +343,13 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
           </div>
         </div>
         {error && (
-          <div className="mx-auto my-2 w-full max-w-5xl">
-            <ErrorMessage
-              headline={error.headline}
-              body={error.body}
-              onClose={() => {
-                setError(null);
-              }}
-            />
-          </div>
+          <ErrorMessage
+            headline={error.headline}
+            body={error.body}
+            onClose={() => {
+              setError(null);
+            }}
+          />
         )}
         {emailsShown.length === 0 ? (
           <div className="flex w-full justify-center p-4">
@@ -439,25 +460,17 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
                         )}
                       >
                         {includeName && `<`}
-                        {revealEmail ? em?.email : em?.emailAbbr}
+                        {emailObscure === EmailDirectoryObscure.Show
+                          ? em?.email
+                          : em?.emailAbbr}
                         {includeName && `>`}
                       </span>{" "}
                       {em?.unsubscribed && (
-                        <>
-                          {/* <span
-                    className={cn(
-                      `shrink-0 text-stone-400`,
-                      em?.unsubscribed && `text-red-600/30`
-                      )}
-                      >
-                      ·
-                    </span> */}
-                          <span
-                            className={cn("shrink-0 text-xs text-red-600/60")}
-                          >
-                            Transactional / urgent emails only
-                          </span>
-                        </>
+                        <span
+                          className={cn("shrink-0 text-xs text-red-600/60")}
+                        >
+                          Transactional / urgent emails only
+                        </span>
                       )}
                     </h5>
                   </div>
@@ -480,6 +493,6 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
           })
         )}
       </div>
-    </>
+    </AdminList>
   );
 };
