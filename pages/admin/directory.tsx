@@ -165,6 +165,7 @@ enum DirectorySortOrder {
 
 enum DirectoryFilter {
   All = "All",
+  Approved = "Approved",
   InProgress = "In Progress",
   Pending = "Pending",
   Archived = "Archived",
@@ -187,6 +188,8 @@ const Directory: MemberDirectoryType = ({ members, regions, user }) => {
           switch (tabVisible) {
             case DirectoryFilter.All:
               return true;
+            case DirectoryFilter.Approved:
+              return m.status === StatusEnum.APPROVED;
             case DirectoryFilter.Pending:
               return m.status === StatusEnum.PENDING;
             case DirectoryFilter.InProgress:
