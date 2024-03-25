@@ -13,7 +13,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { MemberEmail } from "@/lib/api";
 import { StatusEnum } from "@/lib/enums";
 import { useIsAdmin } from "@/lib/hooks";
-import { CheckIcon, PlusIcon } from "@radix-ui/react-icons";
+import { CaretDownIcon, CheckIcon, PlusIcon } from "@radix-ui/react-icons";
 import { getAuth } from "firebase/auth";
 import { convertStringSnake } from "helpers";
 import { cn } from "@/lib/utils";
@@ -32,6 +32,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export async function getStaticProps() {
   return {
@@ -290,23 +296,56 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
       />
 
       <div className="flex gap-2">
-        <Button
-          onClick={() => {
-            if (selectedEmails.length > 0) {
-              handleCopyToClipboard(selectedEmails);
-            } else if (emailsShown) {
-              handleCopyToClipboard(emailsShown);
-            }
-          }}
-          size={ButtonSize.Small}
-          variant={ButtonVariant.Secondary}
-        >
-          {showCopiedNotification
-            ? "Copied! ✔️"
-            : selectedEmails.length > 0
-            ? `Copy Selected (${selectedEmails.length})`
-            : `Copy All (${emailsShown.length})`}
-        </Button>
+        <Popover>
+          <PopoverTrigger>
+            <Button
+              size={ButtonSize.Small}
+              variant={ButtonVariant.Secondary}
+              className="flex items-center"
+            >
+              {selectedEmails.length > 0
+                ? `Copy Selected (${selectedEmails.length})`
+                : `Copy All (${emailsShown.length})`}
+              <CaretDownIcon className="w-6 h-6" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="flex flex-col gap-2 p-2">
+            <ul className="flex flex-col gap-2 text-xs">
+              {[
+                <span>
+                  <strong>Don&rsquo;t expose the list.</strong> Use the BCC
+                  field when sending to a large body of recipients.
+                </span>,
+                <span>
+                  <strong>Only share with permission.</strong> Do not share
+                  contact information, even across members, without explicit
+                  permission.
+                </span>,
+              ].map((note) => (
+                <li className="flex gap-1 pl-1">
+                  <CheckIcon className="w-4 h-4 shrink-0 text-emerald-500" />
+                  {note}
+                </li>
+              ))}
+            </ul>
+            <Button
+              onClick={() => {
+                if (selectedEmails.length > 0) {
+                  handleCopyToClipboard(selectedEmails);
+                } else if (emailsShown) {
+                  handleCopyToClipboard(emailsShown);
+                }
+              }}
+              size={ButtonSize.Small}
+              fullWidth
+              variant={ButtonVariant.Outline}
+            >
+              {showCopiedNotification
+                ? "Copied! ✔️"
+                : `I Understand, Copy to Clipboard`}
+            </Button>
+          </PopoverContent>
+        </Popover>
         {selectedEmails.length > 0 ? (
           <Button
             size={ButtonSize.Small}

@@ -21,12 +21,12 @@ const PopoverContent = React.forwardRef<
         `z-50
         w-72
         rounded-md
-        border
         bg-popover
         p-4
         text-popover-foreground
         shadow-md
         outline-none
+        text-sm
         data-[state=open]:animate-in
         data-[state=closed]:animate-out
         data-[state=closed]:fade-out-0

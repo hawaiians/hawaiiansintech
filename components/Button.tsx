@@ -16,6 +16,7 @@ export enum ButtonSize {
 }
 
 interface ButtonProps {
+  className?: string;
   children?: React.ReactNode;
   disabled?: boolean;
   fullWidth?: boolean;
@@ -27,6 +28,7 @@ interface ButtonProps {
 }
 
 export default function Button({
+  className,
   children,
   disabled,
   fullWidth,
@@ -80,6 +82,7 @@ export default function Button({
         size === ButtonSize.Small && "h-8 rounded-md px-2 text-sm",
         size === ButtonSize.XSmall &&
           "h-6 rounded-sm border-2 px-1 text-xs tracking-wide focus:ring-4",
+        className,
       )}
       onClick={handleOnClick}
       disabled={disabled || loading}
