@@ -292,7 +292,7 @@ function Card({ className, focus, user }: CardProps) {
               // }}
             />
           </div>
-          <div>
+          <div className="col-span-2 flex justify-end">
             <Button size="sm">Save</Button>
           </div>
         </DialogContent>
