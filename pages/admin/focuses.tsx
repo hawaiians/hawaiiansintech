@@ -33,7 +33,16 @@ import { signInWithGoogle, signOutWithGoogle } from "../../lib/firebase";
 import AdminList from "@/components/admin/AdminList";
 import Tag, { TagVariant } from "@/components/Tag";
 import { convertStringSnake } from "@/helpers";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export async function getStaticProps() {
   return {
@@ -186,6 +195,23 @@ function Card({ className, focus, user }: CardProps) {
 
   if (focus === undefined) return null;
 
+  const mapTabsTriggerToVariant = (
+    status: StatusEnum,
+  ): "alert" | "success" | "nearSuccess" | "warn" => {
+    switch (status) {
+      case StatusEnum.APPROVED:
+        return "success";
+      case StatusEnum.IN_PROGRESS:
+        return "nearSuccess";
+      case StatusEnum.PENDING:
+        return "warn";
+      case StatusEnum.DECLINED:
+        return "alert";
+      default:
+        return;
+    }
+  };
+
   return (
     <>
       <Dialog>
@@ -202,7 +228,7 @@ function Card({ className, focus, user }: CardProps) {
             className,
           )}
         >
-          <div className="flex flex-col gap-3 p-4">
+          <div className="flex flex-col p-4">
             <div className="self-start">
               {focus.status && (
                 <Tag
@@ -223,13 +249,53 @@ function Card({ className, focus, user }: CardProps) {
             </div>
 
             <span
-              className="text-xs font-light text-secondary-foreground"
+              className="text-sm text-secondary-foreground"
               title={`${focus.count}`}
             >
-              {focus.count}
+              {focus.count} members
             </span>
           </div>
         </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{focus.name}</DialogTitle>
+            <DialogDescription>{focus.count} members</DialogDescription>
+          </DialogHeader>
+          <Tabs
+            defaultValue={focus.status}
+            // onValueChange={(value) => {
+            //   setStatus(value as StatusEnum);
+            // }}
+            // value={tabVisible}
+            className="col-span-2"
+          >
+            <TabsList loop className="w-full">
+              {Object.values(StatusEnum).map((status, i) => (
+                <TabsTrigger
+                  value={status}
+                  key={`directory-status-${i}`}
+                  variant={mapTabsTriggerToVariant(status)}
+                >
+                  {convertStringSnake(status)}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+          <div className="col-span-2 flex flex-col items-start gap-1">
+            <h2 className={`text-sm font-semibold`}>Name</h2>
+            <Input
+              name={"name"}
+              value={focus.name}
+              // className={name !== member.name && "text-brown-600"}
+              // onChange={(e) => {
+              //   setName(e.target.value);
+              // }}
+            />
+          </div>
+          <div>
+            <Button size="sm">Save</Button>
+          </div>
+        </DialogContent>
       </Dialog>
     </>
   );
