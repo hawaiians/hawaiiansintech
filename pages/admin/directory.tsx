@@ -274,7 +274,6 @@ const Directory: MemberDirectoryType = ({ members, regions, user }) => {
                 key={`member-card-${m.id}`}
                 regions={regions}
                 user={user}
-                className="rounded-2xl border-2"
               />
             ))}
           </>
@@ -325,7 +324,7 @@ function Card({ className, member, regions, user }: CardProps) {
       <Dialog>
         <DialogTrigger
           className={cn(
-            "group shadow-md",
+            "group shadow-md text-left rounded-2xl border-2",
             member.status === StatusEnum.APPROVED
               ? "border-tan-300/50 hover:border-tan-300 hover:bg-tan-600/5 active:bg-tan-600/10"
               : member.status === StatusEnum.IN_PROGRESS
@@ -336,127 +335,105 @@ function Card({ className, member, regions, user }: CardProps) {
             className,
           )}
         >
-          <div
-            className={cn(
-              "mx-auto flex w-full max-w-5xl items-center gap-2 p-4",
-            )}
-          >
+          <div className="flex flex-col gap-3 p-4">
+            <div className="flex flex-col items-start gap-1">
+              {member.status && (
+                <Tag
+                  variant={
+                    member.status === StatusEnum.APPROVED
+                      ? TagVariant.Success
+                      : member.status === StatusEnum.IN_PROGRESS
+                      ? TagVariant.NearSuccess
+                      : member.status === StatusEnum.PENDING
+                      ? TagVariant.Warn
+                      : TagVariant.Alert
+                  }
+                >
+                  {convertStringSnake(member.status)}
+                </Tag>
+              )}
+
+              <div className="flex flex-col">
+                <h3 className="text-xl font-semibold">{member.name}</h3>
+                <h3 className="text-sm text-secondary-foreground">
+                  {member.title}
+                </h3>
+              </div>
+            </div>
             <div
               className={cn(
-                `mx-auto
-              flex
-              w-full
-              flex-col
-              gap-3
-              text-left`,
+                "grid grid-flow-col grid-cols-4 items-start gap-2 rounded bg-tan-500/10 px-4 py-2 text-xs",
+                member.status === StatusEnum.IN_PROGRESS && "bg-violet-500/10",
               )}
             >
-              <div className="flex flex-col items-start gap-1">
-                <div className="flex w-full gap-2">
-                  {member.status && (
-                    <div className="flex grow items-start">
-                      <Tag
-                        variant={
-                          member.status === StatusEnum.APPROVED
-                            ? TagVariant.Success
-                            : member.status === StatusEnum.IN_PROGRESS
-                            ? TagVariant.NearSuccess
-                            : member.status === StatusEnum.PENDING
-                            ? TagVariant.Warn
-                            : TagVariant.Alert
-                        }
-                      >
-                        {convertStringSnake(member.status)}
-                      </Tag>
-                    </div>
-                  )}
-                </div>
-                <div className="flex flex-col">
-                  <h3 className="text-xl font-semibold">{member.name}</h3>
-                  <h3 className="text-sm text-secondary-foreground">
-                    {member.title}
-                  </h3>
-                  {/* <h3 className="text-sm font-light text-secondary-foreground">
-                  {member.id}
-                </h3> */}
-                </div>
-              </div>
-              <div
-                className={cn(
-                  "grid grid-flow-col grid-cols-4 items-start gap-2 rounded bg-tan-500/10 px-4 py-2 text-xs",
-                  member.status === StatusEnum.IN_PROGRESS &&
-                    "bg-violet-500/10",
-                )}
-              >
-                <section>
-                  <h4 className="font-medium">Location</h4>
-                  <p className="break-words font-light text-secondary-foreground">
-                    {member.location}
-                  </p>
-                </section>
-                <section>
-                  <h4 className="font-medium">Region</h4>
-                  <p className="break-words font-light text-secondary-foreground">
-                    {member.region}
-                  </p>
-                </section>
-                <section>
-                  <h4 className="font-medium">Focuses</h4>
-                  <p>
-                    {member.focus &&
-                      member.focus.map((focus, i) => {
-                        const focusNotApproved =
-                          focus.status !== StatusEnum.APPROVED;
-                        return (
-                          <span
-                            className={cn(
-                              "font-light text-secondary-foreground",
-                              focusNotApproved && `font-medium text-violet-600`,
-                            )}
-                            key={member.id + focus.id}
-                          >
-                            {focus.name}
-                            {focusNotApproved ? ` (${focus.status})` : null}
-                            {i < member.focus.length - 1 ? `, ` : null}
-                          </span>
-                        );
-                      })}
-                  </p>
-                </section>
-                <section>
-                  <h4 className="font-medium">Industries</h4>
-                  <p>
-                    {member.industry &&
-                      member.industry.map((industry, i) => {
-                        const industryNotApproved =
-                          industry.status !== StatusEnum.APPROVED;
-                        return (
-                          <span
-                            className={cn(
-                              "font-light text-secondary-foreground",
-                              industryNotApproved &&
-                                `font-medium text-violet-600`,
-                            )}
-                            key={member.id + industry.id}
-                          >
-                            {industry.name}
-                            {industryNotApproved ? (
-                              <span> ({industry.status})</span>
-                            ) : null}
-                            {i < member.industry.length - 1 ? `, ` : null}
-                          </span>
-                        );
-                      })}
-                  </p>
-                </section>
-              </div>
-              <span
-                className="text-xs font-light text-secondary-foreground"
-                title={`${member.lastModified}`}
-              >
-                Last modified {moment(member.lastModified).fromNow()}
-              </span>
+              <section>
+                <h4 className="font-medium">Location</h4>
+                <p className="break-words font-light text-secondary-foreground">
+                  {member.location}
+                </p>
+              </section>
+              <section>
+                <h4 className="font-medium">Region</h4>
+                <p className="break-words font-light text-secondary-foreground">
+                  {member.region}
+                </p>
+              </section>
+              <section>
+                <h4 className="font-medium">Focuses</h4>
+                <p>
+                  {member.focus &&
+                    member.focus.map((focus, i) => {
+                      const focusNotApproved =
+                        focus.status !== StatusEnum.APPROVED;
+                      return (
+                        <span
+                          className={cn(
+                            "font-light text-secondary-foreground",
+                            focusNotApproved && `font-medium text-violet-600`,
+                          )}
+                          key={member.id + focus.id}
+                        >
+                          {focus.name}
+                          {focusNotApproved ? ` (${focus.status})` : null}
+                          {i < member.focus.length - 1 ? `, ` : null}
+                        </span>
+                      );
+                    })}
+                </p>
+              </section>
+              <section>
+                <h4 className="font-medium">Industries</h4>
+                <p>
+                  {member.industry &&
+                    member.industry.map((industry, i) => {
+                      const industryNotApproved =
+                        industry.status !== StatusEnum.APPROVED;
+                      return (
+                        <span
+                          className={cn(
+                            "font-light text-secondary-foreground",
+                            industryNotApproved &&
+                              `font-medium text-violet-600`,
+                          )}
+                          key={member.id + industry.id}
+                        >
+                          {industry.name}
+                          {industryNotApproved ? (
+                            <span> ({industry.status})</span>
+                          ) : null}
+                          {i < member.industry.length - 1 ? `, ` : null}
+                        </span>
+                      );
+                    })}
+                </p>
+              </section>
             </div>
+            <span
+              className="text-xs font-light text-secondary-foreground"
+              title={`${member.lastModified}`}
+            >
+              Last modified {moment(member.lastModified).fromNow()}
+            </span>
           </div>
         </DialogTrigger>
         <DialogContent>
