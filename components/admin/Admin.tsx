@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { ExternalLink, Mails, Users } from "lucide-react";
+import { ExternalLink, Hammer, Mails, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Button, { ButtonSize, ButtonVariant } from "../Button";
@@ -44,6 +44,7 @@ function AdminNav({
           isAdmin &&
           [
             { label: "Members", url: "/admin/directory", icon: <Users /> },
+            { label: "Focuses", url: "/admin/focuses", icon: <Hammer /> },
             { label: "Email List", url: "/admin/emails", icon: <Mails /> },
             {
               label: "Back to main site",
