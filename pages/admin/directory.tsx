@@ -44,13 +44,7 @@ import {
   deleteReferences,
   getAllMemberReferencesToDelete,
 } from "@/lib/firebase-helpers/public/directory";
-import {
-  DocumentData,
-  MemberEmail,
-  MemberPublic,
-  RegionPublic,
-  getFirebaseTable,
-} from "@/lib/api";
+import { DocumentData, MemberEmail, MemberPublic } from "@/lib/api";
 import {
   CompanySizeEnum,
   FirebaseTablesEnum,
@@ -159,8 +153,8 @@ type MemberDirectoryType = FC<MemberDirectoryProps> & {
 };
 
 enum DirectorySortOrder {
-  Alphabetical = "Alphabetical",
-  LastModified = "Last Modified",
+  Alphabetical = "Sort by: Alphabetical",
+  LastModified = "Sort by: Last Modified",
 }
 
 enum DirectoryFilter {
