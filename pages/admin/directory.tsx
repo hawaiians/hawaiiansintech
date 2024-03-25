@@ -829,52 +829,6 @@ const MemberEdit: FC<{
               )}
             </div>
           </div>
-          {/* <div className="flex items-start gap-x-2">
-            <Checkbox id="verified" checked={true} />
-            <div className="flex gap-1 leading-none">
-              <label
-                htmlFor="verified"
-                className="flex flex-col text-xs font-semibold leading-none text-secondary-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Verified
-              </label>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-secondary-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>
-                      Confirmed ownership of email (through reply or
-                      authentication)
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-x-2">
-            <Checkbox id="subscribed" checked={member.unsubscribed} />
-            <div className="flex gap-1 leading-none">
-              <label
-                htmlFor="subscribed"
-                className="flex flex-col text-xs font-semibold leading-none text-secondary-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Unsubscribed
-              </label>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-secondary-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Opted-out during sign-up or requested directly</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div> */}
 
           <div className="flex flex-col items-start gap-1">
             <h2
@@ -912,7 +866,6 @@ const MemberEdit: FC<{
                   className="flex flex-col gap-1"
                 >
                   <Input placeholder="Region" autoFocus />
-                  {/* HERE */}
                   <Button size="sm">Add Region</Button>
                 </PopoverContent>
               </Popover>
