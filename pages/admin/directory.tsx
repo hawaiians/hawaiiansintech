@@ -69,8 +69,8 @@ import { useRouter } from "next/router";
 import { FC, ReactNode, useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { signInWithGoogle, signOutWithGoogle } from "../../lib/firebase";
-import { FirebaseMemberFieldsEnum as mFields } from "@/lib/enums";
 import AdminFilter from "@/components/admin/FilterEditor";
+import AdminList from "@/components/admin/AdminList";
 export async function getStaticProps() {
   return {
     props: {
@@ -213,80 +213,83 @@ const Directory: MemberDirectoryType = ({ members, regions, user }) => {
 
   return (
     <>
-      <div className="mx-auto max-w-4xl gap-2 flex flex-col py-8 px-4">
-        <h2 className="text-2xl font-semibold">Directory</h2>
-        <div className="flex gap-2 items-center flex-wrap">
-          <Tabs
-            defaultValue={Object.values(DirectoryFilter)[0]}
-            onValueChange={(value) => {
-              setTabVisible(value as DirectoryFilter);
-            }}
-            value={tabVisible}
-          >
-            <TabsList loop>
-              {Object.values(DirectoryFilter).map((filter, i) => (
-                <TabsTrigger value={filter} key={`directory-filter-${i}`}>
-                  {filter}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
-          <div>
-            <Select
-              onValueChange={(val: DirectorySortOrder) => setSortOrder(val)}
-              defaultValue={sortOrder}
-            >
-              <SelectTrigger className="h-8 gap-x-1">
-                <SelectValue placeholder={sortOrder ?? "Sorting"} />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.values(DirectorySortOrder).map(
-                  (option: DirectorySortOrder) => (
-                    <SelectItem value={option} key={`sort-order-${option}`}>
-                      {option}
-                    </SelectItem>
-                  ),
-                )}
-              </SelectContent>
-            </Select>
-          </div>
-          {filteredMembers?.length > 0 && (
-            <h4 className="text-base font-medium text-secondary-foreground shrink-0 grow text-right">
-              {filteredMembers.length} kanaka
-            </h4>
-          )}
-        </div>
-        <div className="flex flex-col gap-2">
-          {error && (
-            <div className="mx-auto my-2 w-full max-w-5xl">
-              <ErrorMessage
-                headline={error.headline}
-                body={error.body}
-                onClose={() => {
-                  setError(null);
-                }}
-              />
-            </div>
-          )}
-          {filteredMembers && filteredMembers.length > 0 ? (
+      <AdminList>
+        <AdminList.Heading
+          label="Directory"
+          controls={
             <>
-              {filteredMembers.map((m) => (
-                <Directory.Card
-                  member={m}
-                  key={`member-card-${m.id}`}
-                  regions={regions}
-                  user={user}
-                  className="rounded-2xl border-2"
-                />
-              ))}
+              <Tabs
+                defaultValue={Object.values(DirectoryFilter)[0]}
+                onValueChange={(value) => {
+                  setTabVisible(value as DirectoryFilter);
+                }}
+                value={tabVisible}
+              >
+                <TabsList loop>
+                  {Object.values(DirectoryFilter).map((filter, i) => (
+                    <TabsTrigger value={filter} key={`directory-filter-${i}`}>
+                      {filter}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </Tabs>
+              <div>
+                <Select
+                  onValueChange={(val: DirectorySortOrder) => setSortOrder(val)}
+                  defaultValue={sortOrder}
+                >
+                  <SelectTrigger className="h-8 gap-x-1">
+                    <SelectValue placeholder={sortOrder ?? "Sorting"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(DirectorySortOrder).map(
+                      (option: DirectorySortOrder) => (
+                        <SelectItem value={option} key={`sort-order-${option}`}>
+                          {option}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              {filteredMembers?.length > 0 && (
+                <h4 className="text-base font-medium text-secondary-foreground shrink-0 grow text-right">
+                  {filteredMembers.length} kanaka
+                </h4>
+              )}
             </>
-          ) : (
-            <div className="flex w-full justify-center p-4">
-              <LoadingSpinner variant={LoadingSpinnerVariant.Invert} />
-            </div>
-          )}
-        </div>{" "}
-      </div>
+          }
+        />
+
+        {error && (
+          <div className="mx-auto my-2 w-full max-w-5xl">
+            <ErrorMessage
+              headline={error.headline}
+              body={error.body}
+              onClose={() => {
+                setError(null);
+              }}
+            />
+          </div>
+        )}
+        {filteredMembers && filteredMembers.length > 0 ? (
+          <>
+            {filteredMembers.map((m) => (
+              <Directory.Card
+                member={m}
+                key={`member-card-${m.id}`}
+                regions={regions}
+                user={user}
+                className="rounded-2xl border-2"
+              />
+            ))}
+          </>
+        ) : (
+          <div className="flex w-full justify-center p-4">
+            <LoadingSpinner variant={LoadingSpinnerVariant.Invert} />
+          </div>
+        )}
+      </AdminList>
     </>
   );
 };
