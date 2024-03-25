@@ -27,7 +27,8 @@ import { scrollToTop } from "../../helpers";
 const NEXT_PAGE = "04-contact";
 
 export async function getStaticProps() {
-  let industries = (await getFilters(FirebaseTablesEnum.INDUSTRIES)) ?? [];
+  let industries =
+    (await getFilters({ type: FirebaseTablesEnum.INDUSTRIES })) ?? [];
   return {
     props: {
       industries: industries,
@@ -97,7 +98,7 @@ export default function JoinStep3({ industries, pageTitle }) {
 
   useEffect(() => {
     let mql = window.matchMedia(
-      `(min-width: ${theme.layout.breakPoints.small})`
+      `(min-width: ${theme.layout.breakPoints.small})`,
     );
     if (mql.matches) {
       setColumnCount(3);
@@ -214,7 +215,7 @@ export default function JoinStep3({ industries, pageTitle }) {
                 selected={deferIndustry === "true"}
                 onClick={() =>
                   setDeferIndustry(
-                    deferIndustry === "true" ? undefined : "true"
+                    deferIndustry === "true" ? undefined : "true",
                   )
                 }
               />
@@ -238,7 +239,7 @@ export default function JoinStep3({ industries, pageTitle }) {
                     industrySuggested && !deferIndustry
                       ? () =>
                           window.confirm(
-                            "Are you sure you want to clear this field?"
+                            "Are you sure you want to clear this field?",
                           ) && setIndustrySuggested("")
                       : undefined
                   }

@@ -182,23 +182,29 @@ export interface Filter {
   members?: string[];
   count?: number;
   hasApprovedMembers?: boolean;
+  status?: StatusEnum;
 }
 
-export async function getFilters(
-  filterType: FirebaseTablesEnum,
-  limitByMembers?: boolean,
-  approvedMemberIds?: string[],
-  filterData?: DocumentData[],
-): Promise<Filter[]> {
-  const filters = filterData || (await getFirebaseTable(filterType));
+export async function getFilters({
+  type,
+  limitByMembers,
+  limitByStatus = Object.values(StatusEnum),
+  data,
+}: {
+  type: FirebaseTablesEnum;
+  limitByMembers?: string[];
+  limitByStatus?: StatusEnum[];
+  data?: DocumentData[];
+}): Promise<Filter[]> {
+  const filters = data || (await getFirebaseTable(type));
   return filters
     .filter(
       (role) =>
         role.fields["name"] &&
-        role.fields.status === "approved" &&
+        limitByStatus?.includes(role.fields["status"]) &&
         (limitByMembers
           ? hasApprovedMembers(
-              approvedMemberIds,
+              limitByMembers,
               role.fields["members"].map((member) => member.id),
             )
           : true),
@@ -209,11 +215,14 @@ export async function getFilters(
         name:
           typeof role.fields["name"] === "string" ? role.fields["name"] : null,
         id: typeof role.id === "string" ? role.id : null,
-        filterType: filterType,
+        filterType: type,
         members: Array.isArray(role.fields["members"]) ? member_ids : null,
         count: Array.isArray(role.fields["members"]) ? member_ids.length : 0,
+        status: Object.values(StatusEnum).includes(role.fields["status"])
+          ? role.fields["status"]
+          : null,
         hasApprovedMembers: limitByMembers
-          ? hasApprovedMembers(approvedMemberIds, member_ids)
+          ? hasApprovedMembers(limitByMembers, member_ids)
           : true,
       };
     })
@@ -231,17 +240,19 @@ export function getExperienceData(): FilterData[] {
   return return_list;
 }
 
-export async function getFiltersBasic(
-  members: MemberPublic[],
-  filterType: FirebaseTablesEnum | "experience",
-  filterData?: DocumentData[],
-): Promise<Filter[]> {
+export async function getFiltersBasic({
+  members,
+  type,
+  data,
+}: {
+  members: MemberPublic[];
+  type: FirebaseTablesEnum | "experience";
+  data?: DocumentData[];
+}): Promise<Filter[]> {
   const filterList = [];
   const filters =
-    filterData ||
-    (filterType == "experience"
-      ? getExperienceData()
-      : await getFirebaseTable(filterType));
+    data ||
+    (type == "experience" ? getExperienceData() : await getFirebaseTable(type));
   const returnedFilters = filters.map((role) => {
     return {
       name:
@@ -253,20 +264,20 @@ export async function getFiltersBasic(
     filterList.push({
       name: fil.name,
       id: fil.id,
-      filterType: filterType,
+      filterType: type,
       members: [],
       count: 0,
       hasApprovedMembers: false,
     });
   });
   const memFil = members.filter((member) =>
-    filterType == "experience" ? member.yearsExperience : member.region,
+    type == "experience" ? member.yearsExperience : member.region,
   );
   memFil.forEach((member) => {
     let expIndex = filterList.findIndex(
       (exp) =>
         exp.name ===
-        (filterType == "experience" ? member.yearsExperience : member.region),
+        (type == "experience" ? member.yearsExperience : member.region),
     );
     if (!filterList[expIndex].hasApprovedMembers)
       filterList[expIndex].hasApprovedMembers = true;

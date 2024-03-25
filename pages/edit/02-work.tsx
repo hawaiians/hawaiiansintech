@@ -16,7 +16,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 export async function getStaticProps() {
-  let focuses = (await getFilters(FirebaseTablesEnum.FOCUSES)) ?? [];
+  let focuses = (await getFilters({ type: FirebaseTablesEnum.FOCUSES })) ?? [];
   return {
     props: {
       focuses: focuses,
@@ -69,7 +69,7 @@ export default function JoinStep2({ focuses, pageTitle }) {
     if (
       !lodash.isEqual(
         values.focusesSelected,
-        userData?.focus?.map((foc) => foc.id)
+        userData?.focus?.map((foc) => foc.id),
       )
     ) {
       modified.focus = values.focusesSelected;

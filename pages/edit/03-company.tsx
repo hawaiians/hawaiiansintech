@@ -18,7 +18,8 @@ import { useEffect, useState } from "react";
 const NEXT_PAGE = "04-contact";
 
 export async function getStaticProps() {
-  let industries = (await getFilters(FirebaseTablesEnum.INDUSTRIES)) ?? [];
+  let industries =
+    (await getFilters({ type: FirebaseTablesEnum.INDUSTRIES })) ?? [];
   return {
     props: {
       industries: industries,
@@ -70,7 +71,7 @@ export default function JoinStep3({ industries, pageTitle }) {
     if (
       !lodash.isEqual(
         values.industriesSelected,
-        userData?.industry?.map((foc) => foc.id)
+        userData?.industry?.map((foc) => foc.id),
       )
     ) {
       modified.industry = values.industriesSelected;

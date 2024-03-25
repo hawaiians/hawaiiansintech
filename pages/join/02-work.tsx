@@ -15,7 +15,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 export async function getStaticProps() {
-  let focuses = (await getFilters(FirebaseTablesEnum.FOCUSES)) ?? [];
+  let focuses = (await getFilters({ type: FirebaseTablesEnum.FOCUSES })) ?? [];
   return {
     props: {
       focuses: focuses.sort((a, b) => b.count - a.count),

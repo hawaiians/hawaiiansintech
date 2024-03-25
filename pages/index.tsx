@@ -19,27 +19,29 @@ import { getMembers } from "./api/get-members";
 export async function getStaticProps() {
   const data = await getMembers();
 
-  const focuses: Filter[] = await getFilters(
-    FirebaseTablesEnum.FOCUSES,
-    true,
-    data.members.map((member) => member.id),
-    data.focuses,
-  );
-  const industries: Filter[] = await getFilters(
-    FirebaseTablesEnum.INDUSTRIES,
-    true,
-    data.members.map((member) => member.id),
-    data.industries,
-  );
-  const experiences: Filter[] = await getFiltersBasic(
-    data.members,
-    "experience",
-  );
-  const regions: Filter[] = await getFiltersBasic(
-    data.members,
-    FirebaseTablesEnum.REGIONS,
-    data.regions,
-  );
+  const focuses: Filter[] = await getFilters({
+    type: FirebaseTablesEnum.FOCUSES,
+    limitByMembers: data.members.map((member) => member.id),
+    limitByStatus: [StatusEnum.APPROVED],
+    data: data.focuses,
+  });
+
+  const industries: Filter[] = await getFilters({
+    type: FirebaseTablesEnum.INDUSTRIES,
+    limitByMembers: data.members.map((member) => member.id),
+    limitByStatus: [StatusEnum.APPROVED],
+    data: data.industries,
+  });
+
+  const experiences: Filter[] = await getFiltersBasic({
+    members: data.members,
+    type: "experience",
+  });
+  const regions: Filter[] = await getFiltersBasic({
+    members: data.members,
+    type: FirebaseTablesEnum.REGIONS,
+    data: data.regions,
+  });
 
   return {
     props: {
