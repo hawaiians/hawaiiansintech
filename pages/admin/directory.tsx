@@ -29,7 +29,7 @@ import {
   MemberPublic,
   RegionPublic,
   getFirebaseTable,
-} from "@/lib/api";
+} from "@/lib/firebase-helpers/api";
 import {
   CompanySizeEnum,
   FirebaseTablesEnum,
@@ -49,7 +49,7 @@ import { FC, ReactNode, useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { signInWithGoogle, signOutWithGoogle } from "../../lib/firebase";
 import { MemberEdit } from "@/components/MemberEdit";
-import { getAllMemberReferencesToDelete } from "@/lib/firebase-helpers/private/directory";
+import { getAllMemberReferencesToDelete } from "@/lib/firebase-helpers/public/directory";
 
 export async function getStaticProps() {
   return {
@@ -74,7 +74,7 @@ export default function DirectoryPage(props) {
   }, [isAdmin, isAdminLoading, router]);
 
   const fetchMembers = async () => {
-    const response = await fetch("/api/get-members", {
+    const response = await fetch("/api/members", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -449,6 +449,7 @@ function Card({ member, regions, user }: CardProps) {
             onDelete={handleDelete}
             regions={regions}
             user={user}
+            adminView={true}
           />
         </DialogContent>
       </Dialog>

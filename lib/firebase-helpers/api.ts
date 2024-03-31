@@ -6,7 +6,11 @@ import {
   getDocs,
   Timestamp,
 } from "firebase/firestore";
-import { FirebaseTablesEnum, StatusEnum, YearsOfExperienceEnum } from "./enums";
+import {
+  FirebaseTablesEnum,
+  StatusEnum,
+  YearsOfExperienceEnum,
+} from "../enums";
 
 const statusEnumValues = Object.values(StatusEnum);
 

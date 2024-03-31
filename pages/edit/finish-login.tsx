@@ -17,7 +17,7 @@ import { auth } from "@/lib/firebase";
 import LoadingSpinner, {
   LoadingSpinnerVariant,
 } from "@/components/LoadingSpinner";
-import { getEmails } from "@/lib/firebase-helpers/private/directory";
+import { getEmails } from "@/lib/firebase-helpers/private/emails";
 export async function getStaticProps() {
   return {
     props: {
@@ -55,7 +55,7 @@ function RequestForm() {
   };
 
   const fetchMemberMapping = async (token: string) => {
-    const response = await fetch("/api/get-member-mapping", {
+    const response = await fetch("/api/member-id", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

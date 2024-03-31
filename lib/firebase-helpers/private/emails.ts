@@ -1,57 +1,12 @@
 import { FirebaseTablesEnum, StatusEnum } from "@/lib/enums";
-import {
-  addDoc,
-  arrayUnion,
-  collection,
-  deleteDoc,
-  doc,
-  DocumentReference,
-  getDoc,
-  getDocs,
-  query,
-  serverTimestamp,
-  updateDoc,
-  where,
-} from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase";
-import { Member, memberConverter } from "../../firestore-converters/member";
-import { DocumentData, MemberEmail, getFirebaseTable } from "@/lib/api";
-
-export interface referencesToDelete {
-  memberRef: DocumentReference;
-  focuses: DocumentReference[];
-  industries: DocumentReference[];
-  regions: DocumentReference[];
-  secureMemberData: DocumentReference;
-}
-
-const verifyServerSide = () => {
-  if (typeof window !== "undefined") {
-    throw new Error("This function can only be called on the server");
-  }
-};
-
-export async function getAllMemberReferencesToDelete(
-  uid: string,
-): Promise<referencesToDelete> {
-  verifyServerSide();
-  const documentRef = doc(db, FirebaseTablesEnum.MEMBERS, uid).withConverter(
-    memberConverter,
-  );
-  const documentSnapshot = await getDoc(documentRef);
-  if (!documentSnapshot.exists()) {
-    return null;
-  }
-  const data = documentSnapshot.data();
-  const returnData = {
-    memberRef: documentRef,
-    focuses: data.focuses,
-    industries: data.industries,
-    regions: data.regions,
-    secureMemberData: doc(db, FirebaseTablesEnum.SECURE_MEMBER_DATA, uid),
-  };
-  return returnData;
-}
+import {
+  DocumentData,
+  MemberEmail,
+  getFirebaseTable,
+} from "@/lib/firebase-helpers/api";
+import { verifyServerSide } from "./general";
 
 export async function getEmails(
   approved: boolean = false,
@@ -90,4 +45,11 @@ export async function getEmails(
     (email) => email.status && email.status === StatusEnum.APPROVED,
   );
   return approved ? approvedEmails : existingEmails;
+}
+
+export async function getEmailById(userId: string): Promise<MemberEmail> {
+  verifyServerSide();
+  const emails = await getEmails();
+  const email = emails.find((e) => e && e.id === userId);
+  return email;
 }

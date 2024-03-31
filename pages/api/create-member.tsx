@@ -8,7 +8,7 @@ import {
   StatusEnum,
 } from "@/lib/enums";
 import { db } from "@/lib/firebase";
-import { initializeAdmin } from "@/lib/firebase-admin";
+import { initializeAdmin } from "@/lib/firebase-helpers/private/initializeAdmin";
 import {
   addLabelRef,
   addMemberToLabels,

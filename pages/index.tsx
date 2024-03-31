@@ -10,11 +10,11 @@ import {
   getFilters,
   getFiltersBasic,
   getFirebaseTable,
-} from "@/lib/api";
+} from "@/lib/firebase-helpers/api";
 import { FirebaseTablesEnum, StatusEnum } from "@/lib/enums";
 import Head from "next/head";
 import React, { useEffect, useState } from "react";
-import { getMembers } from "./api/get-members";
+import { getMembers } from "@/lib/firebase-helpers/private/members";
 
 export async function getStaticProps() {
   const data = await getMembers();

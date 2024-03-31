@@ -25,7 +25,11 @@ import AdminFilter from "@/components/admin/FilterEditor";
 import LoadingSpinner, {
   LoadingSpinnerVariant,
 } from "@/components/LoadingSpinner";
-import { DocumentData, MemberEmail, MemberPublic } from "@/lib/api";
+import {
+  DocumentData,
+  MemberEmail,
+  MemberPublic,
+} from "@/lib/firebase-helpers/api";
 import {
   CompanySizeEnum,
   FirebaseTablesEnum,
@@ -44,7 +48,8 @@ export const MemberEdit: FC<{
   onClose?: () => void;
   onDelete?: () => void;
   user?: User;
-}> = ({ member, regions, onClose, onDelete, user }) => {
+  adminView?: boolean;
+}> = ({ member, regions, onClose, onDelete, user, adminView }) => {
   const [email, setEmail] = useState<MemberEmail>(null);
   const [loadingEmail, setLoadingEmail] = useState<boolean>(null);
   const [originalEmail, setOriginalEmail] = useState<string>(null);
@@ -70,16 +75,14 @@ export const MemberEdit: FC<{
     { name: string; id: string }[] | string[]
   >(member.industry);
   const [suggestedIndustry, setSuggestedIndustry] = useState<string>(null);
+
   const getRegionIdFromName = (name: string): string => {
     const region = regions.find((r) => r.fields.name === name);
-    if (!region) {
-      return null;
-    }
-    return region.id;
+    return !region ? null : region.id;
   };
 
   const fetchEmailById = async () => {
-    const response = await fetch(`/api/get-email-by-id?id=${member.id}`, {
+    const response = await fetch(`/api/emails?id=${member.id}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -110,7 +113,8 @@ export const MemberEdit: FC<{
   };
 
   const updateMember = async (memberPublic: MemberPublic) => {
-    const response = await fetch("/api/update-member", {
+    console.log("memberPublic:", memberPublic);
+    const response = await fetch("/api/members", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -133,7 +137,7 @@ export const MemberEdit: FC<{
   };
 
   const updateSecureEmail = async (uid: string, email: string) => {
-    const response = await fetch("/api/update-secure-email-by-id", {
+    const response = await fetch("/api/emails", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -226,29 +230,31 @@ export const MemberEdit: FC<{
         </>
       ) : (
         <div className="grid grid-cols-2 gap-2">
-          <Tabs
-            defaultValue={member.status}
-            onValueChange={(value) => {
-              setStatus(value as StatusEnum);
-            }}
-            // value={tabVisible}
-            className="col-span-2"
-          >
-            <TabsList loop className="w-full">
-              {Object.values(StatusEnum)
-                .filter((status) => status !== StatusEnum.DECLINED)
-                .map((status, i) => (
-                  <TabsTrigger
-                    value={status}
-                    key={`directory-status-${i}`}
-                    variant={mapTabsTriggerToVariant(status)}
-                    // size="sm"
-                  >
-                    {convertStringSnake(status)}
-                  </TabsTrigger>
-                ))}
-            </TabsList>
-          </Tabs>
+          {adminView && (
+            <Tabs
+              defaultValue={member.status}
+              onValueChange={(value) => {
+                setStatus(value as StatusEnum);
+              }}
+              // value={tabVisible}
+              className="col-span-2"
+            >
+              <TabsList loop className="w-full">
+                {Object.values(StatusEnum)
+                  .filter((status) => status !== StatusEnum.DECLINED)
+                  .map((status, i) => (
+                    <TabsTrigger
+                      value={status}
+                      key={`directory-status-${i}`}
+                      variant={mapTabsTriggerToVariant(status)}
+                      // size="sm"
+                    >
+                      {convertStringSnake(status)}
+                    </TabsTrigger>
+                  ))}
+              </TabsList>
+            </Tabs>
+          )}
           <div className="col-span-2 flex flex-col items-start gap-1">
             <h2
               className={`text-sm font-semibold ${
@@ -329,7 +335,7 @@ export const MemberEdit: FC<{
                 className={
                   email && email.email !== originalEmail && "text-brown-600"
                 }
-                disabled={email === null}
+                disabled={email === null || !adminView}
                 value={email?.email || member.emailAbbr}
                 onChange={(e) => {
                   let newEmail = { ...email };
@@ -337,6 +343,21 @@ export const MemberEdit: FC<{
                   setEmail(newEmail);
                 }}
               />
+              {!adminView && email && (
+                <span className="text-xs text-gray-500">
+                  If you need to update your email, please reach out to{" "}
+                  <Link href="mailto:kekai@hawaiiansintech.org" target="_blank">
+                    kekai
+                  </Link>{" "}
+                  or{" "}
+                  <Link
+                    href="mailto:kamakani@hawaiiansintech.org"
+                    target="_blank"
+                  >
+                    kamakani
+                  </Link>{" "}
+                </span>
+              )}
               {email ? (
                 <>
                   <section className="flex items-start gap-2">
@@ -349,37 +370,57 @@ export const MemberEdit: FC<{
                       defaultChecked
                     />
                     <div className="text-xs leading-relaxed">
-                      <label
-                        htmlFor="subscribed"
-                        className="font-semibold peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                      >
-                        Subscribed
-                      </label>
-                      <p className="leading-relaxed text-secondary-foreground">
-                        Members opt out of emails during sign-up and/or using
-                        unsubscribe links.
-                      </p>
+                      {adminView ? (
+                        <>
+                          <label
+                            htmlFor="subscribed"
+                            className="font-semibold peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                          >
+                            Subscribed
+                          </label>
+                          <p className="leading-relaxed text-secondary-foreground">
+                            Members opt out of emails during sign-up and/or
+                            using unsubscribe links.
+                          </p>
+                        </>
+                      ) : (
+                        <label
+                          htmlFor="send-me-emails"
+                          className="font-semibold peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        >
+                          Please let me know about{" "}
+                          <strong className="font-semibold">
+                            features and community updates
+                          </strong>{" "}
+                          <span className="text-stone-500">
+                            (~once a month)
+                          </span>
+                          .
+                        </label>
+                      )}
                     </div>
                   </section>
-                  <section className="flex items-start gap-2">
-                    <Checkbox disabled id="verified" />
-                    <div className="text-xs leading-relaxed">
-                      <label
-                        htmlFor="verified"
-                        className="font-semibold peer-disabled:cursor-not-allowed peer-disabled:opacity-70 opacity-40"
-                      >
-                        Verified (to be implemented)
-                      </label>
-                      <p className="leading-relaxed text-secondary-foreground opacity-50">
-                        Members verify their email address by replying or
-                        authenticating.
-                      </p>
-                    </div>
-                  </section>
+                  {adminView && (
+                    <section className="flex items-start gap-2">
+                      <Checkbox disabled id="verified" />
+                      <div className="text-xs leading-relaxed">
+                        <label
+                          htmlFor="verified"
+                          className="font-semibold peer-disabled:cursor-not-allowed peer-disabled:opacity-70 opacity-40"
+                        >
+                          Verified (to be implemented)
+                        </label>
+                        <p className="leading-relaxed text-secondary-foreground opacity-50">
+                          Members verify their email address by replying or
+                          authenticating.
+                        </p>
+                      </div>
+                    </section>
+                  )}
                 </>
               ) : (
                 <div className="absolute right-0 top-1/2 flex grow -translate-y-1/2 gap-0.5 pr-2 opacity-80">
-                  <Badge variant="secondary">Verified</Badge>
+                  {adminView && <Badge variant="secondary">Verified</Badge>}
                   {member.unsubscribed ? (
                     <Badge variant="destructive">Unsubscribed</Badge>
                   ) : (
@@ -579,11 +620,15 @@ export const MemberEdit: FC<{
             setSuggestedFilter={setSuggestedIndustry}
           />
 
-          <section>
-            <h4 className="text-sm font-semibold">ID</h4>
-            <p className="font-light text-secondary-foreground">{member.id}</p>
-          </section>
-          {member.lastModified && (
+          {adminView && (
+            <section>
+              <h4 className="text-sm font-semibold">ID</h4>
+              <p className="font-light text-secondary-foreground">
+                {member.id}
+              </p>
+            </section>
+          )}
+          {member.lastModified && adminView && (
             <section>
               <h4 className="text-sm font-semibold">Last Modified</h4>
               <p className="font-light text-secondary-foreground">
@@ -595,26 +640,32 @@ export const MemberEdit: FC<{
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger>
-                  <Button
-                    variant="secondary"
-                    onClick={() => {
-                      setIsDeleting(true);
-                    }}
-                    size="sm"
-                    disabled
-                  >
-                    <span className="flex items-center gap-2">
-                      <Trash className="h-4 w-4" />
-                      Archive
-                    </span>
-                  </Button>
+                  {adminView && (
+                    <Button
+                      variant="secondary"
+                      onClick={() => {
+                        setIsDeleting(true);
+                      }}
+                      size="sm"
+                      disabled
+                    >
+                      <span className="flex items-center gap-2">
+                        <Trash className="h-4 w-4" />
+                        Archive
+                      </span>
+                    </Button>
+                  )}
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Disabled · Read-only</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <div className="flex grow justify-end">
+            <div
+              className={
+                adminView ? "flex grow justify-end" : "flex grow justify-center"
+              }
+            >
               <Button onClick={saveChanges} size="sm">
                 Save
               </Button>

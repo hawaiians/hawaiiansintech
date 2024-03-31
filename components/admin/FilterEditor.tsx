@@ -11,7 +11,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { useState } from "react";
-import { Filter, getFilters } from "@/lib/api";
+import { Filter, getFilters } from "@/lib/firebase-helpers/api";
 import { Input } from "@/components/ui/input";
 import { Pencil } from "lucide-react";
 

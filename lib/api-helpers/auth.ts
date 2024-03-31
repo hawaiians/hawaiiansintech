@@ -1,13 +1,13 @@
 import * as admin from "firebase-admin";
-import { initializeAdmin } from "./firebase-admin";
+import { initializeAdmin } from "../firebase-helpers/private/initializeAdmin";
 import { NextApiRequest, NextApiResponse } from "next";
-
-class TokenVerificationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "TokenVerificationError";
-  }
-}
+import {
+  MissingHeaderError,
+  MissingTokenError,
+  TokenVerificationError,
+} from "./errors";
+import { MemberEmail } from "../firebase-helpers/api";
+import { getEmailById } from "../firebase-helpers/private/emails";
 
 const verifyTokenExpiration = (decodedToken: admin.auth.DecodedIdToken) => {
   const now = Math.floor(Date.now() / 1000); // Convert to Unix timestamp (in seconds)
@@ -35,11 +35,17 @@ export const verifyEmailAuthToken = async (token: string): Promise<string> => {
   }
 };
 
-export const verifyAdminToken = async (token: string): Promise<boolean> => {
+export const verifyAdminToken = async (
+  token: string,
+  strict: boolean = true,
+): Promise<boolean> => {
   try {
     await initializeAdmin();
     const decodedToken = await admin.auth().verifyIdToken(token);
     verifyTokenExpiration(decodedToken);
+    if (strict && !decodedToken.admin) {
+      throw new TokenVerificationError("Not an admin");
+    }
     return decodedToken.admin === true;
   } catch (error) {
     if (error.code === "auth/argument-error") {
@@ -52,17 +58,26 @@ export const verifyAdminToken = async (token: string): Promise<boolean> => {
 
 export const verifyAuthHeader = async (
   req: NextApiRequest,
-  res: NextApiResponse,
-): Promise<string | void> => {
+): Promise<string> => {
   const authHeader = req.headers.authorization;
   if (!authHeader) {
-    return res.status(401).json({ message: "Authorization header missing" });
+    throw new MissingHeaderError();
   }
   const token = authHeader.split(" ")[1];
   if (!token) {
-    return res
-      .status(401)
-      .json({ message: "Authorization token missing in header" });
+    throw new MissingTokenError();
   }
   return token;
 };
+
+export async function verifyAdminOrEmailAuthToken(
+  id: string,
+  token: string,
+): Promise<MemberEmail> {
+  const isAdmin = await verifyAdminToken(token, false);
+  const email = await getEmailById(id);
+  if (!isAdmin || email.email !== (await verifyEmailAuthToken(token))) {
+    throw new TokenVerificationError("Not authorized to access this account");
+  }
+  return email;
+}
