@@ -1,9 +1,23 @@
 import { Icon, IconAsset, IconColor } from "@/components/icon/icon";
 import Logo from "@/components/Logo";
+import { Pencil, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { Button, buttonVariants } from "./ui/button";
+import { useIsAdmin } from "@/lib/hooks";
+import { getAuth } from "firebase/auth";
 import { useRouter } from "next/router";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { signInWithGoogle, signOutWithGoogle } from "../lib/firebase";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 
 export enum NavAppearance {
   ToShow = "to-show",
@@ -21,6 +35,8 @@ export default function Nav({
   children,
   variant = "primary",
 }: NavProps) {
+  const auth = getAuth();
+  const [user, loading, error] = useAuthState(auth);
   const router = useRouter();
   const { nav } = router.query;
 
@@ -30,6 +46,7 @@ export default function Nav({
   };
 
   let logo = <Logo />;
+
   if (backLinkTo) {
     logo = (
       <>
@@ -63,7 +80,7 @@ export default function Nav({
         )}
       >
         {logo}
-        {variant === "primary" ? (
+        {variant === "primary" && (
           <>
             <Link
               className="text-base font-medium text-stone-700"
@@ -78,36 +95,67 @@ export default function Nav({
               Hackathon
             </Link>
           </>
-        ) : null}
+        )}
       </nav>
       {children ? (
         <div className="flex items-center grow gap-4">{children}</div>
       ) : null}
       {variant === "primary" && (
-        <Link
-          className={`
-          rounded-lg
-          border-4
-          border-tan-300
-          bg-tan-300
-          px-2
-          py-0.5
-          text-base
-          font-medium
-          text-stone-700
-          transition-all
-          hover:scale-105
-          hover:border-brown-700/80
-          hover:bg-brown-600
-          hover:text-white
-          active:scale-95
-          sm:px-4
-          sm:py-2
-        `}
-          href={`/join/00-aloha?nav=${NavAppearance.ToMin}`}
-        >
-          Join us
-        </Link>
+        <>
+          {user === null && !loading && (
+            <div className="flex items-center gap-2">
+              <Button size="lg" variant="secondary" onClick={signInWithGoogle}>
+                Login
+              </Button>
+              <Link
+                className={cn(buttonVariants({ size: "lg" }))}
+                href={`/join/00-aloha?nav=${NavAppearance.ToMin}`}
+              >
+                Join Us
+              </Link>
+            </div>
+          )}
+          {user !== null && !loading && (
+            <div className="flex items-center gap-4">
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex items-center gap-1.5"
+              >
+                <Pencil className="w-4 h-4" />
+                <span>Edit Profile</span>
+              </Button>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger>
+                  <button className="bg-gradient-to-br from-violet-700 to-cyan-600 w-12 h-12 rounded-full flex items-center justify-center text-white text-lg">
+                    {user.displayName[0]}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="bottom" align="end">
+                  <DropdownMenuLabel className="bg-gradient-to-br from-violet-700 to-cyan-600 rounded text-white">
+                    {user.displayName}
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem onClick={signOutWithGoogle}>
+                    Log out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )}
+          {/* <Link
+            className={buttonVariants({ variant: "secondary", size: "lg" })}
+            href={`/join/00-aloha?nav=${NavAppearance.ToMin}`}
+          >
+            Login
+          </Link> */}
+          {/* <Link
+            className={buttonVariants({ size: "lg" })}
+            href={`/join/00-aloha?nav=${NavAppearance.ToMin}`}
+          >
+            Join us
+          </Link> */}
+        </>
       )}
     </header>
   );
