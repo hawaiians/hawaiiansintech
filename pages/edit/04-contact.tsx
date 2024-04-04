@@ -120,7 +120,10 @@ export default function JoinStep4({ pageTitle }) {
         <title>{pageTitle}</title>
       </Head>
 
-      <Nav backUrl={removeRequest ? "/edit" : "03-company"} />
+      <Nav
+        backLinkTo={removeRequest ? "/edit" : "03-company"}
+        variant="minimized"
+      />
       <Heading>
         {removeRequest ? "Removal Request" : "Requesting changes"} for{" "}
         {userData.name}
@@ -334,8 +337,8 @@ const DiffTable = ({
               {userData.industry?.length > 1 || userData.industry?.length === 0
                 ? "ies"
                 : userData.industry?.length
-                ? "y"
-                : ""}
+                  ? "y"
+                  : ""}
             </span>
             <span>
               {[...editedData.industry, editedData.industrySuggested].filter(

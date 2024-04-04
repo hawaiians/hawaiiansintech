@@ -6,69 +6,73 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 
 export enum NavAppearance {
-  NavShown = "show",
-  NavMinimized = "min",
+  ToShow = "to-show",
+  ToMin = "to-min",
 }
-
-const navLogoVariants = {
-  floatLeft: { x: -40 },
-  default: { x: 0 },
-};
 
 interface NavProps {
-  backUrl?: string;
+  backLinkTo?: string;
   children?: React.ReactNode;
-  primaryNav?: {
-    show?: boolean;
-  };
+  variant?: "primary" | "minimized";
 }
 
-export default function Nav({ backUrl, children, primaryNav }: NavProps) {
+export default function Nav({
+  backLinkTo,
+  children,
+  variant = "primary",
+}: NavProps) {
   const router = useRouter();
-  const { prev } = router.query;
+  const { nav } = router.query;
+
+  const navLogoVariants = {
+    floatLeft: { x: -40 },
+    default: { x: 0 },
+  };
 
   let logo = <Logo />;
-  if (backUrl) {
+  if (backLinkTo) {
     logo = (
-      <motion.a
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        animate={navLogoVariants.default}
-        initial={
-          prev === NavAppearance.NavShown
-            ? navLogoVariants.floatLeft
-            : navLogoVariants.default
-        }
-        href="/"
-        variants={navLogoVariants}
-      >
-        {logo}
-      </motion.a>
+      <>
+        <Link href={backLinkTo} shallow={true}>
+          <div className="transition-transform hover:scale-105 active:scale-95">
+            <Icon asset={IconAsset.CaretLeft} color={IconColor.Inherit} />
+          </div>
+        </Link>
+        <motion.a
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          animate={navLogoVariants.default}
+          initial={
+            variant === "minimized" && nav === NavAppearance.ToMin
+              ? navLogoVariants.floatLeft
+              : navLogoVariants.default
+          }
+          href="/"
+        >
+          {logo}
+        </motion.a>
+      </>
     );
   }
   return (
     <header className="flex w-full items-center justify-between gap-8 p-4 sm:pl-8">
       <nav
-        className={cn("flex items-center gap-4", primaryNav?.show && "gap-8")}
+        className={cn(
+          "flex items-center gap-4",
+          variant === "primary" && "gap-8",
+        )}
       >
-        {backUrl ? (
-          <Link href={backUrl} shallow={true}>
-            <div className="transition-transform hover:scale-105 active:scale-95">
-              <Icon asset={IconAsset.CaretLeft} color={IconColor.Inherit} />
-            </div>
-          </Link>
-        ) : null}
         {logo}
-        {primaryNav?.show ? (
+        {variant === "primary" ? (
           <>
             <Link
               className="text-base font-medium text-stone-700"
-              href={`/about?prev=${NavAppearance.NavShown}`}
+              href={`/about?nav=${NavAppearance.ToMin}`}
             >
               About
             </Link>
             <Link
-              href={`/hackathon?prev=${NavAppearance.NavShown}`}
+              href={`/hackathon?nav=${NavAppearance.ToMin}`}
               className="font-script text-2xl"
             >
               Hackathon
@@ -79,7 +83,7 @@ export default function Nav({ backUrl, children, primaryNav }: NavProps) {
       {children ? (
         <div className="flex items-center grow gap-4">{children}</div>
       ) : null}
-      {primaryNav?.show && (
+      {variant === "primary" && (
         <Link
           className={`
           rounded-lg
@@ -100,7 +104,7 @@ export default function Nav({ backUrl, children, primaryNav }: NavProps) {
           sm:px-4
           sm:py-2
         `}
-          href={`/join/00-aloha?prev=${NavAppearance.NavShown}`}
+          href={`/join/00-aloha?nav=${NavAppearance.ToMin}`}
         >
           Join us
         </Link>

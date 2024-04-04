@@ -70,7 +70,7 @@ export default function JoinStep3({ industries, pageTitle }) {
     if (
       !lodash.isEqual(
         values.industriesSelected,
-        userData?.industry?.map((foc) => foc.id)
+        userData?.industry?.map((foc) => foc.id),
       )
     ) {
       modified.industry = values.industriesSelected;
@@ -98,7 +98,7 @@ export default function JoinStep3({ industries, pageTitle }) {
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav backUrl="02-work" />
+      <Nav backLinkTo="02-work" variant="minimized" />
       <Heading>Requesting changes for {userData?.name}</Heading>
       <CompanyIndustry
         initial={{

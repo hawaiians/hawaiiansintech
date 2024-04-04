@@ -28,7 +28,7 @@ export default function EditPage({ pageTitle }) {
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav backUrl="/" />
+      <Nav backLinkTo="/" variant="minimized" />
       <Heading>Request Changes</Heading>
       <Subheading centered>Welcome back, Hawaiian.</Subheading>
       <RequestForm />
@@ -114,7 +114,7 @@ function RequestForm() {
           id="member-select"
           onChange={(e) => {
             setMemberSelected(
-              members.find((member) => member.id === e.target.value)
+              members.find((member) => member.id === e.target.value),
             );
           }}
         >

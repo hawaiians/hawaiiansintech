@@ -97,7 +97,7 @@ export default function JoinStep3({ industries, pageTitle }) {
 
   useEffect(() => {
     let mql = window.matchMedia(
-      `(min-width: ${theme.layout.breakPoints.small})`
+      `(min-width: ${theme.layout.breakPoints.small})`,
     );
     if (mql.matches) {
       setColumnCount(3);
@@ -157,7 +157,7 @@ export default function JoinStep3({ industries, pageTitle }) {
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav backUrl="02-work" />
+      <Nav backLinkTo="02-work" variant="minimized" />
 
       <Heading>Welcome to our little hui.</Heading>
       <section className="mx-auto mb-4 mt-0 max-w-3xl space-y-6 px-8">
@@ -214,7 +214,7 @@ export default function JoinStep3({ industries, pageTitle }) {
                 selected={deferIndustry === "true"}
                 onClick={() =>
                   setDeferIndustry(
-                    deferIndustry === "true" ? undefined : "true"
+                    deferIndustry === "true" ? undefined : "true",
                   )
                 }
               />
@@ -238,7 +238,7 @@ export default function JoinStep3({ industries, pageTitle }) {
                     industrySuggested && !deferIndustry
                       ? () =>
                           window.confirm(
-                            "Are you sure you want to clear this field?"
+                            "Are you sure you want to clear this field?",
                           ) && setIndustrySuggested("")
                       : undefined
                   }

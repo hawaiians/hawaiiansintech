@@ -88,7 +88,7 @@ export default function JoinStep2({ focuses, pageTitle }) {
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav backUrl="01-you" />
+      <Nav backLinkTo="01-you" variant="minimized" />
 
       <Heading>Welcome to our little hui.</Heading>
 

@@ -65,7 +65,7 @@ export default function JoinStep1({ pageTitle }) {
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav backUrl="/edit" />
+      <Nav backLinkTo="/edit" variant="minimized" />
       <Heading>Requesting changes for {data.name}</Heading>
       <BasicInformationForm
         initial={{

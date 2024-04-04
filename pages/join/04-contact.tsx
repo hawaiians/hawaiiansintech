@@ -74,7 +74,7 @@ export default function JoinStep4({ pageTitle }) {
         },
         (error: Response) => {
           reject(error);
-        }
+        },
       );
     });
   };
@@ -137,7 +137,7 @@ export default function JoinStep4({ pageTitle }) {
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav backUrl="03-company" />
+      <Nav backLinkTo="03-company" variant="minimized" />
 
       <Heading>Welcome to our little hui.</Heading>
 
@@ -160,7 +160,7 @@ export default function JoinStep4({ pageTitle }) {
             email: Yup.string()
               .email("That email doesn't look right. Please try again.")
               .required(
-                "It's important that we can reach you. Email is required."
+                "It's important that we can reach you. Email is required.",
               ),
           })}
         >

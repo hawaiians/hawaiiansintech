@@ -72,7 +72,7 @@ export default function JoinStep1({ pageTitle }) {
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav backUrl="/" />
+      <Nav backLinkTo="/" variant="minimized" />
 
       <Heading>Welcome to our little hui.</Heading>
       <Subheading centered>

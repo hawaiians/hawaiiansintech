@@ -236,7 +236,7 @@ export default function HomePage({
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav primaryNav={{ show: true }} />
+      <Nav />
       <div
         className={`
           px-4
