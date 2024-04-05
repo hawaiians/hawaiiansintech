@@ -9,6 +9,8 @@ import Head from "next/head";
 import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { cn } from "@/lib/utils";
+import { Checkbox } from "@/components/ui/checkbox";
 
 enum OnboardingSelection {
   HawaiianInTech = "hwn",
@@ -37,13 +39,13 @@ const ONBOARDING_OPTIONS: {
     bullets: [
       "Connect with kanaka who share your interests",
       "Grow your career through mentorship and advice",
-      "Inspire the next generation to pursue tech",
+      "Inspire the next generation to pursue beyond",
     ],
   },
   {
     type: OnboardingSelection.Ally,
     emoji: "🫂",
-    title: "Support as an ally",
+    title: "Support this community as an ally",
     bullets: [
       "Support your kanaka friends and family",
       "Stay informed on our events and progress",
@@ -69,6 +71,7 @@ export default function Aloha({ pageTitle }) {
 
       case OnboardingSelection.None:
       default:
+        // TODO: Throw one of those new slick errors
         console.log("yeeeeeeeeeeeeeeeah");
         break;
     }
@@ -86,7 +89,7 @@ export default function Aloha({ pageTitle }) {
         Welcome to Hawaiians in Tech. What brings ya to our community?
       </Heading>
 
-      <div className="mx-auto max-w-xl px-8 space-y-4">
+      <div className="mx-auto max-w-2xl px-8 space-y-4">
         <RadioGroup
           defaultValue={selected}
           onValueChange={(type: OnboardingSelection) => setSelected(type)}
@@ -98,7 +101,11 @@ export default function Aloha({ pageTitle }) {
             return (
               <>
                 <div
-                  className="border-2 border-primary/20 border-t-primary/10 rounded-xl shadow-lg"
+                  className={cn(
+                    "border-2 rounded-xl transition-all",
+                    type === selected &&
+                      "border-primary/20 shadow-lg bg-primary/5",
+                  )}
                   key={`option-container-${index}-${emoji}`}
                 >
                   <Label
@@ -111,12 +118,17 @@ export default function Aloha({ pageTitle }) {
                       variant="outline"
                       size="lg"
                     />
-                    <div className="w-20 bg-primary/20 h-20 rounded-lg flex items-center justify-center text-6xl">
+                    <div
+                      className={cn(
+                        "w-20 bg-secondary h-20 rounded-lg flex items-center justify-center text-6xl",
+                        type === selected && "bg-primary/20",
+                      )}
+                    >
                       {emoji}
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <h3 className="text-xl font-semibold">{title}</h3>
-                      <ul className="space-y-2">
+                      <ul className="space-y-0.5 list-inside list-['·__'] pl-2 leading-snug">
                         {bullets.map((bullet, index) => (
                           <li className="" key={`bullet-${bullet}-${index}`}>
                             {bullet}

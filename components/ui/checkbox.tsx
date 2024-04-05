@@ -10,9 +10,10 @@ const checkboxVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-primary data-[state=checked]:bg-primary",
+        default: "border border-primary/40 data-[state=checked]:bg-primary",
         outline:
-          "border border-primary/40 data-[state=checked]:bg-transparent data-[state=checked]:border-primary",
+          "border border-input data-[state=checked]:border-primary/40 text-primary",
+        accent: "border-primary data-[state=checked]:text-primary",
       },
       size: {
         default: "h-5 w-5 rounded-sm",

@@ -26,9 +26,11 @@ const radioGroupItemVariants = cva(
   {
     variants: {
       variant: {
-        default: "border-primary text-primary",
-        outline:
+        default:
           "border border-primary/40 text-primary data-[state=checked]:border-primary",
+        accent: "border-primary text-primary",
+        outline:
+          "border border-input text-primary data-[state=checked]:border-primary/40",
       },
       size: {
         default: "h-5 w-5",
