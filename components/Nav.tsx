@@ -1,11 +1,10 @@
 import { Icon, IconAsset, IconColor } from "@/components/icon/icon";
 import Logo from "@/components/Logo";
-import { Pencil, ChevronDown } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button, buttonVariants } from "./ui/button";
-import { useIsAdmin } from "@/lib/hooks";
 import { getAuth } from "firebase/auth";
 import { useRouter } from "next/router";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -15,7 +14,6 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 
@@ -104,9 +102,14 @@ export default function Nav({
         <>
           {user === null && !loading && (
             <div className="flex items-center gap-2">
-              <Button size="lg" variant="secondary" onClick={signInWithGoogle}>
+              <Link
+                className={cn(
+                  buttonVariants({ size: "lg", variant: "secondary" }),
+                )}
+                href="/login"
+              >
                 Login
-              </Button>
+              </Link>
               <Link
                 className={cn(buttonVariants({ size: "lg" }))}
                 href={`/join/00-aloha?nav=${NavAppearance.ToMin}`}
