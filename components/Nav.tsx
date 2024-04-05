@@ -106,7 +106,7 @@ export default function Nav({
                 className={cn(
                   buttonVariants({ size: "lg", variant: "secondary" }),
                 )}
-                href="/login"
+                href={`/login?nav=${NavAppearance.ToMin}`}
               >
                 Login
               </Link>
@@ -146,18 +146,6 @@ export default function Nav({
               </DropdownMenu>
             </div>
           )}
-          {/* <Link
-            className={buttonVariants({ variant: "secondary", size: "lg" })}
-            href={`/join/00-aloha?nav=${NavAppearance.ToMin}`}
-          >
-            Login
-          </Link> */}
-          {/* <Link
-            className={buttonVariants({ size: "lg" })}
-            href={`/join/00-aloha?nav=${NavAppearance.ToMin}`}
-          >
-            Join us
-          </Link> */}
         </>
       )}
     </header>

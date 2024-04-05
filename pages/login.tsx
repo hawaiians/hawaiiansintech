@@ -41,7 +41,7 @@ export default function Login({ pageTitle }) {
         {user === null && !loading && (
           <div className="flex items-center gap-2">
             <Button size="lg" variant="secondary" onClick={signInWithGoogle}>
-              Login
+              (Imagine this was the email verify step)
             </Button>
           </div>
         )}
