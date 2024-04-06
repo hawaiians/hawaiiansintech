@@ -49,7 +49,7 @@ export default function JoinStep4({ pageTitle }) {
 
   const createMember = async () => {
     return new Promise((resolve, reject) => {
-      fetch("/api/create-member", {
+      fetch("/api/members", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -74,7 +74,7 @@ export default function JoinStep4({ pageTitle }) {
         },
         (error: Response) => {
           reject(error);
-        }
+        },
       );
     });
   };
@@ -160,7 +160,7 @@ export default function JoinStep4({ pageTitle }) {
             email: Yup.string()
               .email("That email doesn't look right. Please try again.")
               .required(
-                "It's important that we can reach you. Email is required."
+                "It's important that we can reach you. Email is required.",
               ),
           })}
         >

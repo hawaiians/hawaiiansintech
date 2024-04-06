@@ -7,9 +7,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { MemberEdit } from "@/components/MemberEdit";
-import { StatusEnum } from "@/lib/enums";
 import { auth } from "@/lib/firebase";
-import { useAuthState } from "react-firebase-hooks/auth";
 export async function getStaticProps() {
   return {
     props: {

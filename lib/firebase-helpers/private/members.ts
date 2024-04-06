@@ -4,6 +4,7 @@ import {
   FirebaseMemberFieldsEnum,
   StatusEnum,
   FirebaseTablesEnum,
+  FirebaseDefaultValuesEnum,
 } from "@/lib/enums";
 import { updatePublicFilterReferences } from "@/lib/firebase-helpers/public/filters";
 import {
@@ -22,6 +23,21 @@ import {
   MemberPublic,
 } from "@/lib/firebase-helpers/api";
 import { verifyAdminToken, verifyEmailAuthToken } from "@/lib/api-helpers/auth";
+import {
+  DocumentReference,
+  addDoc,
+  collection,
+  doc,
+  serverTimestamp,
+} from "firebase/firestore";
+import { useEmailCloaker } from "@/helpers";
+import {
+  addLabelRef,
+  addMemberToLabels,
+  addPendingReviewRecord,
+} from "../public/directory";
+import { addSecureEmail } from "./emails";
+import { db } from "@/lib/firebase";
 
 export async function getMembers(token?: string): Promise<{
   members: MemberPublic[];
@@ -202,4 +218,134 @@ export const updateMember = async (
       memberData,
     )}: ${writeResult}`,
   );
+};
+
+interface CreateMemberFields {
+  name: string;
+  email: string;
+  location: string;
+  website?: string;
+  link?: string;
+  focusesSelected?: string | string[];
+  focusSuggested?: string;
+  title?: string;
+  yearsExperience?: string;
+  industriesSelected?: string | string[];
+  industrySuggested?: string;
+  companySize?: string;
+  recordID?: string;
+  unsubscribed?: boolean;
+}
+
+const idToRef = async (
+  labelId: string,
+  collectionName: string,
+): Promise<DocumentReference> => {
+  const collectionRef = collection(db, collectionName);
+  const docRef = doc(collectionRef, labelId);
+  return docRef;
+};
+
+const idsToRefs = async (
+  labelIds: string | string[],
+  collectionName: string,
+): Promise<DocumentReference[]> => {
+  if (typeof labelIds === "string") {
+    labelIds = [labelIds];
+  }
+  const refs = [];
+  for (const labelId of labelIds) {
+    const labelRef = await idToRef(labelId, collectionName);
+    refs.push(labelRef);
+  }
+  return refs;
+};
+
+const addMember = async (
+  member: CreateMemberFields,
+): Promise<DocumentReference> => {
+  try {
+    const collectionRef = collection(db, FirebaseTablesEnum.MEMBERS);
+    const maskedEmail = useEmailCloaker(member.email);
+    const data = {
+      ...member,
+      last_modified: serverTimestamp(),
+      last_modified_by: FirebaseDefaultValuesEnum.LAST_MODIFIED_BY,
+      masked_email: maskedEmail,
+      requests: "",
+      status: StatusEnum.PENDING,
+      unsubscribed: member.unsubscribed,
+    };
+    delete data.email; // Don't store email in the member record
+    const docRef = await addDoc(collectionRef, data);
+    addPendingReviewRecord(docRef, FirebaseTablesEnum.MEMBERS);
+    addSecureEmail(member.email, docRef);
+    return docRef;
+  } catch (error) {
+    console.error("Error adding member: ", error);
+    throw error;
+  }
+};
+
+export const addMemberToFirebase = async (
+  fields: CreateMemberFields,
+): Promise<DocumentReference> => {
+  let member = {
+    company_size: fields.companySize,
+    email: fields.email,
+    focuses: [],
+    industries: [],
+    link: fields.website, //TODO: Remove "website" input param and replace with "link"
+    location: fields.location,
+    name: fields.name,
+    regions: [],
+    title: fields.title,
+    years_experience: fields.yearsExperience,
+    unsubscribed: fields.unsubscribed,
+  };
+
+  // Handle focuses
+  let focuses: DocumentReference[] = [];
+  if (fields.focusesSelected) {
+    const selectedFocusesRefs = await idsToRefs(
+      fields.focusesSelected,
+      "focuses",
+    );
+    focuses = [...focuses, ...selectedFocusesRefs];
+  }
+  if (fields.focusSuggested) {
+    const focusRef = await addLabelRef(fields.focusSuggested, "focuses");
+    focuses = [...focuses, focusRef];
+  }
+  if (focuses) member.focuses = focuses;
+
+  // Handle industries
+  let industries: DocumentReference[] = [];
+  if (fields.industriesSelected) {
+    const selectedIndustriesRefs = await idsToRefs(
+      fields.industriesSelected,
+      "industries",
+    );
+    industries = [...industries, ...selectedIndustriesRefs];
+  }
+  if (fields.industrySuggested) {
+    const industryRef = await addLabelRef(
+      fields.industrySuggested,
+      "industries",
+    );
+    industries = [...industries, industryRef];
+  }
+  if (industries) member.industries = industries;
+
+  return new Promise(async (resolve, reject) => {
+    try {
+      const docRef = await addMember(member);
+      await addMemberToLabels(focuses, docRef);
+      await addMemberToLabels(industries, docRef);
+      resolve(docRef);
+    } catch (error) {
+      console.error("Error adding member:", error);
+      reject(error);
+    }
+  });
 };

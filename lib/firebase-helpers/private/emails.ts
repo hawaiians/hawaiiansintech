@@ -1,5 +1,9 @@
-import { FirebaseTablesEnum, StatusEnum } from "@/lib/enums";
-import { doc, getDoc } from "firebase/firestore";
+import {
+  FirebaseDefaultValuesEnum,
+  FirebaseTablesEnum,
+  StatusEnum,
+} from "@/lib/enums";
+import { DocumentReference, doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase";
 import {
   DocumentData,
@@ -7,6 +11,8 @@ import {
   getFirebaseTable,
 } from "@/lib/firebase-helpers/api";
 import { verifyServerSide } from "./general";
+import { initializeAdmin } from "./initializeAdmin";
+import * as admin from "firebase-admin";
 
 export async function getEmails(
   approved: boolean = false,
@@ -34,7 +40,6 @@ export async function getEmails(
           }
         } catch (error) {
           console.error(error);
-          console.log("Error getting document:", secM.id);
         }
       }),
   );
@@ -53,3 +58,33 @@ export async function getEmailById(userId: string): Promise<MemberEmail> {
   const email = emails.find((e) => e && e.id === userId);
   return email;
 }
+
+export const emailExists = async (email: string): Promise<boolean> => {
+  verifyServerSide();
+  const secureMemberData: DocumentData[] = await getFirebaseTable(
+    FirebaseTablesEnum.SECURE_MEMBER_DATA,
+  );
+  const emailExists = secureMemberData.some(
+    (secM) => secM.fields.email === email,
+  );
+  return emailExists;
+};
+
+export const addSecureEmail = async (
+  email: string,
+  memberDocRef: DocumentReference,
+) => {
+  await initializeAdmin();
+  const collectionRef = admin
+    .firestore()
+    .collection(FirebaseTablesEnum.SECURE_MEMBER_DATA);
+  const docRef = collectionRef.doc(memberDocRef.id); // Use memberDocRef ID as new doc ID
+  const data = {
+    last_modified: admin.firestore.FieldValue.serverTimestamp(),
+    last_modified_by: FirebaseDefaultValuesEnum.LAST_MODIFIED_BY,
+    email: email,
+    member: memberDocRef.path,
+  };
+  await docRef.set(data);
+  return docRef;
+};
