@@ -50,18 +50,6 @@ export default function Login({ pageTitle }) {
             <span>Log out</span>
           </Button>
         )}
-        {/* <Link
-            className={buttonVariants({ variant: "secondary", size: "lg" })}
-            href={`/join/00-aloha?nav=${NavAppearance.ToMin}`}
-          >
-            Login
-          </Link> */}
-        {/* <Link
-            className={buttonVariants({ size: "lg" })}
-            href={`/join/00-aloha?nav=${NavAppearance.ToMin}`}
-          >
-            Join us
-          </Link> */}
       </section>
     </>
   );
