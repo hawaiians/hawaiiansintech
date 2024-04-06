@@ -102,9 +102,13 @@ export default function Aloha({ pageTitle }) {
               <>
                 <div
                   className={cn(
-                    "border-2 rounded-xl transition-all",
+                    "border-2 rounded-xl transition-all bg-secondary/20 hover:bg-secondary/30 hover:border-input",
                     type === selected &&
-                      "border-primary/20 shadow-lg bg-primary/5",
+                      type === OnboardingSelection.HawaiianInTech &&
+                      "border-primary/20 shadow-lg bg-gradient-to-br from-primary/10 to-rose-600/10 hover:border-rose-600/10",
+                    type === selected &&
+                      type === OnboardingSelection.Ally &&
+                      "border-sky-600/20 shadow-lg bg-gradient-to-br from-sky-600/10 to-fuchsia-600/10 hover:border-fuchsia-600/10",
                   )}
                   key={`option-container-${index}-${emoji}`}
                 >
@@ -121,7 +125,13 @@ export default function Aloha({ pageTitle }) {
                     <div
                       className={cn(
                         "w-20 bg-secondary h-20 rounded-lg flex items-center justify-center text-6xl",
-                        type === selected && "bg-primary/20",
+                        // type === selected && "bg-primary/20",
+                        type === selected &&
+                          type === OnboardingSelection.HawaiianInTech &&
+                          "shadow-lg bg-gradient-to-br from-primary/20 to-rose-600/20 hover:border-rose-600/20",
+                        type === selected &&
+                          type === OnboardingSelection.Ally &&
+                          "shadow-lg bg-gradient-to-br from-sky-600/20 to-fuchsia-600/20 hover:border-fuchsia-600/20",
                       )}
                     >
                       {emoji}
