@@ -1,32 +1,27 @@
-import { Pencil } from "lucide-react";
-import { cn } from "@/lib/utils";
-import Link from "next/link";
-import { Button, buttonVariants } from "../components/ui/button";
+import { Button } from "../components/ui/button";
+import * as Yup from "yup";
 import { getAuth } from "firebase/auth";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { signInWithGoogle, signOutWithGoogle } from "../lib/firebase";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "../components/ui/dropdown-menu";
 import Head from "next/head";
 import Plausible from "@/components/Plausible";
 import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
-import { Heading } from "@/components/Heading";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { useIsAdmin } from "@/lib/hooks";
 import LoadingSpinner, {
   LoadingSpinnerVariant,
 } from "@/components/LoadingSpinner";
+import Logo, { LogoSize } from "@/components/Logo";
+import { Input } from "@/components/ui/input";
+import Link from "next/link";
+import { Formik } from "formik";
+import { DISCORD_URL } from "./about";
+
 export async function getStaticProps() {
   return {
     props: {
-      pageTitle: "Privacy Policy · Hawaiians in Technology",
+      pageTitle: "Login · Hawaiians in Technology",
     },
   };
 }
@@ -46,6 +41,10 @@ export default function Login({ pageTitle }) {
     }
   }, [isAdmin]);
 
+  const handleSubmit = (values) => {
+    router.push({ pathname: "/verify", query: { email: values.email } });
+  };
+
   return (
     <>
       <Head>
@@ -54,14 +53,79 @@ export default function Login({ pageTitle }) {
         <title>{pageTitle}</title>
       </Head>
       <Nav backLinkTo="/" variant="minimized" />
-      <section className="mx-auto max-w-4xl px-4">
-        <Heading>Login</Heading>
+      <section className="mx-auto max-w-4xl px-4 py-6">
         {user === null && !loading && (
-          <div className="flex items-center gap-2">
-            <Button size="lg" variant="secondary" onClick={signInWithGoogle}>
-              (Imagine this was the email verify step)
-            </Button>
-          </div>
+          <>
+            <Formik
+              initialValues={{
+                email: "",
+              }}
+              validateOnChange
+              onSubmit={handleSubmit}
+              validationSchema={Yup.object().shape({
+                email: Yup.string().email(
+                  "That email doesn't look right. Please try again.",
+                ),
+              })}
+            >
+              {(props) => {
+                const {
+                  dirty,
+                  handleBlur,
+                  handleChange,
+                  handleSubmit,
+                  isValid,
+                  values,
+                } = props;
+
+                return (
+                  <form
+                    className="flex items-center gap-4 flex-col max-w-lg border p-4 rounded-lg mx-auto"
+                    onSubmit={handleSubmit}
+                  >
+                    <header className="flex flex-col items-center gap-2">
+                      <Logo size={LogoSize.Small} />
+                      <h2 className="text-2xl">Welcome back</h2>
+                      <p className="text-secondary-foreground">
+                        Sign in using your email address
+                      </p>
+                    </header>
+                    <section className="flex flex-col w-full gap-2">
+                      <Input
+                        id="email"
+                        name="email"
+                        onBlur={handleBlur}
+                        value={values.email}
+                        onChange={handleChange}
+                        placeholder="Enter your email address"
+                      />
+                      <Button
+                        className="w-full"
+                        size="lg"
+                        type="submit"
+                        disabled={!isValid || !dirty}
+                      >
+                        Continue with email
+                      </Button>
+                    </section>
+                  </form>
+                );
+              }}
+            </Formik>
+
+            <p className="text-sm text-center mt-4">
+              New to Hawaiians in Tech?{" "}
+              <Link href="/join/00-aloha" className="font-semibold">
+                Join Us
+              </Link>
+            </p>
+            <p className="text-sm text-center mt-2">
+              Having issues?{" "}
+              <Link href={DISCORD_URL} className="font-semibold">
+                Let us know on Discord
+              </Link>
+            </p>
+          </>
         )}
         {user !== null && !loading && (
           <LoadingSpinner
