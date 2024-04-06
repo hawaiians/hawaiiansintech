@@ -64,6 +64,7 @@ export default function Aloha({ pageTitle }) {
     switch (selected) {
       case OnboardingSelection.Ally:
         console.log("yeah");
+        alert("Not built yet");
         break;
       case OnboardingSelection.HawaiianInTech:
         router.push("01-you");
@@ -72,7 +73,7 @@ export default function Aloha({ pageTitle }) {
       case OnboardingSelection.None:
       default:
         // TODO: Throw one of those new slick errors
-        console.log("yeeeeeeeeeeeeeeeah");
+        console.log("yeeeeeeeeeeeeeeeah, this wasn't supposed to happen");
         break;
     }
   };
@@ -102,7 +103,7 @@ export default function Aloha({ pageTitle }) {
               <>
                 <div
                   className={cn(
-                    "border-2 rounded-xl transition-all bg-secondary/20 hover:bg-secondary/30 hover:border-input",
+                    "border-2 rounded-xl transition-all bg-secondary/20 hover:bg-secondary/30 hover:border-input select-none",
                     type === selected &&
                       type === OnboardingSelection.HawaiianInTech &&
                       "border-primary/20 shadow-lg bg-gradient-to-br from-primary/10 to-rose-600/10 hover:border-rose-600/10",
@@ -114,7 +115,7 @@ export default function Aloha({ pageTitle }) {
                 >
                   <Label
                     htmlFor={type}
-                    className="flex items-center gap-x-4 px-4 py-6 pb-6"
+                    className="flex items-center gap-x-4 px-4 py-6 pb-6 cursor-pointer"
                   >
                     <RadioGroupItem
                       value={type}
@@ -125,7 +126,6 @@ export default function Aloha({ pageTitle }) {
                     <div
                       className={cn(
                         "w-20 bg-secondary h-20 rounded-lg flex items-center justify-center text-6xl",
-                        // type === selected && "bg-primary/20",
                         type === selected &&
                           type === OnboardingSelection.HawaiianInTech &&
                           "shadow-lg bg-gradient-to-br from-primary/20 to-rose-600/20 hover:border-rose-600/20",

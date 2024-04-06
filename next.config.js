@@ -3,12 +3,12 @@ module.exports = {
     return [
       {
         source: "/join",
-        destination: "/join/01-you",
+        destination: "/join/00-aloha",
         permanent: true,
       },
       {
         source: "/nominate",
-        destination: "/join/01-you",
+        destination: "/join/00-aloha",
         permanent: true,
       },
       {
