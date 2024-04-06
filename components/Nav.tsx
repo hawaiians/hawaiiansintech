@@ -14,6 +14,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 
@@ -136,9 +138,18 @@ export default function Nav({
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="bottom" align="end">
-                  <DropdownMenuLabel className="bg-gradient-to-br from-violet-700 to-cyan-600 rounded text-white">
-                    {user.displayName}
+                  <DropdownMenuLabel className="w-48">
+                    <h4>{user.displayName}</h4>
+                    <h4 className="w-full font-normal text-sm text-secondary-foreground">
+                      [Software Engineer]
+                    </h4>
                   </DropdownMenuLabel>
+                  <DropdownMenuItem
+                    onClick={() => router.push("/privacy-policy")}
+                  >
+                    Privacy Policy
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={signOutWithGoogle}>
                     Log out
                   </DropdownMenuItem>
