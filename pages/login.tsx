@@ -17,6 +17,12 @@ import Plausible from "@/components/Plausible";
 import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
 import { Heading } from "@/components/Heading";
+import { useEffect } from "react";
+import { useRouter } from "next/router";
+import { useIsAdmin } from "@/lib/hooks";
+import LoadingSpinner, {
+  LoadingSpinnerVariant,
+} from "@/components/LoadingSpinner";
 export async function getStaticProps() {
   return {
     props: {
@@ -27,7 +33,19 @@ export async function getStaticProps() {
 
 export default function Login({ pageTitle }) {
   const auth = getAuth();
+  const router = useRouter();
   const [user, loading, error] = useAuthState(auth);
+  const [isAdmin, isAdminLoading] = useIsAdmin(user, loading);
+
+  useEffect(() => {
+    if (user === null || loading) return;
+    if (isAdmin) {
+      router.push("/admin");
+    } else {
+      router.push("/");
+    }
+  }, [isAdmin]);
+
   return (
     <>
       <Head>
@@ -46,9 +64,10 @@ export default function Login({ pageTitle }) {
           </div>
         )}
         {user !== null && !loading && (
-          <Button size="sm" variant="outline" onClick={signOutWithGoogle}>
-            <span>Log out</span>
-          </Button>
+          <LoadingSpinner
+            variant={LoadingSpinnerVariant.Invert}
+            className="mx-auto"
+          />
         )}
       </section>
     </>
