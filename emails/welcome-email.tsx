@@ -4,13 +4,13 @@ import * as React from "react";
 import Base from "./ui/base";
 import CTABlock from "./ui/cta-block";
 import List from "./ui/list";
-import { MemberFields } from "@/pages/api/create-member";
+import { CreateMemberFields } from "@/lib/firebase-helpers/private/members";
 
 export default function WelcomeEmail({
   name = "[Name Inoa]",
   recordID = "[id-placeholder]",
   email = "[placeholder@hawaiiansintech.org]",
-}: MemberFields) {
+}: CreateMemberFields) {
   const VERIFICATION_LINK = "#";
 
   return (

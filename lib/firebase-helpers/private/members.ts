@@ -222,7 +222,7 @@ export const updateMember = async (
   );
 };
 
-interface CreateMemberFields {
+export interface CreateMemberFields {
   name: string;
   email: string;
   location: string;
