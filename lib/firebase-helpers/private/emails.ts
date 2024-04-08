@@ -59,6 +59,13 @@ export async function getEmailById(userId: string): Promise<MemberEmail> {
   return email;
 }
 
+export const getIdByEmail = async (email: string): Promise<string> => {
+  verifyServerSide();
+  const emails = await getEmails();
+  const emailObj = emails.find((e) => e && e.email === email);
+  return emailObj ? emailObj.id : null;
+};
+
 export const emailExists = async (email: string): Promise<boolean> => {
   verifyServerSide();
   const secureMemberData: DocumentData[] = await getFirebaseTable(

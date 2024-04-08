@@ -300,10 +300,10 @@ function Card({ member, regions, user }: CardProps) {
             member.status === StatusEnum.APPROVED
               ? "border-tan-300 hover:bg-tan-600/5 active:bg-tan-600/10"
               : member.status === StatusEnum.IN_PROGRESS
-              ? "border-violet-500/30 bg-violet-500/5 hover:bg-violet-500/10 active:bg-violet-500/20"
-              : member.status === StatusEnum.PENDING
-              ? "border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 active:bg-amber-500/20"
-              : "border-red-500/30 bg-red-500/5 hover:bg-red-500/10 active:bg-red-500/20",
+                ? "border-violet-500/30 bg-violet-500/5 hover:bg-violet-500/10 active:bg-violet-500/20"
+                : member.status === StatusEnum.PENDING
+                  ? "border-amber-500/30 bg-amber-500/5 hover:bg-amber-500/10 active:bg-amber-500/20"
+                  : "border-red-500/30 bg-red-500/5 hover:bg-red-500/10 active:bg-red-500/20",
           )}
         >
           <div
@@ -330,10 +330,10 @@ function Card({ member, regions, user }: CardProps) {
                           member.status === StatusEnum.APPROVED
                             ? TagVariant.Success
                             : member.status === StatusEnum.IN_PROGRESS
-                            ? TagVariant.NearSuccess
-                            : member.status === StatusEnum.PENDING
-                            ? TagVariant.Warn
-                            : TagVariant.Alert
+                              ? TagVariant.NearSuccess
+                              : member.status === StatusEnum.PENDING
+                                ? TagVariant.Warn
+                                : TagVariant.Alert
                         }
                       >
                         {convertStringSnake(member.status)}

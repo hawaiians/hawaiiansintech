@@ -36,7 +36,7 @@ import {
   addMemberToLabels,
   addPendingReviewRecord,
 } from "../public/directory";
-import { addSecureEmail } from "./emails";
+import { addSecureEmail, getIdByEmail } from "./emails";
 import { db } from "@/lib/firebase";
 
 export async function getMembers(token?: string): Promise<{
@@ -53,12 +53,14 @@ export async function getMembers(token?: string): Promise<{
 
   let isAdmin = false;
   let userEmail = "";
+  let userId = "";
   if (token) {
     isAdmin = await verifyAdminToken(token, false);
     if (!isAdmin) {
       console.warn("Token provided is not authorized");
     }
     userEmail = await verifyEmailAuthToken(token);
+    userId = await getIdByEmail(userEmail);
   }
 
   const focusesData = await getFirebaseTable(FirebaseTablesEnum.FOCUSES);
@@ -89,7 +91,7 @@ export async function getMembers(token?: string): Promise<{
           focus: focusLookup(focusesData, focuses),
         };
 
-        if (isAdmin || userEmail === member.email) {
+        if (isAdmin || userId === member.id) {
           memberObject = {
             ...memberObject,
             lastModified: lastModified.toDate().toLocaleString(),
@@ -148,8 +150,8 @@ export const updateMember = async (
       memberData[fieldSingular[field]]
         ? [memberData[fieldSingular[field]]]
         : memberData[fieldSingular[field]]
-        ? memberData[fieldSingular[field]].map((ref) => ref.id)
-        : [];
+          ? memberData[fieldSingular[field]].map((ref) => ref.id)
+          : [];
     const [referencesToAdd, referencesToDelete] =
       await updatePublicFilterReferences(
         memberData.id,

@@ -14,10 +14,7 @@ import {
 } from "@/lib/firebase-helpers/private/members";
 import { emailExists } from "@/lib/firebase-helpers/private/emails";
 import { DocumentReference } from "firebase/firestore";
-import {
-  SendConfirmationEmailProps,
-  sendConfirmationEmails,
-} from "@/lib/email/confirmation-email";
+import { sendConfirmationEmails } from "@/lib/email";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   checkMethods(req.method, ["GET"]);
@@ -65,49 +62,48 @@ async function putHandler(req: NextApiRequest, res: NextApiResponse) {
   });
 }
 
-const sendSgEmail = async ({
-  email,
-  firebaseId,
-  name,
-}: SendConfirmationEmailProps) => {
-  return new Promise((resolve, reject) => {
-    sendConfirmationEmails({
-      email: email,
-      firebaseId: firebaseId,
-      name: name,
-    })
-      .then((response) => {
-        resolve(response);
-      })
-      .catch((error) => {
-        reject(error);
-      });
-  });
-};
-
 async function postHandler(req: NextApiRequest, res: NextApiResponse) {
-  const isEmailUsed = await emailExists(req.body.email);
-  if (!isEmailUsed) {
-    const docRef: DocumentReference = await addMemberToFirebase({
-      ...req.body,
-    }).then((body) => {
-      console.log("✅ added member to firebase");
-      return body;
-    });
-    await sendSgEmail({
-      email: req.body.email,
-      firebaseId: docRef.id,
-      name: req.body.name,
-    }).then(() => {
-      console.log("✅ sent member email via sendgrid");
-    });
-    return res.status(200).json({ message: "Successfully added member." });
-  } else {
-    return res.status(422).json({
-      error: "This email is associated with another member.",
-      body: "We only allow one member per email address.",
+  const {
+    email,
+    name,
+    location,
+    title,
+    website, // TODO: Remove "website" input param and replace with "link"
+  } = req.body;
+
+  const isEmailUsed = await emailExists(email);
+  if (isEmailUsed) {
+    console.log("🚫 email already exists");
+    return res.status(409).json({
+      error: "409",
+      body: "Sorry, please use a different email.",
     });
   }
+  const docRef: DocumentReference = await addMemberToFirebase({
+    ...req.body,
+  }).then((body) => {
+    console.log("✅ added member to firebase");
+    return body;
+  });
+  const { id } = docRef;
+
+  await sendConfirmationEmails({
+    email: email,
+    recordID: id,
+    name: name,
+    location: location,
+    title: title,
+    link: website, // TODO: Remove "website" input param and replace with "link"
+  })
+    .then(() => {
+      console.log("✅ sent 2 emails via sendgrid");
+    })
+    .catch((error) => {
+      console.error("🚫 Error sending email:", error);
+      throw error;
+    });
+
+  return res.status(200).json({ message: "Successfully added member." });
 }
 
 export default async function handler(
@@ -117,15 +113,16 @@ export default async function handler(
   try {
     checkMethods(req.method, ["GET", "PUT", "POST"]);
     if (req.method === "GET") {
-      getHandler(req, res);
+      await getHandler(req, res);
     } else if (req.method === "PUT") {
-      putHandler(req, res);
+      await putHandler(req, res);
     } else if (req.method === "POST") {
-      postHandler(req, res);
+      await postHandler(req, res);
     } else {
       res.status(405).json({ message: "Only GET and PUT requests allowed" });
     }
   } catch (error) {
+    console.log("🚫 Error in /members:", error);
     return handleApiErrors(error, res);
   }
 }

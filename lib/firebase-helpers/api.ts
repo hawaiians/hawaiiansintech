@@ -11,6 +11,7 @@ import {
   StatusEnum,
   YearsOfExperienceEnum,
 } from "../enums";
+import { Dictionary } from "lodash";
 
 const statusEnumValues = Object.values(StatusEnum);
 
@@ -278,4 +279,20 @@ export async function getFiltersBasic(
     filterList[expIndex].members.push(member.id);
   });
   return filterList;
+}
+
+export function getMemberChanges(
+  memberDataOld: MemberPublic,
+  memberDataNew: MemberPublic,
+): Dictionary<any> {
+  const changes = {};
+  for (const key in memberDataNew) {
+    if (memberDataOld[key] !== memberDataNew[key]) {
+      changes[key] = {
+        old: memberDataOld[key],
+        new: memberDataNew[key],
+      };
+    }
+  }
+  return changes;
 }

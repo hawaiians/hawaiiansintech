@@ -26,10 +26,10 @@ async function verifyAdminOrEmailAuthToken(
 ): Promise<MemberEmail> {
   const isAdmin = await verifyAdminToken(token, false);
   const email = await getEmailById(id);
-  if (!isAdmin || email.email !== (await verifyEmailAuthToken(token))) {
-    throw new TokenVerificationError("Not authorized to access this account");
+  if (isAdmin || email.email === (await verifyEmailAuthToken(token))) {
+    return email;
   }
-  return email;
+  throw new TokenVerificationError("Not authorized to access this account");
 }
 
 async function getEmailById(userId: string): Promise<MemberEmail> {
@@ -115,7 +115,7 @@ export default async function handler(
     if (req.method === "GET") {
       await getHandler(req, res, token);
     } else if (req.method === "PUT") {
-      putHandler(req, res, token);
+      await putHandler(req, res, token);
     } else {
       res.status(405).json({ message: "Only GET and PUT requests allowed" });
     }

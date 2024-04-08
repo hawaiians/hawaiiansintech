@@ -29,6 +29,7 @@ import {
   DocumentData,
   MemberEmail,
   MemberPublic,
+  getMemberChanges,
 } from "@/lib/firebase-helpers/api";
 import {
   CompanySizeEnum,
@@ -47,9 +48,10 @@ export const MemberEdit: FC<{
   regions?: DocumentData[];
   onClose?: () => void;
   onDelete?: () => void;
+  onSave?: () => void;
   user?: User;
   adminView?: boolean;
-}> = ({ member, regions, onClose, onDelete, user, adminView }) => {
+}> = ({ member, regions, onClose, onDelete, onSave, user, adminView }) => {
   const [email, setEmail] = useState<MemberEmail>(null);
   const [loadingEmail, setLoadingEmail] = useState<boolean>(null);
   const [originalEmail, setOriginalEmail] = useState<string>(null);
@@ -113,7 +115,6 @@ export const MemberEdit: FC<{
   };
 
   const updateMember = async (memberPublic: MemberPublic) => {
-    console.log("memberPublic:", memberPublic);
     const response = await fetch("/api/members", {
       method: "PUT",
       headers: {
@@ -177,9 +178,17 @@ export const MemberEdit: FC<{
       unsubscribed: unsubscribed,
       yearsExperience: yearsOfExperience,
     };
+
+    // TODO: use this object to send email to admins for changes
+    const memberChanges = getMemberChanges(member, updatedMember);
+
     await updateMember(updatedMember);
     emailChanged && (await updateSecureEmail(member.id, email.email));
-    window.location.reload();
+    if (onSave) {
+      onSave();
+    } else {
+      window.location.reload();
+    }
   };
 
   const mapTabsTriggerToVariant = (
@@ -406,7 +415,7 @@ export const MemberEdit: FC<{
                       <div className="text-xs leading-relaxed">
                         <label
                           htmlFor="verified"
-                          className="font-semibold peer-disabled:cursor-not-allowed peer-disabled:opacity-70 opacity-40"
+                          className="font-semibold opacity-40 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
                         >
                           Verified (to be implemented)
                         </label>

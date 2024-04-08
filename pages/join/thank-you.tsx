@@ -9,9 +9,7 @@ import Link from "next/link";
 import { DISCORD_URL, GITHUB_URL } from "../about";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { Filter, getFilters } from "@/lib/api";
 import { FirebaseTablesEnum, StatusEnum } from "@/lib/enums";
-import { getMembers } from "../api/get-members";
 import {
   Accordion,
   AccordionContent,
@@ -22,6 +20,8 @@ import { cn } from "@/lib/utils";
 import theme from "@/styles/theme";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { buttonVariants } from "@/components/ui/button";
+import { Filter, getFilters } from "@/lib/firebase-helpers/api";
+import { getMembers } from "@/lib/firebase-helpers/private/members";
 
 export async function getStaticProps() {
   const { members, focuses, industries } = await getMembers();
