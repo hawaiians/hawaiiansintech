@@ -13,6 +13,7 @@ import {
 import { verifyServerSide } from "./general";
 import { initializeAdmin } from "./initializeAdmin";
 import * as admin from "firebase-admin";
+import { sendLoginPromptEmail } from "@/lib/email";
 
 export async function getEmails(
   approved: boolean = false,
@@ -94,4 +95,22 @@ export const addSecureEmail = async (
   };
   await docRef.set(data);
   return docRef;
+};
+
+export const sendVerificationEmail = async (email: string, url: string) => {
+  await initializeAdmin();
+  const actionCodeSettings = {
+    url: url,
+    handleCodeInApp: true,
+  };
+  admin
+    .auth()
+    .generateSignInWithEmailLink(email, actionCodeSettings)
+    .then(async (link) => {
+      await sendLoginPromptEmail({ emailAddress: email, promptLink: link });
+    })
+    .catch((error) => {
+      console.error(error);
+      throw error;
+    });
 };

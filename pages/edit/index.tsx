@@ -8,6 +8,7 @@ import Label from "@/components/form/Label";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import {
+  getAuth,
   isSignInWithEmailLink,
   sendSignInLinkToEmail,
   signInWithEmailLink,
@@ -68,20 +69,24 @@ function RequestForm({ baseUrl }) {
 
   const handleSignIn = () => {
     const fullUrl = `${baseUrl}/edit`;
-    const actionCodeSettings = {
-      url: fullUrl,
-      handleCodeInApp: true,
-    };
-    sendSignInLinkToEmail(auth, email, actionCodeSettings)
-      .then(() => {
+    fetch("/api/verify-email", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: email, url: fullUrl }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
         window.localStorage.setItem("emailForSignIn", email);
+        setPageState(PageState.EmailSent);
       })
       .catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.error("error sending email:", errorCode, errorMessage);
+        // Handle the error here
+        console.error("An error occurred:", error);
       });
-    setPageState(PageState.EmailSent);
   };
 
   const fetchMemberMapping = async (token: string) => {
@@ -175,7 +180,7 @@ function RequestForm({ baseUrl }) {
           <Button onClick={handleSignIn}>Sign In</Button>
         </>
       ) : pageState === PageState.EmailSent ? (
-        <div className="text-center mt-4">
+        <div className="mt-4 text-center">
           <h2 className="text-base">
             You should receive a sign in email from us real soon. If you didn't,
             you may need to add <Code>no-reply@hawaiiansintech.org</Code> to
@@ -187,15 +192,15 @@ function RequestForm({ baseUrl }) {
           <Subheading centered> Logging in...</Subheading>
           <div className="flex w-full justify-center p-4">
             <LoadingSpinner
-              className="w-16 h-16"
+              className="h-16 w-16"
               variant={LoadingSpinnerVariant.Invert}
             />
           </div>
         </>
       ) : (
         <>
-          <div className="text-center mt-4">
-            <p className="text-2xl mb-8">
+          <div className="mt-4 text-center">
+            <p className="mb-8 text-2xl">
               Gonfunnit, looks like{" "}
               {errorReason ? errorReason : "something went wrong"}
             </p>
