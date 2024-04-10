@@ -1,4 +1,4 @@
-import { MemberPublic } from "@/lib/api";
+import { MemberPublic } from "@/lib/firebase-helpers/api";
 import { cn } from "@/lib/utils";
 
 export interface DirectoryMember extends MemberPublic {

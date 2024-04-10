@@ -15,9 +15,8 @@ import {
 } from "firebase/firestore";
 import { db } from "../../firebase";
 import { memberConverter } from "../../firestore-converters/member";
-import { FirebaseMemberFieldsEnum } from "@/lib/enums";
 
-export interface referencesToDelete {
+interface referencesToDelete {
   memberRef: DocumentReference;
   focuses: DocumentReference[];
   industries: DocumentReference[];

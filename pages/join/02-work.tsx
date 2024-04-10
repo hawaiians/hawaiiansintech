@@ -6,7 +6,7 @@ import WorkExperience, {
 import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
 import Plausible from "@/components/Plausible";
-import { getFilters } from "@/lib/api";
+import { getFilters } from "@/lib/firebase-helpers/api";
 import { FirebaseTablesEnum } from "@/lib/enums";
 import { useStorage } from "@/lib/hooks";
 import { FORM_LINKS, useInvalid } from "@/lib/utils";

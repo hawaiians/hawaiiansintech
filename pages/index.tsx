@@ -10,44 +10,36 @@ import {
   getFilters,
   getFiltersBasic,
   getFirebaseTable,
-} from "@/lib/api";
+} from "@/lib/firebase-helpers/api";
 import { FirebaseTablesEnum, StatusEnum } from "@/lib/enums";
 import Head from "next/head";
 import React, { useEffect, useState } from "react";
-import { getMembers } from "./api/get-members";
+import { getMembers } from "@/lib/firebase-helpers/private/members";
 
 export async function getStaticProps() {
-  const data = await getMembers();
-
-  const focuses: Filter[] = await getFilters(
-    FirebaseTablesEnum.FOCUSES,
-    true,
-    data.members.map((member) => member.id),
-    data.focuses,
-  );
-  const industries: Filter[] = await getFilters(
-    FirebaseTablesEnum.INDUSTRIES,
-    true,
-    data.members.map((member) => member.id),
-    data.industries,
-  );
-  const experiences: Filter[] = await getFiltersBasic(
-    data.members,
-    "experience",
-  );
-  const regions: Filter[] = await getFiltersBasic(
-    data.members,
-    FirebaseTablesEnum.REGIONS,
-    data.regions,
-  );
+  const { members, focuses, industries, regions } = await getMembers();
 
   return {
     props: {
-      fetchedMembers: data.members,
-      fetchedFocuses: focuses,
-      fetchedIndustries: industries,
-      fetchedExperiences: experiences,
-      fetchedRegions: regions,
+      fetchedMembers: members,
+      fetchedFocuses: await getFilters(
+        FirebaseTablesEnum.FOCUSES,
+        true,
+        members.map((member) => member.id),
+        focuses,
+      ),
+      fetchedIndustries: await getFilters(
+        FirebaseTablesEnum.INDUSTRIES,
+        true,
+        members.map((member) => member.id),
+        industries,
+      ),
+      fetchedExperiences: await getFiltersBasic(members, "experience"),
+      fetchedRegions: await getFiltersBasic(
+        members,
+        FirebaseTablesEnum.REGIONS,
+        regions,
+      ),
       pageTitle: "Hawaiians in Tech",
     },
     revalidate: 60,
