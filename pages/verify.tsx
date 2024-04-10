@@ -56,7 +56,7 @@ export default function Verify({ pageTitle }) {
       )}
       {email !== undefined && (
         <>
-          <section className="flex items-center gap-4 flex-col max-w-lg border px-4 py-6 rounded-lg mx-auto">
+          <section className="mx-auto flex max-w-lg flex-col items-center gap-4 rounded-lg border px-4 py-6">
             <header className="flex flex-col items-center gap-4 text-center">
               <Logo size={LogoSize.Small} />
               <h2 className="text-2xl">An email is on the way</h2>
@@ -64,7 +64,7 @@ export default function Verify({ pageTitle }) {
                 We just sent a temporary login link to <strong>{email}</strong>.
                 Follow the link in your email to finish signing in.
               </p>
-              <p className="text-sm px-2 leading-normal text-secondary-foreground">
+              <p className="px-2 text-sm leading-normal text-secondary-foreground">
                 If you didn't, you may need to add{" "}
                 <Code>no-reply@hawaiiansintech.org</Code> to your address book.
               </p>
@@ -73,7 +73,7 @@ export default function Verify({ pageTitle }) {
               Tester: (Imagine this was the email verify step)
             </Button>
           </section>
-          <p className="text-sm text-center mt-4">
+          <p className="mt-4 text-center text-sm">
             Having issues?{" "}
             <Link href={DISCORD_URL} className="font-semibold">
               Let us know on Discord

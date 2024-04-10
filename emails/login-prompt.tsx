@@ -16,7 +16,7 @@ export default function LoginPromptEmail({
       title={`New Member Submission from ${promptLink}`}
       align="center"
     >
-      <Text className="text-3xl text-center">
+      <Text className="text-center text-3xl">
         Login Link for
         <br />
         <strong>Hawaiians in Tech</strong>
@@ -35,14 +35,14 @@ export default function LoginPromptEmail({
       </Text>
       <Button
         href={promptLink}
-        className="bg-brown-600 text-white py-2 px-4 text-sm rounded"
+        className="rounded bg-brown-600 px-4 py-2 text-sm text-white"
       >
         Log In to Hawaiians in Tech
       </Button>
       <Text>
         If you did not request this link, you can safely ignore this email.
       </Text>
-      <Text className="text-stone-500 text-xs">
+      <Text className="text-xs text-stone-500">
         If the problem persists, please contact us on{" "}
         <Link href={DISCORD_URL} className="text-inherit underline">
           our Discord server

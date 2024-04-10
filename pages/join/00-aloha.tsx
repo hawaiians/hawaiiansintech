@@ -90,7 +90,7 @@ export default function Aloha({ pageTitle }) {
         Welcome to Hawaiians in Tech. What brings ya to our community?
       </Heading>
 
-      <div className="mx-auto max-w-2xl px-8 space-y-4">
+      <div className="mx-auto max-w-2xl space-y-4 px-8">
         <RadioGroup
           defaultValue={selected}
           onValueChange={(type: OnboardingSelection) => setSelected(type)}
@@ -103,19 +103,19 @@ export default function Aloha({ pageTitle }) {
               <>
                 <div
                   className={cn(
-                    "border-2 rounded-xl transition-all bg-secondary/20 hover:bg-secondary/30 hover:border-input select-none",
+                    "select-none rounded-xl border-2 bg-secondary/20 transition-all hover:border-input hover:bg-secondary/30",
                     type === selected &&
                       type === OnboardingSelection.HawaiianInTech &&
-                      "border-primary/20 shadow-lg bg-gradient-to-br from-primary/10 to-rose-600/10 hover:border-rose-600/10",
+                      "border-primary/20 bg-gradient-to-br from-primary/10 to-rose-600/10 shadow-lg hover:border-rose-600/10",
                     type === selected &&
                       type === OnboardingSelection.Ally &&
-                      "border-sky-600/20 shadow-lg bg-gradient-to-br from-sky-600/10 to-fuchsia-600/10 hover:border-fuchsia-600/10",
+                      "border-sky-600/20 bg-gradient-to-br from-sky-600/10 to-fuchsia-600/10 shadow-lg hover:border-fuchsia-600/10",
                   )}
                   key={`option-container-${index}-${emoji}`}
                 >
                   <Label
                     htmlFor={type}
-                    className="flex items-center gap-x-4 px-4 py-6 pb-6 cursor-pointer"
+                    className="flex cursor-pointer items-center gap-x-4 px-4 py-6 pb-6"
                   >
                     <RadioGroupItem
                       value={type}
@@ -125,24 +125,22 @@ export default function Aloha({ pageTitle }) {
                     />
                     <div
                       className={cn(
-                        "w-20 bg-secondary h-20 rounded-lg flex items-center justify-center text-6xl",
+                        "flex h-20 w-20 items-center justify-center rounded-lg bg-secondary text-6xl",
                         type === selected &&
                           type === OnboardingSelection.HawaiianInTech &&
-                          "shadow-lg bg-gradient-to-br from-primary/20 to-rose-600/20 hover:border-rose-600/20",
+                          "bg-gradient-to-br from-primary/20 to-rose-600/20 shadow-lg hover:border-rose-600/20",
                         type === selected &&
                           type === OnboardingSelection.Ally &&
-                          "shadow-lg bg-gradient-to-br from-sky-600/20 to-fuchsia-600/20 hover:border-fuchsia-600/20",
+                          "bg-gradient-to-br from-sky-600/20 to-fuchsia-600/20 shadow-lg hover:border-fuchsia-600/20",
                       )}
                     >
                       {emoji}
                     </div>
                     <div className="space-y-1">
                       <h3 className="text-xl font-semibold">{title}</h3>
-                      <ul className="space-y-0.5 list-inside list-['·__'] pl-2 leading-snug">
+                      <ul className="list-inside list-['·__'] space-y-0.5 pl-2 leading-snug">
                         {bullets.map((bullet, index) => (
-                          <li className="" key={`bullet-${bullet}-${index}`}>
-                            {bullet}
-                          </li>
+                          <li key={`bullet-${bullet}-${index}`}>{bullet}</li>
                         ))}
                       </ul>
                     </div>
@@ -152,7 +150,7 @@ export default function Aloha({ pageTitle }) {
             );
           })}
         </RadioGroup>
-        <div className="flex justify-between items-center">
+        <div className="flex items-center justify-between">
           <p className="text-sm">
             Have an account?{" "}
             <Link href="/login" className="font-semibold">

@@ -80,7 +80,7 @@ export default function Login({ pageTitle }) {
 
                 return (
                   <form
-                    className="flex items-center gap-4 flex-col max-w-lg border p-4 rounded-lg mx-auto"
+                    className="mx-auto flex max-w-lg flex-col items-center gap-4 rounded-lg border p-4"
                     onSubmit={handleSubmit}
                   >
                     <header className="flex flex-col items-center gap-2">
@@ -90,7 +90,7 @@ export default function Login({ pageTitle }) {
                         Sign in using your email address
                       </p>
                     </header>
-                    <section className="flex flex-col w-full gap-2">
+                    <section className="flex w-full flex-col gap-2">
                       <Input
                         id="email"
                         name="email"
@@ -113,13 +113,13 @@ export default function Login({ pageTitle }) {
               }}
             </Formik>
 
-            <p className="text-sm text-center mt-4">
+            <p className="mt-4 text-center text-sm">
               New to Hawaiians in Tech?{" "}
               <Link href="/join/00-aloha" className="font-semibold">
                 Join Us
               </Link>
             </p>
-            <p className="text-sm text-center mt-2">
+            <p className="mt-2 text-center text-sm">
               Having issues?{" "}
               <Link href={DISCORD_URL} className="font-semibold">
                 Let us know on Discord

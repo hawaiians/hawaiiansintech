@@ -98,7 +98,7 @@ export default function Nav({
         )}
       </nav>
       {children ? (
-        <div className="flex items-center grow gap-4">{children}</div>
+        <div className="flex grow items-center gap-4">{children}</div>
       ) : null}
       {variant === "primary" && (
         <>
@@ -127,20 +127,20 @@ export default function Nav({
                 variant="outline"
                 className="flex items-center gap-1.5"
               >
-                <Pencil className="w-4 h-4" />
+                <Pencil className="h-4 w-4" />
                 <span>Edit Profile</span>
               </Button>
 
               <DropdownMenu>
                 <DropdownMenuTrigger>
-                  <button className="bg-gradient-to-br from-violet-700 to-cyan-600 w-12 h-12 rounded-full flex items-center justify-center text-white text-lg">
+                  <button className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-violet-700 to-cyan-600 text-lg text-white">
                     {user.displayName[0]}
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="bottom" align="end">
                   <DropdownMenuLabel className="w-48">
                     <h4>{user.displayName}</h4>
-                    <h4 className="w-full font-normal text-sm text-secondary-foreground">
+                    <h4 className="w-full text-sm font-normal text-secondary-foreground">
                       [Software Engineer]
                     </h4>
                   </DropdownMenuLabel>

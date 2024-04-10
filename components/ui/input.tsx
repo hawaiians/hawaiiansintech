@@ -37,7 +37,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           focus-visible:ring-offset-2
           disabled:cursor-not-allowed
           disabled:opacity-50`,
-            error && "border-red-500 border-2 focus-visible:ring-red-500/50",
+            error && "border-2 border-red-500 focus-visible:ring-red-500/50",
             className,
           )}
           ref={ref}
