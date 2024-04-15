@@ -4,12 +4,12 @@ import {
   StatusEnum,
 } from "@/lib/enums";
 import { DocumentReference, doc, getDoc } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../firebase";
 import {
   DocumentData,
   MemberEmail,
   getFirebaseTable,
-} from "@/lib/firebase-helpers/api";
+} from "@/lib/firebase-helpers/interfaces";
 import { verifyServerSide } from "./general";
 import { initializeAdmin } from "./initializeAdmin";
 import * as admin from "firebase-admin";

@@ -4,17 +4,11 @@ import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
 import Plausible from "@/components/Plausible";
 import { Title } from "@/components/Title.js";
-import {
-  DocumentData,
-  Filter,
-  getFilters,
-  getFiltersBasic,
-  getFirebaseTable,
-} from "@/lib/firebase-helpers/api";
-import { FirebaseTablesEnum, StatusEnum } from "@/lib/enums";
+import { FirebaseTablesEnum } from "@/lib/enums";
 import Head from "next/head";
 import React, { useEffect, useState } from "react";
-import { getMembers } from "@/lib/firebase-helpers/private/members";
+import { getMembers } from "@/lib/firebase-helpers/members";
+import { getFilters, getFiltersBasic } from "@/lib/firebase-helpers/filters";
 
 export async function getStaticProps() {
   const { members, focuses, industries, regions } = await getMembers();

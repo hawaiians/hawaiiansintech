@@ -11,8 +11,8 @@ import {
   addMemberToFirebase,
   getMembers,
   updateMember,
-} from "@/lib/firebase-helpers/private/members";
-import { emailExists } from "@/lib/firebase-helpers/private/emails";
+} from "@/lib/firebase-helpers/members";
+import { emailExists } from "@/lib/firebase-helpers/emails";
 import { DocumentReference } from "firebase/firestore";
 import { sendConfirmationEmails } from "@/lib/email";
 

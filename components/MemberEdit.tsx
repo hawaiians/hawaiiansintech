@@ -30,7 +30,7 @@ import {
   MemberEmail,
   MemberPublic,
   getMemberChanges,
-} from "@/lib/firebase-helpers/api";
+} from "@/lib/firebase-helpers/interfaces";
 import {
   CompanySizeEnum,
   FirebaseTablesEnum,

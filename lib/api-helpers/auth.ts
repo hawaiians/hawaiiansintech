@@ -1,13 +1,13 @@
 import * as admin from "firebase-admin";
-import { initializeAdmin } from "../firebase-helpers/private/initializeAdmin";
+import { initializeAdmin } from "../firebase-helpers/initializeAdmin";
 import { NextApiRequest, NextApiResponse } from "next";
 import {
   MissingHeaderError,
   MissingTokenError,
   TokenVerificationError,
 } from "./errors";
-import { MemberEmail } from "../firebase-helpers/api";
-import { getEmailById } from "../firebase-helpers/private/emails";
+import { MemberEmail } from "../firebase-helpers/interfaces";
+import { getEmailById } from "../firebase-helpers/emails";
 
 const verifyTokenExpiration = (decodedToken: admin.auth.DecodedIdToken) => {
   const now = Math.floor(Date.now() / 1000); // Convert to Unix timestamp (in seconds)

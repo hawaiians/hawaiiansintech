@@ -1,6 +1,6 @@
 import { handleApiErrors } from "@/lib/api-helpers/errors";
 import { checkBodyParams, checkMethods } from "@/lib/api-helpers/format";
-import { sendVerificationEmail } from "@/lib/firebase-helpers/private/emails";
+import { sendVerificationEmail } from "@/lib/firebase-helpers/emails";
 import { NextApiRequest, NextApiResponse } from "next";
 
 async function postHandler(req: NextApiRequest, res: NextApiResponse) {

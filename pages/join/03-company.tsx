@@ -14,7 +14,7 @@ import { Heading } from "@/components/Heading";
 import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
 import Plausible from "@/components/Plausible";
-import { getFilters } from "@/lib/firebase-helpers/api";
+import { getFilters } from "@/lib/firebase-helpers/interfaces";
 import { CompanySizeEnum, FirebaseTablesEnum } from "@/lib/enums";
 import { useStorage, useWindowWidth } from "@/lib/hooks";
 import { FORM_LINKS, useInvalid } from "@/lib/utils";

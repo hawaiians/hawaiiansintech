@@ -11,7 +11,7 @@ import Plausible from "@/components/Plausible";
 import Tag, { TagVariant } from "@/components/Tag";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MemberEmail } from "@/lib/firebase-helpers/api";
+import { MemberEmail } from "@/lib/firebase-helpers/interfaces";
 import { StatusEnum } from "@/lib/enums";
 import { useIsAdmin } from "@/lib/hooks";
 import { CheckIcon, PlusIcon } from "@radix-ui/react-icons";
@@ -262,8 +262,8 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
               {showCopiedNotification
                 ? "Copied! ✔️"
                 : selectedEmails.length > 0
-                ? `Copy Selected (${selectedEmails.length})`
-                : `Copy All (${emailsShown.length})`}
+                  ? `Copy Selected (${selectedEmails.length})`
+                  : `Copy All (${emailsShown.length})`}
             </Button>
           </div>
         </div>
@@ -400,10 +400,10 @@ const EmailList: FC<{ emails: MemberEmail[] }> = ({ emails }) => {
                             em?.status === StatusEnum.APPROVED
                               ? TagVariant.Success
                               : em?.status === StatusEnum.IN_PROGRESS
-                              ? TagVariant.NearSuccess
-                              : em?.status === StatusEnum.PENDING
-                              ? TagVariant.Warn
-                              : TagVariant.Alert
+                                ? TagVariant.NearSuccess
+                                : em?.status === StatusEnum.PENDING
+                                  ? TagVariant.Warn
+                                  : TagVariant.Alert
                           }
                         >
                           {convertStringSnake(em?.status)}

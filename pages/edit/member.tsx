@@ -2,7 +2,7 @@ import { Heading } from "@/components/Heading";
 import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
 import Plausible from "@/components/Plausible";
-import { DocumentData, MemberPublic } from "@/lib/firebase-helpers/api";
+import { DocumentData, MemberPublic } from "@/lib/firebase-helpers/interfaces";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";

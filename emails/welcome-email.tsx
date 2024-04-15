@@ -4,7 +4,7 @@ import * as React from "react";
 import Base from "./ui/base";
 import CTABlock from "./ui/cta-block";
 import List from "./ui/list";
-import { CreateMemberFields } from "@/lib/firebase-helpers/private/members";
+import { CreateMemberFields } from "@/lib/firebase-helpers/members";
 
 export default function WelcomeEmail({
   name = "[Name Inoa]",

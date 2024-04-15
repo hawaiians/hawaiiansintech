@@ -11,9 +11,10 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { useState } from "react";
-import { Filter, getFilters } from "@/lib/firebase-helpers/api";
+import { Filter } from "@/lib/firebase-helpers/interfaces";
 import { Input } from "@/components/ui/input";
 import { Pencil } from "lucide-react";
+import { getFilters } from "@/lib/firebase-helpers/filters";
 
 interface FilterEditorProps {
   labels: { singular: string; plural: string };
@@ -90,7 +91,7 @@ export default function FilterEditor({
     <div className="col-span-2">
       <h4 className="text-sm font-semibold">{labels.plural}</h4>
       <div className="flex">
-        <div className="flex items-start grow flex-wrap gap-1">
+        <div className="flex grow flex-wrap items-start gap-1">
           {filters &&
             filters.map((filter, i) => {
               const focusNotApproved = filter.status !== StatusEnum.APPROVED;
@@ -125,7 +126,7 @@ export default function FilterEditor({
           )}
         </div>
         <Button
-          className="p-2 shrink-0"
+          className="shrink-0 p-2"
           variant="outline"
           size="icon"
           onClick={handleOpen}
@@ -157,7 +158,7 @@ export default function FilterEditor({
             </CommandGroup>
           </CommandList>
 
-          <div className="p-2 border-t">
+          <div className="border-t p-2">
             {!suggestOpen ? (
               <>
                 <Button
@@ -171,7 +172,7 @@ export default function FilterEditor({
             ) : (
               <>
                 <h4 className="text-sm">Please suggest with care 🤙🏽</h4>
-                <p className="text-xs pb-2">
+                <p className="pb-2 text-xs">
                   Suggesting a new label increases the time it takes to approve
                   your entry, as we manually review all submissions. Please
                   consider any existing labels that might fit your situation.
