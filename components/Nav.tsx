@@ -8,20 +8,20 @@ import { Button, buttonVariants } from "./ui/button";
 import { getAuth } from "firebase/auth";
 import { useRouter } from "next/router";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { signInWithGoogle, signOutWithGoogle } from "../lib/firebase";
+import { signOutWithGoogle } from "../lib/firebase";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuSub,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 
 export enum NavAppearance {
   ToShow = "to-show",
   ToMin = "to-min",
+  ToFade = "to-fade",
 }
 
 interface NavProps {
@@ -43,6 +43,7 @@ export default function Nav({
   const navLogoVariants = {
     floatLeft: { x: -40 },
     default: { x: 0 },
+    fadeDefault: { x: 0, opacity: 0 },
   };
 
   let logo = <Logo />;
@@ -58,9 +59,13 @@ export default function Nav({
         <motion.a
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          animate={navLogoVariants.default}
+          animate={
+            nav === NavAppearance.ToFade
+              ? navLogoVariants.fadeDefault
+              : navLogoVariants.default
+          }
           initial={
-            variant === "minimized" && nav === NavAppearance.ToMin
+            nav === NavAppearance.ToMin || nav === NavAppearance.ToFade
               ? navLogoVariants.floatLeft
               : navLogoVariants.default
           }
@@ -108,13 +113,13 @@ export default function Nav({
                 className={cn(
                   buttonVariants({ size: "lg", variant: "secondary" }),
                 )}
-                href={`/login?nav=${NavAppearance.ToMin}`}
+                href={`/login?nav=${NavAppearance.ToFade}`}
               >
-                Login
+                Manage Profile
               </Link>
               <Link
                 className={cn(buttonVariants({ size: "lg" }))}
-                href={`/join/00-aloha?nav=${NavAppearance.ToMin}`}
+                href={`/join/01-you?nav=${NavAppearance.ToMin}`}
               >
                 Join Us
               </Link>

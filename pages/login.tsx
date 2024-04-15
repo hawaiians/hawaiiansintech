@@ -84,7 +84,7 @@ export default function Login({ pageTitle }) {
                     onSubmit={handleSubmit}
                   >
                     <header className="flex flex-col items-center gap-2">
-                      <Logo size={LogoSize.Small} />
+                      <Logo />
                       <h2 className="text-2xl">Welcome back</h2>
                       <p className="text-secondary-foreground">
                         Sign in using your email address
@@ -101,7 +101,6 @@ export default function Login({ pageTitle }) {
                       />
                       <Button
                         className="w-full"
-                        size="lg"
                         type="submit"
                         disabled={!isValid || !dirty}
                       >
@@ -115,7 +114,7 @@ export default function Login({ pageTitle }) {
 
             <p className="mt-4 text-center text-sm">
               New to Hawaiians in Tech?{" "}
-              <Link href="/join/00-aloha" className="font-semibold">
+              <Link href="/join/01-you" className="font-semibold">
                 Join Us
               </Link>
             </p>
