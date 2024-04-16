@@ -98,8 +98,6 @@ export const MemberEdit: FC<{
     const region = regions.find((r) => r.fields.name === name);
     return !region ? null : region.id;
   };
-  console.log("member: ", member);
-  console.log("unsubscribed: ", unsubscribed);
 
   const fetchEmailById = async () => {
     const response = await fetch(`/api/emails?id=${member.id}`, {

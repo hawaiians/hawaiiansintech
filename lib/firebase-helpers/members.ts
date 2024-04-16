@@ -61,7 +61,6 @@ export async function getMembers(token?: string): Promise<{
 
   const approved = isAdmin ? false : true;
 
-  console.log("userId: ", userId);
   const members = await getMembersTable(
     FirebaseTablesEnum.MEMBERS,
     memberConverter,
@@ -114,7 +113,6 @@ export async function getMembers(token?: string): Promise<{
             requests: requests,
             unsubscribed: unsubscribed,
           };
-          console.log("memberObject after:", memberObject);
         }
 
         return memberObject;
