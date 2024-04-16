@@ -1,8 +1,7 @@
 import * as admin from "firebase-admin";
-import { verifyServerSide } from "./general";
+import serverSideOnly from "./general";
 
 export const initializeAdmin = async () => {
-  verifyServerSide();
   const isBrowser: boolean = ((): boolean => typeof window !== "undefined")();
   if (!admin.apps.length && !isBrowser) {
     if (!process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
@@ -34,3 +33,7 @@ export const initializeAdmin = async () => {
     }
   }
 };
+
+export default serverSideOnly({
+  initializeAdmin,
+});

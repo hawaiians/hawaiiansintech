@@ -12,7 +12,7 @@ import {
   where,
 } from "firebase/firestore";
 import * as admin from "firebase-admin";
-import { getFirebaseTable, verifyServerSide } from "./general";
+import serverSideOnly, { getFirebaseTable } from "./general";
 import {
   FirebaseMemberFieldsEnum,
   FirebaseTablesEnum,
@@ -39,7 +39,6 @@ export const addNewLabel = async (
   currentUser: string,
   docRef: admin.firestore.DocumentReference,
 ) => {
-  verifyServerSide();
   const memberRefPublic = await getMemberRef(id);
   const newLabelRef = await addLabelRef(
     newFitler,
@@ -63,7 +62,6 @@ export const updateAdminFilterReferences = async (
   filterName: string,
   currentUser: string,
 ) => {
-  verifyServerSide();
   const adminReferencesToAdd = referencesToAdd.map((ref) =>
     admin.firestore().doc(ref.path),
   );
@@ -306,3 +304,16 @@ export async function getFilters(
     })
     .sort((a, b) => b.count - a.count);
 }
+
+export default serverSideOnly({
+  addMemberToLabels,
+  addMemberToReferences,
+  addNewLabel,
+  addLabelRef,
+  getExperienceData,
+  getFilters,
+  getFiltersBasic,
+  filterLookup,
+  updateFilterReferences,
+  updateAdminFilterReferences,
+});

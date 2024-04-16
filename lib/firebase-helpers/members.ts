@@ -16,7 +16,7 @@ import {
   addNewLabel,
   updateAdminFilterReferences,
 } from "@/lib/firebase-helpers/filters";
-import { getFirebaseTable, verifyServerSide } from "./general";
+import serverSideOnly, { getFirebaseTable } from "./general";
 import { memberConverter } from "../firestore-converters/member";
 import {
   DocumentData,
@@ -40,7 +40,6 @@ import {
 import { useEmailCloaker } from "@/helpers";
 import { addSecureEmail, getIdByEmail } from "./emails";
 import { db } from "@/lib/firebase";
-import { Dictionary } from "lodash";
 
 export async function getMembers(token?: string): Promise<{
   members: MemberPublic[];
@@ -48,7 +47,6 @@ export async function getMembers(token?: string): Promise<{
   industries: DocumentData[];
   focuses: DocumentData[];
 }> {
-  verifyServerSide();
   let isAdmin = false;
   let userEmail = "";
   let userId = "";
@@ -63,10 +61,12 @@ export async function getMembers(token?: string): Promise<{
 
   const approved = isAdmin ? false : true;
 
+  console.log("userId: ", userId);
   const members = await getMembersTable(
     FirebaseTablesEnum.MEMBERS,
     memberConverter,
     approved,
+    userId,
   );
 
   const focusesData = await getFirebaseTable(
@@ -107,11 +107,14 @@ export async function getMembers(token?: string): Promise<{
         if (isAdmin || userId === member.id) {
           memberObject = {
             ...memberObject,
-            lastModified: lastModified.toDate().toLocaleString(),
+            lastModified: lastModified
+              ? lastModified.toDate().toLocaleString()
+              : null,
             emailAbbr: maskedEmail,
             requests: requests,
             unsubscribed: unsubscribed,
           };
+          console.log("memberObject after:", memberObject);
         }
 
         return memberObject;
@@ -129,7 +132,6 @@ export const updateMember = async (
   currentUser: string,
   currentUserIsAdmin: boolean,
 ) => {
-  verifyServerSide();
   await initializeAdmin();
   const docRef = admin
     .firestore()
@@ -423,6 +425,7 @@ export async function getMembersTable(
   table: FirebaseTablesEnum,
   converter: FirestoreDataConverter<any>,
   approved: boolean = false,
+  userId?: string,
 ): Promise<any[]> {
   const documentsCollection = collection(db, table).withConverter(converter);
   let q = query(documentsCollection);
@@ -431,27 +434,20 @@ export async function getMembersTable(
   }
   const documentsSnapshot = await getDocs(q);
   return documentsSnapshot.docs.map((doc) => {
-    if (approved) {
-      const { lastModified, lastModifiedBy, requests, unsubscribed, ...data } =
-        doc.data();
-      return data;
+    if (approved || doc.id === userId) {
+      return doc.data();
     }
-    return doc.data();
+    const { lastModified, lastModifiedBy, requests, unsubscribed, ...data } =
+      doc.data();
+    return data;
   });
 }
 
-export function getMemberChanges(
-  memberDataOld: MemberPublic,
-  memberDataNew: MemberPublic,
-): Dictionary<any> {
-  const changes = {};
-  for (const key in memberDataNew) {
-    if (memberDataOld[key] !== memberDataNew[key]) {
-      changes[key] = {
-        old: memberDataOld[key],
-        new: memberDataNew[key],
-      };
-    }
-  }
-  return changes;
-}
+export default serverSideOnly({
+  getMembers,
+  updateMember,
+  addMemberToFirebase,
+  getAllMemberReferencesToDelete,
+  deleteReferences,
+  getMemberRef,
+});

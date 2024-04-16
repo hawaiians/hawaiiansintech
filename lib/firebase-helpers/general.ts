@@ -12,11 +12,12 @@ import { FirebaseTablesEnum, StatusEnum } from "../enums";
 import { db } from "../firebase";
 import { DocumentData } from "./interfaces";
 
-export const verifyServerSide = () => {
+export default function serverSideOnly(moduleObject) {
   if (typeof window !== "undefined") {
-    throw new Error("This function can only be called on the server");
+    throw new Error("This module can only be used on the server-side.");
   }
-};
+  return moduleObject;
+}
 
 export async function getReferences(
   referenceIds: string[],

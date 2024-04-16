@@ -14,7 +14,6 @@ import { useState } from "react";
 import { Filter } from "@/lib/firebase-helpers/interfaces";
 import { Input } from "@/components/ui/input";
 import { Pencil } from "lucide-react";
-import { getFilters } from "@/lib/firebase-helpers/filters";
 
 interface FilterEditorProps {
   labels: { singular: string; plural: string };
@@ -58,14 +57,18 @@ export default function FilterEditor({
 
   const handleOpen = async () => {
     setOpen(!open);
-
     if (unnapprovedFilters.length > 0) {
       setSuggestedFilter(unnapprovedFilters[0]);
       setSuggestOpen(true);
     } else if (suggestedFilter === "" || suggestedFilter === null) {
       setSuggestOpen(false);
     }
-    allFilters.length === 0 && setAllFilters(await getFilters(filterTable));
+    fetch("/api/filters")
+      .then((response) => response.json())
+      .then((data) => {
+        const filters = data.filters;
+        setAllFilters(filters);
+      });
   };
 
   const handleSelect = (filter: Filter) => {

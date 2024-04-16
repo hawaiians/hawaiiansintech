@@ -29,7 +29,6 @@ import {
   DocumentData,
   MemberEmail,
   MemberPublic,
-  getMemberChanges,
 } from "@/lib/firebase-helpers/interfaces";
 import {
   CompanySizeEnum,
@@ -42,6 +41,23 @@ import { convertStringSnake, useEmailCloaker } from "helpers";
 import { ExternalLink, Trash } from "lucide-react";
 import Link from "next/link";
 import { FC, useState } from "react";
+import { Dictionary } from "lodash";
+
+function getMemberChanges(
+  memberDataOld: MemberPublic,
+  memberDataNew: MemberPublic,
+): Dictionary<any> {
+  const changes = {};
+  for (const key in memberDataNew) {
+    if (memberDataOld[key] !== memberDataNew[key]) {
+      changes[key] = {
+        old: memberDataOld[key],
+        new: memberDataNew[key],
+      };
+    }
+  }
+  return changes;
+}
 
 export const MemberEdit: FC<{
   member: MemberPublic;
@@ -82,6 +98,8 @@ export const MemberEdit: FC<{
     const region = regions.find((r) => r.fields.name === name);
     return !region ? null : region.id;
   };
+  console.log("member: ", member);
+  console.log("unsubscribed: ", unsubscribed);
 
   const fetchEmailById = async () => {
     const response = await fetch(`/api/emails?id=${member.id}`, {

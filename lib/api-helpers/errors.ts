@@ -81,13 +81,21 @@ export class ItemNotFoundError extends Error {
   }
 }
 
+export class InvalidEnumValueError extends Error {
+  constructor(param: string, value: string) {
+    super(`Invalid value for enum ${param}: ${value}`);
+    this.name = "InvalidEnumValueError";
+  }
+}
+
 export function handleApiErrors(error: Error, res: NextApiResponse) {
   console.error("Error caught in handleApiErrors:", error);
   if (
     error instanceof MissingHeaderError ||
     error instanceof MissingQueryError ||
     error instanceof MissingBodyParamError ||
-    error instanceof InvalidQueryParamTypeError
+    error instanceof InvalidQueryParamTypeError ||
+    error instanceof InvalidEnumValueError
   ) {
     return res.status(400).json({ message: error.message });
   }
