@@ -20,7 +20,8 @@ import { cn } from "@/lib/utils";
 import theme from "@/styles/theme";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { buttonVariants } from "@/components/ui/button";
-import { Filter, getFilters } from "@/lib/firebase-helpers/interfaces";
+import { Filter } from "@/lib/firebase-helpers/interfaces";
+import { getFilters } from "@/lib/firebase-helpers/filters";
 import { getMembers } from "@/lib/firebase-helpers/members";
 
 export async function getStaticProps() {
