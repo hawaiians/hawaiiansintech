@@ -1,10 +1,8 @@
-import Button from "@/components/Button";
 import { Heading, Subheading } from "@/components/Heading";
+import * as Yup from "yup";
 import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
 import Plausible from "@/components/Plausible";
-import Input from "@/components/form/Input";
-import Label from "@/components/form/Label";
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import {
@@ -20,6 +18,11 @@ import LoadingSpinner, {
   LoadingSpinnerVariant,
 } from "@/components/LoadingSpinner";
 import Link from "next/link";
+import { Formik } from "formik";
+import { Button } from "@/components/ui/button";
+import Logo from "@/components/Logo";
+import { Input } from "@/components/ui/input";
+import { DISCORD_URL } from "../about";
 
 export async function getServerSideProps(context) {
   const { req } = context;
@@ -43,7 +46,6 @@ export default function EditPage({ baseUrl, pageTitle }) {
         <title>{pageTitle}</title>
       </Head>
       <Nav backLinkTo="/" variant="minimized" />
-      <Heading>Welcome back, Hawaiian.</Heading>
       <RequestForm baseUrl={baseUrl} />
     </>
   );
@@ -58,7 +60,6 @@ enum PageState {
 
 function RequestForm({ baseUrl }) {
   const router = useRouter();
-  const [email, setEmail] = useState<string>("");
   const [pageState, setPageState] = useState<PageState>(PageState.NotLoggedIn);
   const [errorReason, setErrorReason] = useState<string>("");
   const [errorBackup, setErrorBackup] = useState<string>("");
@@ -67,7 +68,10 @@ function RequestForm({ baseUrl }) {
     setPageState(PageState.NotLoggedIn);
   };
 
-  const handleSignIn = () => {
+  const handleSignIn = (email: string) => {
+    // baseUrl is passed in from getServerSideProps
+    // to ensure the correct URL is used in the email
+    // verification link.
     const fullUrl = `${baseUrl}/edit`;
     fetch("/api/verify-email", {
       method: "POST",
@@ -105,7 +109,7 @@ function RequestForm({ baseUrl }) {
       setPageState(PageState.Error);
     }
     const data = await response.json();
-    const memberId = data.memberId;
+    const { memberId } = data;
     router.push({
       pathname: `/edit/member/`,
       query: { memberId },
@@ -148,36 +152,86 @@ function RequestForm({ baseUrl }) {
   }, []);
 
   return (
-    <div
+    <section
       className={`
         mx-auto
         mb-4
         mt-8
         flex
-        max-w-3xl
+        max-w-lg
         flex-col
-        items-center
         px-4
       `}
     >
       {pageState === PageState.NotLoggedIn ? (
         <>
-          <Subheading centered>
-            First, let's sign you in with the email you registered with.
-          </Subheading>
-          <div className="mb-8 w-3/4">
-            <div className="mb-2">
-              <Label label={"Email:"} />
-            </div>
-            <Input
-              name={"email"}
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-              }}
-            />
-          </div>
-          <Button onClick={handleSignIn}>Sign In</Button>
+          <Formik
+            initialValues={{
+              email: "",
+            }}
+            validateOnChange
+            onSubmit={(values) => handleSignIn(values.email)}
+            validationSchema={Yup.object().shape({
+              email: Yup.string().email(
+                "That email doesn't look right. Please try again.",
+              ),
+            })}
+          >
+            {(props) => {
+              const {
+                dirty,
+                handleBlur,
+                handleChange,
+                handleSubmit,
+                isValid,
+                values,
+              } = props;
+
+              return (
+                <form
+                  className="flex w-full flex-col items-center gap-4 sm:rounded-lg sm:border sm:p-4"
+                  onSubmit={handleSubmit}
+                >
+                  <header className="flex flex-col items-center gap-2">
+                    <Logo />
+                    <h2 className="text-2xl">Welcome back</h2>
+                    <p className="text-secondary-foreground">
+                      Sign in using your email address
+                    </p>
+                  </header>
+                  <section className="flex w-full flex-col gap-2">
+                    <Input
+                      id="email"
+                      name="email"
+                      onBlur={handleBlur}
+                      value={values.email}
+                      onChange={handleChange}
+                      placeholder="Enter your email address"
+                    />
+                    <Button
+                      className="w-full"
+                      type="submit"
+                      disabled={!isValid || !dirty}
+                    >
+                      Continue with email
+                    </Button>
+                  </section>
+                </form>
+              );
+            }}
+          </Formik>
+          <p className="mt-4 text-center text-sm">
+            New to Hawaiians in Tech?{" "}
+            <Link href="/join/01-you" className="font-semibold">
+              Join Us
+            </Link>
+          </p>
+          <p className="mt-2 text-center text-sm">
+            Having issues?{" "}
+            <Link href={DISCORD_URL} className="font-semibold">
+              Let us know on Discord
+            </Link>
+          </p>
         </>
       ) : pageState === PageState.EmailSent ? (
         <div className="mt-4 text-center">
@@ -229,6 +283,6 @@ function RequestForm({ baseUrl }) {
           </div>
         </>
       )}
-    </div>
+    </section>
   );
 }
