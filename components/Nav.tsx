@@ -8,7 +8,7 @@ import { Button, buttonVariants } from "./ui/button";
 import { getAuth } from "firebase/auth";
 import { useRouter } from "next/router";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { signOutWithGoogle } from "../lib/firebase";
+import { auth, signOutWithGoogle } from "../lib/firebase";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,7 +35,6 @@ export default function Nav({
   children,
   variant = "primary",
 }: NavProps) {
-  const auth = getAuth();
   const [user, loading, error] = useAuthState(auth);
   const router = useRouter();
   const { nav } = router.query;
@@ -47,6 +46,11 @@ export default function Nav({
   };
 
   let logo = <Logo />;
+
+  if (user !== null && !loading) {
+    // const { displayName, email, emailVerified, metadata } = user;
+    console.log(user);
+  }
 
   if (backLinkTo) {
     logo = (
@@ -113,7 +117,7 @@ export default function Nav({
                 className={cn(
                   buttonVariants({ size: "lg", variant: "secondary" }),
                 )}
-                href={`/login?nav=${NavAppearance.ToFade}`}
+                href={`/edit?nav=${NavAppearance.ToFade}`}
               >
                 Manage Profile
               </Link>
@@ -125,6 +129,7 @@ export default function Nav({
               </Link>
             </div>
           )}
+
           {user !== null && !loading && (
             <div className="flex items-center gap-4">
               <Button
@@ -135,20 +140,29 @@ export default function Nav({
                 <Pencil className="h-4 w-4" />
                 <span>Edit Profile</span>
               </Button>
-
               <DropdownMenu>
                 <DropdownMenuTrigger>
                   <button className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-violet-700 to-cyan-600 text-lg text-white">
-                    {user.displayName[0]}
+                    {user?.displayName ? user?.displayName.charAt(0) : "🤙🏽"}
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="bottom" align="end">
                   <DropdownMenuLabel className="w-48">
-                    <h4>{user.displayName}</h4>
-                    <h4 className="w-full text-sm font-normal text-secondary-foreground">
-                      [Software Engineer]
+                    <h4 className="text-xs font-normal tracking-wide text-secondary-foreground">
+                      {user?.email}
                     </h4>
                   </DropdownMenuLabel>
+                  <DropdownMenuItem
+                    onClick={() => router.push("/privacy-policy")}
+                    className="flex-col items-start gap-0.5 border border-violet-700/20 bg-gradient-to-br from-violet-700/10 to-cyan-600/10 hover:border-cyan-600/20 hover:bg-cyan-600/20"
+                  >
+                    <h4 className="w-full text-xs font-medium text-secondary-foreground">
+                      You are currently active on the directory.
+                    </h4>
+                    <span className="text-xs font-semibold tracking-wide text-violet-700">
+                      Edit your Profile
+                    </span>
+                  </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => router.push("/privacy-policy")}
                   >
