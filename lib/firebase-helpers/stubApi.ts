@@ -1,4 +1,4 @@
-import { Filter, MemberPublic } from "./api";
+import { Filter, MemberPublic } from "./interfaces";
 import { CompanySizeEnum, YearsOfExperienceEnum } from "../enums";
 export type { MemberPublic };
 /**

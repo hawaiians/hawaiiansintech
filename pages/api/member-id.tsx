@@ -1,7 +1,7 @@
 import { verifyAuthHeader, verifyEmailAuthToken } from "@/lib/api-helpers/auth";
 import { ItemNotFoundError, handleApiErrors } from "@/lib/api-helpers/errors";
 import { checkMethods } from "@/lib/api-helpers/format";
-import { getEmails } from "@/lib/firebase-helpers/private/emails";
+import { getEmails } from "@/lib/firebase-helpers/emails";
 import { NextApiRequest, NextApiResponse } from "next";
 
 async function getMemberId({ token }: { token?: string }): Promise<string> {

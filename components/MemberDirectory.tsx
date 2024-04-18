@@ -1,4 +1,4 @@
-import { MemberPublic } from "@/lib/firebase-helpers/api";
+import { MemberPublic } from "@/lib/firebase-helpers/interfaces";
 import { cn } from "@/lib/utils";
 
 export interface DirectoryMember extends MemberPublic {
@@ -67,8 +67,8 @@ export default function MemberDirectory({ members }: MemberDirectoryProps) {
               isSelected
                 ? "border-brown-600/50 bg-brown-600/10 hover:border-brown-600/30 hover:bg-brown-600/30"
                 : isFiltered
-                ? "opacity-50 hover:opacity-100"
-                : "",
+                  ? "opacity-50 hover:opacity-100"
+                  : "",
             )}
             key={`member-${member.id}`}
             href={member.link}

@@ -18,18 +18,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-import {
-  deleteDocument,
-  deleteReferences,
-} from "@/lib/firebase-helpers/public/directory";
+import { deleteDocument } from "@/lib/firebase-helpers/general";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   DocumentData,
   MemberEmail,
   MemberPublic,
   RegionPublic,
-  getFirebaseTable,
-} from "@/lib/firebase-helpers/api";
+} from "@/lib/firebase-helpers/interfaces";
 import {
   CompanySizeEnum,
   FirebaseTablesEnum,
@@ -49,7 +45,8 @@ import { FC, ReactNode, useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { signInWithGoogle, signOutWithGoogle } from "../../lib/firebase";
 import { MemberEdit } from "@/components/MemberEdit";
-import { getAllMemberReferencesToDelete } from "@/lib/firebase-helpers/public/directory";
+// import { getAllMemberReferencesToDelete } from "@/lib/firebase-helpers/members";
+// import { deleteReferences } from "@/lib/firebase-helpers/members";
 
 export async function getStaticProps() {
   return {
@@ -274,21 +271,21 @@ function Card({ member, regions, user }: CardProps) {
   const handleDelete = async () => {
     alert("NOT ACTUALLY DELETING!!! RETURNING EARLY");
     return;
-    const references = await getAllMemberReferencesToDelete(member.id);
-    const memberRef = references.memberRef;
-    // CONFIRM THAT THIS CHECKS IF OTHER MEMBERS USE THE SAME FOCUSES
-    console.log("removing focuses references");
-    await deleteReferences(memberRef, references.focuses);
-    // CONFIRM THAT THIS CHECKS IF OTHER MEMBERS USE THE SAME INDUSTRY
-    console.log("removing industries references");
-    await deleteReferences(memberRef, references.industries);
-    // CONFIRM THAT THIS CHECKS IF OTHER MEMBERS USE THE SAME REGION
-    console.log("removing regions references");
-    await deleteReferences(memberRef, references.regions);
-    console.log("removing secureMemberData document");
-    await deleteDocument(references.secureMemberData);
-    console.log("removing member document");
-    await deleteDocument(references.memberRef);
+    // const references = await getAllMemberReferencesToDelete(member.id);
+    // const memberRef = references.memberRef;
+    // // CONFIRM THAT THIS CHECKS IF OTHER MEMBERS USE THE SAME FOCUSES
+    // console.log("removing focuses references");
+    // await deleteReferences(memberRef, references.focuses);
+    // // CONFIRM THAT THIS CHECKS IF OTHER MEMBERS USE THE SAME INDUSTRY
+    // console.log("removing industries references");
+    // await deleteReferences(memberRef, references.industries);
+    // // CONFIRM THAT THIS CHECKS IF OTHER MEMBERS USE THE SAME REGION
+    // console.log("removing regions references");
+    // await deleteReferences(memberRef, references.regions);
+    // console.log("removing secureMemberData document");
+    // await deleteDocument(references.secureMemberData);
+    // console.log("removing member document");
+    // await deleteDocument(references.memberRef);
   };
 
   return (

@@ -4,13 +4,9 @@ import {
   StatusEnum,
 } from "@/lib/enums";
 import { DocumentReference, doc, getDoc } from "firebase/firestore";
-import { db } from "../../firebase";
-import {
-  DocumentData,
-  MemberEmail,
-  getFirebaseTable,
-} from "@/lib/firebase-helpers/api";
-import { verifyServerSide } from "./general";
+import { db } from "../firebase";
+import { DocumentData, MemberEmail } from "@/lib/firebase-helpers/interfaces";
+import serverSideOnly, { getFirebaseTable } from "./general";
 import { initializeAdmin } from "./initializeAdmin";
 import * as admin from "firebase-admin";
 import { sendLoginPromptEmail } from "@/lib/email";
@@ -18,7 +14,6 @@ import { sendLoginPromptEmail } from "@/lib/email";
 export async function getEmails(
   approved: boolean = false,
 ): Promise<MemberEmail[]> {
-  verifyServerSide();
   const secureMemberData: DocumentData[] = await getFirebaseTable(
     FirebaseTablesEnum.SECURE_MEMBER_DATA,
   );
@@ -54,21 +49,18 @@ export async function getEmails(
 }
 
 export async function getEmailById(userId: string): Promise<MemberEmail> {
-  verifyServerSide();
   const emails = await getEmails();
   const email = emails.find((e) => e && e.id === userId);
   return email;
 }
 
 export const getIdByEmail = async (email: string): Promise<string> => {
-  verifyServerSide();
   const emails = await getEmails();
   const emailObj = emails.find((e) => e && e.email === email);
   return emailObj ? emailObj.id : null;
 };
 
 export const emailExists = async (email: string): Promise<boolean> => {
-  verifyServerSide();
   const secureMemberData: DocumentData[] = await getFirebaseTable(
     FirebaseTablesEnum.SECURE_MEMBER_DATA,
   );
@@ -114,3 +106,12 @@ export const sendVerificationEmail = async (email: string, url: string) => {
       throw error;
     });
 };
+
+export default serverSideOnly({
+  getEmails,
+  getEmailById,
+  getIdByEmail,
+  emailExists,
+  addSecureEmail,
+  sendVerificationEmail,
+});

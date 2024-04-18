@@ -1,4 +1,4 @@
-import { initializeAdmin } from "@/lib/firebase-helpers/private/initializeAdmin";
+import { initializeAdmin } from "@/lib/firebase-helpers/initializeAdmin";
 import * as admin from "firebase-admin";
 import {
   FirebaseMemberFieldsEnum,
@@ -6,36 +6,38 @@ import {
   FirebaseTablesEnum,
   FirebaseDefaultValuesEnum,
 } from "@/lib/enums";
-import { updatePublicFilterReferences } from "@/lib/firebase-helpers/public/filters";
-import {
-  addNewLabel,
-  updateAdminFilterReferences,
-} from "@/lib/firebase-helpers/private/filters";
-import { verifyServerSide } from "./general";
-import { memberConverter } from "../../firestore-converters/member";
-import {
-  DocumentData,
-  focusLookup,
-  getFirebaseData,
-  getFirebaseTable,
-  industryLookup,
-  regionLookup,
-  MemberPublic,
-} from "@/lib/firebase-helpers/api";
-import { verifyAdminToken, verifyEmailAuthToken } from "@/lib/api-helpers/auth";
-import {
-  DocumentReference,
-  addDoc,
-  collection,
-  doc,
-  serverTimestamp,
-} from "firebase/firestore";
-import { useEmailCloaker } from "@/helpers";
 import {
   addLabelRef,
   addMemberToLabels,
-  addPendingReviewRecord,
-} from "../public/directory";
+  filterLookup,
+  updateFilterReferences,
+} from "@/lib/firebase-helpers/filters";
+import {
+  addNewLabel,
+  updateAdminFilterReferences,
+} from "@/lib/firebase-helpers/filters";
+import serverSideOnly, { getFirebaseTable } from "./general";
+import { memberConverter } from "../firestore-converters/member";
+import {
+  DocumentData,
+  MemberPublic,
+  // regionLookup,
+} from "@/lib/firebase-helpers/interfaces";
+import { verifyAdminToken, verifyEmailAuthToken } from "@/lib/api-helpers/auth";
+import {
+  DocumentReference,
+  FirestoreDataConverter,
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  serverTimestamp,
+  updateDoc,
+  where,
+} from "firebase/firestore";
+import { useEmailCloaker } from "@/helpers";
 import { addSecureEmail, getIdByEmail } from "./emails";
 import { db } from "@/lib/firebase";
 
@@ -45,12 +47,6 @@ export async function getMembers(token?: string): Promise<{
   industries: DocumentData[];
   focuses: DocumentData[];
 }> {
-  verifyServerSide();
-  const members = await getFirebaseData(
-    FirebaseTablesEnum.MEMBERS,
-    memberConverter,
-  );
-
   let isAdmin = false;
   let userEmail = "";
   let userId = "";
@@ -63,13 +59,29 @@ export async function getMembers(token?: string): Promise<{
     userId = await getIdByEmail(userEmail);
   }
 
-  const focusesData = await getFirebaseTable(FirebaseTablesEnum.FOCUSES);
-  const industriesData = await getFirebaseTable(FirebaseTablesEnum.INDUSTRIES);
+  const approved = isAdmin ? false : true;
+
+  const members = await getMembersTable(
+    FirebaseTablesEnum.MEMBERS,
+    memberConverter,
+    approved,
+    userId,
+  );
+
+  const focusesData = await getFirebaseTable(
+    FirebaseTablesEnum.FOCUSES,
+    approved,
+  );
+  const industriesData = await getFirebaseTable(
+    FirebaseTablesEnum.INDUSTRIES,
+    approved,
+  );
+
+  // Note: Regions do not have statuses so no need to filter by approved
   const regionsData = await getFirebaseTable(FirebaseTablesEnum.REGIONS);
 
   return {
     members: members
-      .filter((member) => isAdmin || member.status === StatusEnum.APPROVED)
       .map((member) => {
         const {
           regions,
@@ -86,15 +98,17 @@ export async function getMembers(token?: string): Promise<{
 
         let memberObject = {
           ...rest,
-          region: regionLookup(regionsData, regions),
-          industry: industryLookup(industriesData, industries),
-          focus: focusLookup(focusesData, focuses),
+          region: filterLookup(regionsData, regions, true),
+          industry: filterLookup(industriesData, industries),
+          focus: filterLookup(focusesData, focuses),
         };
 
         if (isAdmin || userId === member.id) {
           memberObject = {
             ...memberObject,
-            lastModified: lastModified.toDate().toLocaleString(),
+            lastModified: lastModified
+              ? lastModified.toDate().toLocaleString()
+              : null,
             emailAbbr: maskedEmail,
             requests: requests,
             unsubscribed: unsubscribed,
@@ -116,7 +130,6 @@ export const updateMember = async (
   currentUser: string,
   currentUserIsAdmin: boolean,
 ) => {
-  verifyServerSide();
   await initializeAdmin();
   const docRef = admin
     .firestore()
@@ -152,14 +165,13 @@ export const updateMember = async (
         : memberData[fieldSingular[field]]
           ? memberData[fieldSingular[field]].map((ref) => ref.id)
           : [];
-    const [referencesToAdd, referencesToDelete] =
-      await updatePublicFilterReferences(
-        memberData.id,
-        oldReferenceIds,
-        newReferenceIds,
-        field,
-        currentUser,
-      );
+    const [referencesToAdd, referencesToDelete] = await updateFilterReferences(
+      memberData.id,
+      oldReferenceIds,
+      newReferenceIds,
+      field,
+      currentUser,
+    );
     updateAdminFilterReferences(
       referencesToAdd,
       referencesToDelete,
@@ -280,7 +292,6 @@ const addMember = async (
     };
     delete data.email; // Don't store email in the member record
     const docRef = await addDoc(collectionRef, data);
-    addPendingReviewRecord(docRef, FirebaseTablesEnum.MEMBERS);
     addSecureEmail(member.email, docRef);
     return docRef;
   } catch (error) {
@@ -351,3 +362,90 @@ export const addMemberToFirebase = async (
     }
   });
 };
+
+interface referencesToDelete {
+  memberRef: DocumentReference;
+  focuses: DocumentReference[];
+  industries: DocumentReference[];
+  regions: DocumentReference[];
+  secureMemberData: DocumentReference;
+}
+
+export async function getAllMemberReferencesToDelete(
+  uid: string,
+): Promise<referencesToDelete> {
+  const documentRef = doc(db, FirebaseTablesEnum.MEMBERS, uid).withConverter(
+    memberConverter,
+  );
+  const documentSnapshot = await getDoc(documentRef);
+  if (!documentSnapshot.exists()) {
+    return null;
+  }
+  const data = documentSnapshot.data();
+  const returnData = {
+    memberRef: documentRef,
+    focuses: data.focuses,
+    industries: data.industries,
+    regions: data.regions,
+    secureMemberData: doc(db, FirebaseTablesEnum.SECURE_MEMBER_DATA, uid),
+  };
+  return returnData;
+}
+
+export async function deleteReferences(
+  memberRef: DocumentReference,
+  references: DocumentReference[],
+  currentUser?: string,
+) {
+  for (const reference of references) {
+    const documentSnapshot = await getDoc(reference);
+    const memberRefs = documentSnapshot.data().members;
+    const memberRefToDelete = memberRef.id;
+    const updatedMemberRefs = memberRefs.filter(
+      (ref) => ref.id !== memberRefToDelete,
+    );
+    await updateDoc(reference, {
+      members: updatedMemberRefs,
+      last_modified: serverTimestamp(),
+      last_modified_by: currentUser || "admin edit",
+    });
+  }
+}
+
+export async function getMemberRef(uid: string): Promise<DocumentReference> {
+  const memberRef = doc(db, FirebaseTablesEnum.MEMBERS, uid).withConverter(
+    memberConverter,
+  );
+  return memberRef;
+}
+
+export async function getMembersTable(
+  table: FirebaseTablesEnum,
+  converter: FirestoreDataConverter<any>,
+  approved: boolean = false,
+  userId?: string,
+): Promise<any[]> {
+  const documentsCollection = collection(db, table).withConverter(converter);
+  let q = query(documentsCollection);
+  if (approved === true) {
+    q = query(documentsCollection, where("status", "==", StatusEnum.APPROVED));
+  }
+  const documentsSnapshot = await getDocs(q);
+  return documentsSnapshot.docs.map((doc) => {
+    if (approved || doc.id === userId) {
+      return doc.data();
+    }
+    const { lastModified, lastModifiedBy, requests, unsubscribed, ...data } =
+      doc.data();
+    return data;
+  });
+}
+
+export default serverSideOnly({
+  getMembers,
+  updateMember,
+  addMemberToFirebase,
+  getAllMemberReferencesToDelete,
+  deleteReferences,
+  getMemberRef,
+});

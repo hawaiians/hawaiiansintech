@@ -1,12 +1,12 @@
-import { MemberEmail } from "@/lib/firebase-helpers/api";
+import { MemberEmail } from "@/lib/firebase-helpers/interfaces";
 import {
   verifyAdminToken,
   verifyAuthHeader,
   verifyEmailAuthToken,
 } from "@/lib/api-helpers/auth";
 import { FirebaseTablesEnum } from "@/lib/enums";
-import { initializeAdmin } from "@/lib/firebase-helpers/private/initializeAdmin";
-import { getEmails } from "@/lib/firebase-helpers/private/emails";
+import { initializeAdmin } from "@/lib/firebase-helpers/initializeAdmin";
+import { getEmails } from "@/lib/firebase-helpers/emails";
 import { NextApiRequest, NextApiResponse } from "next";
 import * as admin from "firebase-admin";
 import {

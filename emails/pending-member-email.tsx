@@ -4,7 +4,7 @@ import * as React from "react";
 import CTABlock from "./ui/cta-block";
 import Base from "./ui/base";
 import List from "./ui/list";
-import { CreateMemberFields } from "@/lib/firebase-helpers/private/members";
+import { CreateMemberFields } from "@/lib/firebase-helpers/members";
 
 export default function PendingMemberEmail({
   name = "[Name Inoa]",
