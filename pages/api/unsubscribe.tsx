@@ -29,6 +29,17 @@ async function generateUnsubKey(docRef: DocumentReference): Promise<string> {
   return unsubKey;
 }
 
+async function removeUnsubKey(docRef: DocumentReference) {
+  const writeResult = await docRef.update({
+    unsubscribe_key: admin.firestore.FieldValue.delete(),
+    last_modified: admin.firestore.FieldValue.serverTimestamp(),
+    last_modified_by: "hit-unsub-key",
+  });
+  if (!writeResult.writeTime) {
+    throw new Error("Failed to remove unsubKey from database");
+  }
+}
+
 async function getSecureMemberData(uid: string): Promise<DocumentReference> {
   await initializeAdmin();
   const docRef = admin
@@ -88,6 +99,7 @@ async function patchHandler(req: NextApiRequest, res: NextApiResponse) {
     unsubKey: "string",
   });
   await updateUnsub(req.body.uid, req.body.unsubKey);
+  await removeUnsubKey(await getSecureMemberData(req.body.uid));
   res.status(200).json({
     message: `Successfully unsubscribed member with uid ${req.body.uid}`,
   });
