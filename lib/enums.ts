@@ -1,7 +1,9 @@
 export enum StatusEnum {
   APPROVED = "approved",
-  PENDING = "pending",
   IN_PROGRESS = "in_progress",
+  PENDING = "pending",
+  // TODO: Rename enum to Archived and update all references
+  // ARCHIVED = "archived",
   DECLINED = "declined",
 }
 
@@ -39,4 +41,34 @@ export enum FirebaseTablesEnum {
 
 export enum FirebaseDefaultValuesEnum {
   LAST_MODIFIED_BY = "new_member_form",
+}
+
+export enum StorageEnum {
+  PREVIOUS_PAGE = "previousPage",
+  USER_NAME = "userName",
+  USER_ID = "uid",
+  USER_EMAIL = "email",
+  PROFILE_PICTURE = "profilePicture",
+  EMAIL_IS_VERIFIED = "emailIsVerified",
+  LOGIN_TYPE_NAME = "loginTypeName",
+  LOGIN_TYPE_IMAGE = "loginTypeImage",
+  LOGIN_ERROR_MESSAGE = "loginErrorMessage",
+}
+
+export enum FirebaseMemberFieldsEnum {
+  COMPANY_SIZE = "company_size",
+  FOCUSES = "focuses",
+  INDUSTRIES = "industries",
+  LAST_MODIFIED = "last_modified",
+  LAST_MODIFIED_BY = "last_modified_by",
+  LINK = "link",
+  LOCATION = "location",
+  MASKED_EMAIL = "masked_email",
+  NAME = "name",
+  REGIONS = "regions",
+  REQUESTS = "requests",
+  STATUS = "status",
+  TITLE = "title",
+  UNSUBSCRIBED = "unsubscribed",
+  YEARS_EXPERIENCE = "years_experience",
 }

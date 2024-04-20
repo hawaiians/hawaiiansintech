@@ -8,9 +8,10 @@ import { Heading } from "@/components/Heading";
 import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
 import Plausible from "@/components/Plausible";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useStorage } from "@/lib/hooks";
 import { clearAllStoredFields, useInvalid } from "@/lib/utils";
-import { Field, Formik } from "formik";
+import { Formik } from "formik";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -29,7 +30,6 @@ export default function JoinStep4({ pageTitle }) {
   const router = useRouter();
   const { getItem, setItem, removeItem } = useStorage();
   const [email, setEmail] = useState<string>("");
-  const [ageGateAccepted, setAgeGateAccepted] = useState<boolean>(false);
 
   const [name, setName] = useState<string>("");
   const [location, setLocation] = useState<string>("");
@@ -74,7 +74,7 @@ export default function JoinStep4({ pageTitle }) {
         },
         (error: Response) => {
           reject(error);
-        }
+        },
       );
     });
   };
@@ -114,7 +114,14 @@ export default function JoinStep4({ pageTitle }) {
     const resJSON = await res.json();
     if (res.ok) {
       clearAllStoredFields("jf");
-      router.push({ pathname: "thank-you" });
+      router.push({
+        pathname: "thank-you",
+        query: {
+          // Passes the selected values to the thank-you page
+          focusesSelected: focusesSelected,
+          industriesSelected: industriesSelected,
+        },
+      });
     } else if (res.status === 422) {
       setLoading(false);
       setError({
@@ -149,7 +156,7 @@ export default function JoinStep4({ pageTitle }) {
         )}
         <Formik
           enableReinitialize
-          initialValues={{ email: email, ageGate: false }}
+          initialValues={{ email: email }}
           validateOnBlur={validateAfterSubmit}
           validateOnChange={validateAfterSubmit}
           validate={() => setValidateAfterSubmit(true)}
@@ -160,11 +167,8 @@ export default function JoinStep4({ pageTitle }) {
             email: Yup.string()
               .email("That email doesn't look right. Please try again.")
               .required(
-                "It's important that we can reach you. Email is required."
+                "It's important that we can reach you. Email is required.",
               ),
-            ageGate: Yup.boolean()
-              .oneOf([true], "You must check this box to continue.")
-              .required("You must check this box to continue."),
           })}
         >
           {(props) => {
@@ -202,55 +206,31 @@ export default function JoinStep4({ pageTitle }) {
                   }}
                   error={props.touched.email && props.errors.email}
                 />
-                <label className="inline-block">
-                  <input
-                    type="checkbox"
-                    name="send-me-emails"
-                    checked={subscribed}
-                    onChange={() => setSubscribed(!subscribed)}
-                    className={`
-                    accent-ring
-                    focus:ring-6
-                    mr-2
-                    h-5
-                    w-5
-                    rounded
-                    accent-brown-600
-                    focus:ring-opacity-50
-                  `}
-                  />
-                  Please let me know about{" "}
-                  <strong className="font-semibold">
-                    features and community updates
-                  </strong>{" "}
-                  <span className="text-stone-500">(~once a month)</span>.
-                </label>
-                <label>
-                  <Field
-                    type="checkbox"
-                    name="ageGate"
-                    className={`
-                  accent-ring
-                  focus:ring-6
-                  mr-2
-                  h-5
-                  w-5
-                  accent-brown-600
-                  focus:ring-opacity-50
-                  `}
-                  />
-                  I am{" "}
-                  <strong className="font-semibold">
-                    13 years of age or older
-                  </strong>{" "}
-                  and agree to the{" "}
-                  <Link href="/privacy-policy">Privacy Policy</Link>.
-                  {props.touched.ageGate && props.errors.ageGate && (
-                    <p className="mt-1 text-xs text-red-600">
-                      {props.errors.ageGate}
-                    </p>
-                  )}
-                </label>
+                <div className="flex gap-x-2">
+                  <Checkbox name="send-me-emails" id="send-me-emails" />
+                  <label
+                    htmlFor="send-me-emails"
+                    className="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Let me know about{" "}
+                    <strong className="font-semibold">
+                      features and community updates
+                    </strong>{" "}
+                    <span className="text-stone-500">(~once a month)</span>.
+                  </label>
+                </div>
+                <p className="my-2 text-center text-xs text-secondary-foreground">
+                  By continuing, you confirm that you're 13 years or older and
+                  that you've read and agreed to the{" "}
+                  <Link
+                    href="/privacy-policy"
+                    className="text-stone-500 underline hover:text-stone-600"
+                  >
+                    Privacy Policy
+                  </Link>
+                  .
+                </p>
+
                 <div className="mx-auto w-full max-w-md px-4">
                   <Button fullWidth loading={loading} type="submit">
                     Submit

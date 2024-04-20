@@ -1,7 +1,4 @@
-import {
-  SendConfirmationEmailProps,
-  sendConfirmationEmails,
-} from "@/lib/email/confirmation-email";
+import { sendConfirmationEmails } from "@/lib/email";
 import {
   FirebaseDefaultValuesEnum,
   FirebaseTablesEnum,
@@ -9,19 +6,22 @@ import {
 } from "@/lib/enums";
 import { db } from "@/lib/firebase";
 import { initializeAdmin } from "@/lib/firebase-admin";
+import {
+  addLabelRef,
+  addMemberToLabels,
+  addPendingReviewRecord,
+} from "@/lib/firebase-helpers/public/directory";
 import Client from "@sendgrid/client";
 import SendGrid from "@sendgrid/mail";
 import * as admin from "firebase-admin";
 import {
   addDoc,
-  arrayUnion,
   collection,
   doc,
   DocumentReference,
   getDocs,
   query,
   serverTimestamp,
-  updateDoc,
   where,
 } from "firebase/firestore";
 import { useEmailCloaker } from "helpers";
@@ -29,56 +29,9 @@ import { useEmailCloaker } from "helpers";
 SendGrid.setApiKey(process.env.SENDGRID_API_KEY);
 Client.setApiKey(process.env.SENDGRID_API_KEY);
 
-const addPendingReviewRecord = async (
-  docReviewRef: DocumentReference,
-  collectionName: string
-) => {
-  const collectionRef = collection(db, "review");
-  const docRef = doc(collectionRef, collectionName);
-  await updateDoc(docRef, {
-    [collectionName]: arrayUnion(docReviewRef),
-    last_modified: serverTimestamp(),
-  });
-};
-
-const addLabelRef = async (
-  label: string,
-  collectionName: string
-): Promise<DocumentReference> => {
-  const collectionRef = collection(db, collectionName);
-  const q = query(collectionRef, where("name", "==", label));
-  const querySnapshot = await getDocs(q);
-  let docRef: DocumentReference;
-  if (!querySnapshot.empty) {
-    // Catches the case where the label already exists but it's pending review
-    docRef = querySnapshot.docs[0].ref;
-  } else {
-    docRef = await addDoc(collectionRef, {
-      name: label,
-      status: StatusEnum.PENDING,
-      last_modified: serverTimestamp(),
-      members: [],
-    });
-  }
-  addPendingReviewRecord(docRef, collectionName);
-  return docRef;
-};
-
-const addMemberToLabels = async (
-  labelReferences: DocumentReference[],
-  memberRef: DocumentReference
-) => {
-  for (const labelRef of labelReferences) {
-    await updateDoc(labelRef, {
-      members: arrayUnion(memberRef),
-      last_modified: serverTimestamp(),
-    });
-  }
-};
-
 const addSecureEmail = async (
   email: string,
-  memberDocRef: DocumentReference
+  memberDocRef: DocumentReference,
 ) => {
   await initializeAdmin();
   const collectionRef = admin
@@ -96,23 +49,27 @@ const addSecureEmail = async (
 };
 
 const addMember = async (member: MemberFields): Promise<DocumentReference> => {
-  const collectionRef = collection(db, FirebaseTablesEnum.MEMBERS);
-  const maskedEmail = useEmailCloaker(member.email);
-  const maskedEmailString = `${maskedEmail[0]}...${maskedEmail[1]}${maskedEmail[2]}`;
-  const data = {
-    ...member,
-    last_modified: serverTimestamp(),
-    last_modified_by: FirebaseDefaultValuesEnum.LAST_MODIFIED_BY,
-    masked_email: maskedEmailString,
-    requests: "",
-    status: StatusEnum.PENDING,
-    unsubscribed: member.unsubscribed,
-  };
-  delete data.email; // Don't store email in the member record
-  const docRef = await addDoc(collectionRef, data);
-  addPendingReviewRecord(docRef, FirebaseTablesEnum.MEMBERS);
-  addSecureEmail(member.email, docRef);
-  return docRef;
+  try {
+    const collectionRef = collection(db, FirebaseTablesEnum.MEMBERS);
+    const maskedEmail = useEmailCloaker(member.email);
+    const data = {
+      ...member,
+      last_modified: serverTimestamp(),
+      last_modified_by: FirebaseDefaultValuesEnum.LAST_MODIFIED_BY,
+      masked_email: maskedEmail,
+      requests: "",
+      status: StatusEnum.PENDING,
+      unsubscribed: member.unsubscribed,
+    };
+    delete data.email; // Don't store email in the member record
+    const docRef = await addDoc(collectionRef, data);
+    addPendingReviewRecord(docRef, FirebaseTablesEnum.MEMBERS);
+    addSecureEmail(member.email, docRef);
+    return docRef;
+  } catch (error) {
+    console.error("Error adding member: ", error);
+    throw error;
+  }
 };
 
 const emailExists = async (email: string): Promise<boolean> => {
@@ -127,7 +84,7 @@ const emailExists = async (email: string): Promise<boolean> => {
 
 const idToRef = async (
   labelId: string,
-  collectionName: string
+  collectionName: string,
 ): Promise<DocumentReference> => {
   const collectionRef = collection(db, collectionName);
   const docRef = doc(collectionRef, labelId);
@@ -136,7 +93,7 @@ const idToRef = async (
 
 const idsToRefs = async (
   labelIds: string | string[],
-  collectionName: string
+  collectionName: string,
 ): Promise<DocumentReference[]> => {
   if (typeof labelIds === "string") {
     labelIds = [labelIds];
@@ -149,11 +106,11 @@ const idsToRefs = async (
   return refs;
 };
 
-interface MemberFields {
+export interface MemberFields {
   name: string;
   email: string;
-  location: string;
-  website?: string;
+  location?: string;
+  website?: string; // TODO: Remove "website" input param and replace with "link"
   link?: string;
   focusesSelected?: string | string[];
   focusSuggested?: string;
@@ -167,7 +124,7 @@ interface MemberFields {
 }
 
 const addToFirebase = async (
-  fields: MemberFields
+  fields: MemberFields,
 ): Promise<DocumentReference> => {
   let member = {
     company_size: fields.companySize,
@@ -188,7 +145,7 @@ const addToFirebase = async (
   if (fields.focusesSelected) {
     const selectedFocusesRefs = await idsToRefs(
       fields.focusesSelected,
-      "focuses"
+      "focuses",
     );
     focuses = [...focuses, ...selectedFocusesRefs];
   }
@@ -203,14 +160,14 @@ const addToFirebase = async (
   if (fields.industriesSelected) {
     const selectedIndustriesRefs = await idsToRefs(
       fields.industriesSelected,
-      "industries"
+      "industries",
     );
     industries = [...industries, ...selectedIndustriesRefs];
   }
   if (fields.industrySuggested) {
     const industryRef = await addLabelRef(
       fields.industrySuggested,
-      "industries"
+      "industries",
     );
     industries = [...industries, industryRef];
   }
@@ -229,54 +186,56 @@ const addToFirebase = async (
   });
 };
 
-const sendSgEmail = async ({
-  email,
-  firebaseId,
-  name,
-}: SendConfirmationEmailProps) => {
-  return new Promise((resolve, reject) => {
-    sendConfirmationEmails({
-      email: email,
-      firebaseId: firebaseId,
-      name: name,
-    })
-      .then((response) => {
-        resolve(response);
-      })
-      .catch((error) => {
-        reject(error);
-      });
-  });
-};
-
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Only POST requests allowed" });
   }
   try {
-    const isEmailUsed = await emailExists(req.body.email);
-    if (!isEmailUsed) {
-      const docRef: DocumentReference = await addToFirebase({
-        ...req.body,
-      }).then((body) => {
-        console.log("✅ added member to firebase");
-        return body;
-      });
-      await sendSgEmail({
-        email: req.body.email,
-        firebaseId: docRef.id,
-        name: req.body.name,
-      }).then(() => {
-        console.log("✅ sent member email via sendgrid");
-      });
-      return res.status(200).json({ message: "Successfully added member." });
-    } else {
-      return res.status(422).json({
-        error: "This email is associated with another member.",
-        body: "We only allow one member per email address.",
+    const {
+      email,
+      name,
+      location,
+      title,
+      website, // TODO: Remove "website" input param and replace with "link"
+    } = req.body;
+    const isEmailUsed = await emailExists(email);
+    if (isEmailUsed) {
+      console.log("🚫 email already exists");
+      return res.status(409).json({
+        error: "409",
+        body: "Sorry, please use a different email.",
       });
     }
+
+    const docRef: DocumentReference = await addToFirebase({
+      ...req.body,
+    }).then((body) => {
+      console.log("✅ added member to firebase");
+      return body;
+    });
+    const { id } = docRef;
+
+    await sendConfirmationEmails({
+      email: email,
+      recordID: id,
+      name: name,
+      location: location,
+      title: title,
+      link: website, // TODO: Remove "website" input param and replace with "link"
+    })
+      .then(() => {
+        console.log("✅ sent 2 emails via sendgrid");
+      })
+      .catch((error) => {
+        console.error("🚫 Error sending email:", error);
+        throw error;
+      });
+
+    return res.status(200).json({ message: "Successfully added member." });
   } catch (error) {
+    // TODO Add more specific error handling
+    //      - e.g. addToFirebase from firebase
+    //      -      sendConfirmationEmails from sendgrid
     return res.status(error.statusCode || 500).json({
       error: "Gonfunnit, looks like something went wrong!",
       body: "Please try again later.",
