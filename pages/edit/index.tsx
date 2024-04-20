@@ -23,6 +23,7 @@ import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
 import { Input } from "@/components/ui/input";
 import { DISCORD_URL } from "../about";
+import TurnstileWidget from "@/components/TurnstileWidget";
 
 export async function getServerSideProps(context) {
   const { req } = context;
@@ -215,6 +216,11 @@ function RequestForm({ baseUrl }) {
                     >
                       Continue with email
                     </Button>
+                    <TurnstileWidget
+                      onVerify={(token) => {
+                        console.log(token);
+                      }}
+                    />
                   </section>
                 </form>
               );
