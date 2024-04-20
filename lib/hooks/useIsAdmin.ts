@@ -8,6 +8,7 @@ export default function useIsAdmin(user: User | null, loading: boolean) {
   useEffect(() => {
     const fetchIsAdmin = async () => {
       try {
+        console.log(`Bearer ${await user.getIdToken()}`);
         const response = await fetch("/api/is-admin", {
           method: "GET",
           headers: {

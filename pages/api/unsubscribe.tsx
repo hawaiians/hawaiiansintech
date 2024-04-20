@@ -15,6 +15,7 @@ import {
 } from "@/lib/api-helpers/format";
 import crypto from "crypto";
 import { DocumentReference } from "firebase-admin/firestore";
+import { verifyAdminToken, verifyAuthHeader } from "@/lib/api-helpers/auth";
 
 async function generateUnsubKey(docRef: DocumentReference): Promise<string> {
   const unsubKey = crypto.randomBytes(32).toString("hex");
@@ -27,17 +28,6 @@ async function generateUnsubKey(docRef: DocumentReference): Promise<string> {
     throw new Error("Failed to write unsubKey to database");
   }
   return unsubKey;
-}
-
-async function removeUnsubKey(docRef: DocumentReference) {
-  const writeResult = await docRef.update({
-    unsubscribe_key: admin.firestore.FieldValue.delete(),
-    last_modified: admin.firestore.FieldValue.serverTimestamp(),
-    last_modified_by: "hit-unsub-key",
-  });
-  if (!writeResult.writeTime) {
-    throw new Error("Failed to remove unsubKey from database");
-  }
 }
 
 async function getSecureMemberData(uid: string): Promise<DocumentReference> {
@@ -84,7 +74,12 @@ async function updateUnsub(uid: string, unsubKey: string) {
   }
 }
 
-async function getHandler(req: NextApiRequest, res: NextApiResponse) {
+async function getHandler(
+  req: NextApiRequest,
+  res: NextApiResponse,
+  token: string,
+) {
+  await verifyAdminToken(token);
   checkQueryParams(req, { uid: "string" });
   if (Array.isArray(req.query.uid)) {
     throw new InvalidBodyParamTypeError("id", "string");
@@ -99,7 +94,6 @@ async function patchHandler(req: NextApiRequest, res: NextApiResponse) {
     unsubKey: "string",
   });
   await updateUnsub(req.body.uid, req.body.unsubKey);
-  await removeUnsubKey(await getSecureMemberData(req.body.uid));
   res.status(200).json({
     message: `Successfully unsubscribed member with uid ${req.body.uid}`,
   });
@@ -112,7 +106,8 @@ export default async function handler(
   try {
     checkMethods(req.method, ["GET", "PATCH"]);
     if (req.method === "GET") {
-      await getHandler(req, res);
+      const token = await verifyAuthHeader(req);
+      await getHandler(req, res, token);
     } else if (req.method === "PATCH") {
       await patchHandler(req, res);
     } else {
