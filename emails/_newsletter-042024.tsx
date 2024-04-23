@@ -14,18 +14,19 @@ export default function _Newsletter() {
       title="Welcome to Hawaiians in Tech"
       align="left"
     >
-      <Section className="pt-8">
-        <Logo />
-        <Text className="text-center text-2xl font-semibold">
-          <em>Huuui!</em> A Bay Area announcement!
-        </Text>
-      </Section>
       <Layout border={false}>
+        <Logo align="left" />
+        <Text>
+          <span className="block text-lg font-semibold leading-loose">
+            <em>Huuui!</em> Hawaiians in Tech
+          </span>
+          <strong className="text-5xl font-semibold">Newsletter</strong>
+        </Text>
         <Text>Aloha e gangie,</Text>
         <Text>
-          I&rsquo;m stoked to extand an invite to all members of our Hawaiians
-          in Tech hui to our very first community event we&rsquo;re co-hosting
-          right here in the Bay Area! Mahalo to our friends at both the Amazon
+          We&rsquo;re excited to extand an invite to all members of our
+          Hawaiians in Tech hui to our very first community event we&rsquo;re
+          co-hosting in the Bay Area! Mahalo to our friends at both the Amazon
           and Google Pasifika chapters for their kokua in getting us all
           together and for their generous support of this event.
         </Text>
@@ -51,7 +52,7 @@ export default function _Newsletter() {
         </Link>
       </Layout>
       <Layout border={false}>
-        <Text className="m-0 mb-4 text-base font-semibold tracking-wide">
+        <Text className="m-0 mb-4 text-center text-base font-semibold tracking-wide">
           RSVP to this email
         </Text>
         <List

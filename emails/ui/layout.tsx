@@ -15,7 +15,7 @@ export default function Layout({
   return (
     <Container
       className={cn(
-        "mx-auto max-w-[540px] rounded-xl p-4",
+        "mx-auto max-w-[540px] rounded-xl p-4 pt-6",
         border && "border border-solid border-stone-200",
         accentColor === "violet" && "border-violet-200",
         className,
