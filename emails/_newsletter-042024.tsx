@@ -4,8 +4,6 @@ import Base from "./ui/base";
 import Logo from "./ui/logo";
 import Layout from "./ui/layout";
 import List from "./ui/list";
-import { buttonVariants } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
 export default function _Newsletter() {
   return (
@@ -52,19 +50,21 @@ export default function _Newsletter() {
         </Link>
       </Layout>
       <Layout border={false}>
-        <Text className="m-0 mb-4 text-center text-base font-semibold tracking-wide">
-          RSVP to this email
-        </Text>
+        <Section className="text-center">
+          <Text className="m-0 mb-4 inline-block rounded-full bg-stone-800 px-4 py-1 text-center text-sm font-semibold tracking-wider text-white">
+            RSVP to this email
+          </Text>
+        </Section>
         <List
           nodes={[
             {
               icon: "✅",
               label: (
                 <>
-                  <strong>... you&rsquo;re planning to make it!</strong> A loose
-                  headcount will help us make sure there&rsquo;s enough food and
-                  drinks for everyone. We also plan to send out a calendar
-                  invite as the event approaches.
+                  <strong>... if you can make it!</strong> A loose headcount
+                  will help us make sure there&rsquo;s enough food and drinks
+                  for everyone. We also plan to send out a calendar invite with
+                  more details as the event approaches.
                 </>
               ),
             },
@@ -73,7 +73,7 @@ export default function _Newsletter() {
               label: (
                 <>
                   <strong>
-                    ... want to send your aloha but cannot make it.
+                    ... want to send your aloha but will miss this one.
                   </strong>{" "}
                   It&rsquo;d be great to figure out your situation so we can
                   make sure you&rsquo;d be able to join us next time (like, a
@@ -121,11 +121,11 @@ export default function _Newsletter() {
           ]}
         />
         <Text>
-          It&rsquo;d be great to see many of you for the first time at this
-          casual pau hana event. We are hoping to make this a regular thing, so
+          Can&rsquo;t wait to catch up with everyone, old friends and new, at
+          this casual pau hana. We are hoping to make this a regular thing, so
           come out and help us kick it off right!
         </Text>
-        <Text className="mb-0">E ola,</Text>
+        <Text className="mb-0">E mālama,</Text>
         <Text className="mt-0">Taylor Kekai Ho</Text>
       </Layout>
       <Text className="my-0 text-center text-stone-500">
