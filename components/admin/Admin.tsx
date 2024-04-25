@@ -46,6 +46,11 @@ function AdminNav({
             { label: "Members", url: "/admin/directory", icon: <Users /> },
             { label: "Email List", url: "/admin/emails", icon: <Mails /> },
             {
+              label: "Email Test",
+              url: "/admin/email-unsub-test",
+              icon: <Mails />,
+            },
+            {
               label: "Back to main site",
               url: "/",
               targetBlank: true,
