@@ -121,8 +121,8 @@ export default function UnsubscribePage() {
           {unsubStatus === "success" && (
             <>
               <p>
-                You’ve unsubscribed from our mailing list. You won’t receive any
-                more newsletter updates from us.
+                You’ve unsubscribed from the Hawaiians in Tech mailing list. You
+                won’t receive any more newsletter updates from us.
               </p>
               <p>You can subscribe again at any time.</p>
             </>
@@ -144,6 +144,14 @@ export default function UnsubscribePage() {
           )}
         </div>
       </div>
+      {unsubStatus !== "loading" && !error && (
+        <p className="mt-2 text-center text-sm">
+          Having issues?{" "}
+          <Link href={DISCORD_URL} className="font-semibold">
+            Let us know on Discord
+          </Link>
+        </p>
+      )}
     </section>
   );
 }
