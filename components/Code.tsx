@@ -1,7 +1,19 @@
-export default function Code({ children }) {
+import { cn } from "@/lib/utils";
+import { now } from "lodash";
+
+export default function Code({
+  children,
+  noWrap,
+}: {
+  children: React.ReactNode;
+  noWrap?: boolean;
+}) {
   return (
     <code
-      className={`whitespace-nowrap rounded-md bg-tan-300 px-1.5 py-1 text-sm text-stone-600`}
+      className={cn(
+        `rounded-md bg-tan-300 px-1.5 py-1 text-sm text-stone-600`,
+        noWrap && `whitespace-nowrap`,
+      )}
     >
       {children}
     </code>
