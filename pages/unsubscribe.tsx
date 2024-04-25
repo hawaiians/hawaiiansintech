@@ -28,10 +28,10 @@ export default function UnsubscribePage() {
 
   const router = useRouter();
   const { query } = router;
+  const { uid, unsub } = query;
 
   const handleUnsubscribe = async () => {
     try {
-      const { uid, unsub } = query;
       if (!uid || !unsub) {
         throw new Error("Missing UID or unsubscribe token in URL query.");
       }
@@ -59,10 +59,15 @@ export default function UnsubscribePage() {
   };
 
   useEffect(() => {
-    if (query.uid !== undefined || query.unsub !== undefined) {
+    if (uid && unsub) {
       handleUnsubscribe();
+    } else if (router.isReady) {
+      setUnsubscribeStatus({
+        state: UnsubState.Error,
+        message: "Bad url",
+      });
     }
-  }, [query]);
+  }, [uid, unsub, router.isReady]);
 
   return (
     <section
