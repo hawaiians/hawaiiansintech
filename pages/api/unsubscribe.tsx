@@ -78,9 +78,6 @@ async function updateUnsub(uid: string, unsubKey: string) {
  * Handles GET requests to the unsubscribe API.
  * This endpoint is used to get the unsubscribe key for a specific user.
  * The user is identified by their uid, which should be provided as a query parameter.
- *
- * @param {NextApiRequest} req - The request object.
- * @param {NextApiResponse} res - The response object.
  * @param {string} token - The admin token.
  * @throws {InvalidBodyParamTypeError} If the uid query parameter is not a string.
  * @returns {Promise<void>} A Promise that resolves when the unsubscribe key has been sent in the response.

@@ -1,10 +1,6 @@
 import { useEffect, useState } from "react";
-import { useIsAdmin } from "@/lib/hooks";
-
 import { useRouter } from "next/router";
-import { useAuthState } from "react-firebase-hooks/auth";
-import { auth } from "@/lib/firebase";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import LoadingSpinner, {
   LoadingSpinnerVariant,
 } from "@/components/LoadingSpinner";
@@ -13,43 +9,31 @@ import Link from "next/link";
 import { DISCORD_URL } from "./about";
 import Code from "@/components/Code";
 
+enum UnsubState {
+  Loading = "loading",
+  Success = "success",
+  Error = "error",
+}
+
+interface UnsubStatus {
+  state: UnsubState;
+  message?: string;
+}
+
 export default function UnsubscribePage() {
-  const [unsubStatus, setUnsubStatus] = useState<
-    "loading" | "success" | "error"
-  >("loading");
-  const [error, setError] = useState<string>(null);
-  const [user] = useAuthState(auth);
+  const [unsubscribeStatus, setUnsubscribeStatus] = useState<UnsubStatus>({
+    state: UnsubState.Loading,
+    message: null,
+  });
+
   const router = useRouter();
   const { query } = router;
-
-  const handleGenerate = async () => {
-    try {
-      if (query?.uid === undefined) {
-        throw new Error("No uid in url query");
-      }
-      const response = await fetch(`/api/unsubscribe?uid=${query?.uid}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${await user?.getIdToken()}`,
-        },
-      });
-      const data = await response.json();
-      console.log(data);
-    } catch (error) {
-      console.error("Failed to unsubscribe:", error.message);
-      // Handle failed unsubscribe
-    }
-  };
 
   const handleUnsubscribe = async () => {
     try {
       const { uid, unsub } = query;
-      if (uid === undefined) {
-        throw new Error("No uid in url query");
-      }
-      if (unsub === undefined) {
-        throw new Error("No unsub token in url query");
+      if (!uid || !unsub) {
+        throw new Error("Missing UID or unsubscribe token in URL query.");
       }
 
       const response = await fetch("/api/unsubscribe", {
@@ -58,7 +42,7 @@ export default function UnsubscribePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          uid: uid,
+          uid,
           unsubKey: unsub,
         }),
       });
@@ -67,11 +51,10 @@ export default function UnsubscribePage() {
         const data = await response.json();
         throw new Error(data.message || "Failed to unsubscribe");
       }
-      setUnsubStatus("success");
+      setUnsubscribeStatus({ state: UnsubState.Success });
     } catch (error) {
       console.error("Failed to unsubscribe:", error.message);
-      setUnsubStatus("error");
-      setError(error.message);
+      setUnsubscribeStatus({ state: UnsubState.Error, message: error.message });
     }
   };
 
@@ -93,32 +76,34 @@ export default function UnsubscribePage() {
         px-4
       `}
     >
-      {/* <Button onClick={handleGenerate}>Generate</Button> */}
       <div className="flex w-full flex-col gap-4 sm:rounded-lg sm:border sm:p-4">
         <div className="self-center">
           <Logo />
         </div>
-        {unsubStatus === "loading" && (
+        {unsubscribeStatus.state === UnsubState.Loading ? (
           <div className="self-center py-12">
             <LoadingSpinner variant={LoadingSpinnerVariant.Invert} />
           </div>
+        ) : (
+          <>
+            <h2 className="grow text-2xl">
+              {unsubscribeStatus.state === UnsubState.Success ? (
+                <>Hūlō!</>
+              ) : unsubscribeStatus.state === UnsubState.Error ? (
+                <>E kala mai</>
+              ) : null}
+            </h2>
+          </>
         )}
-        <h2 className="grow text-2xl">
-          {unsubStatus === "success" ? (
-            <>Hūlō!</>
-          ) : unsubStatus === "error" ? (
-            <>E kala mai</>
-          ) : null}
-        </h2>
 
         <div className="flex flex-col gap-2 text-base text-secondary-foreground">
-          {error && (
+          {unsubscribeStatus.state === UnsubState.Error && (
             <p>
               Something went wrong here. The dang machine keeps buzzing{" "}
-              <Code>{error}</Code>.
+              <Code>{unsubscribeStatus.message}</Code>.
             </p>
           )}
-          {unsubStatus === "success" && (
+          {unsubscribeStatus.state === UnsubState.Success && (
             <>
               <p>
                 You’ve unsubscribed from the Hawaiians in Tech mailing list. You
@@ -129,12 +114,12 @@ export default function UnsubscribePage() {
           )}
         </div>
         <div className="flex flex-col gap-2">
-          {error ? (
+          {unsubscribeStatus.state === UnsubState.Error ? (
             <Link className={buttonVariants()} href={DISCORD_URL}>
               Let us know on Discord
             </Link>
           ) : null}
-          {unsubStatus !== "loading" && (
+          {unsubscribeStatus.state !== UnsubState.Loading && (
             <Link
               className={buttonVariants({ variant: "secondary" })}
               href={"/"}
@@ -144,7 +129,7 @@ export default function UnsubscribePage() {
           )}
         </div>
       </div>
-      {unsubStatus !== "loading" && !error && (
+      {unsubscribeStatus.state === UnsubState.Success && (
         <p className="mt-2 text-center text-sm">
           Having issues?{" "}
           <Link href={DISCORD_URL} className="font-semibold">
