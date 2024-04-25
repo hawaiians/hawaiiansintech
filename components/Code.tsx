@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-import { now } from "lodash";
 
 export default function Code({
   children,
