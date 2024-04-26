@@ -35,7 +35,7 @@ export const verifyEmailAuthToken = async (token: string): Promise<string> => {
 
 export const verifyAdminToken = async (
   token: string,
-  strict: boolean = true,
+  strict: boolean = true, // TODO wait why can you be not strict with this function?
 ): Promise<boolean> => {
   try {
     await initializeAdmin();

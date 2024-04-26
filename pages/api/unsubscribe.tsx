@@ -18,7 +18,7 @@ import { DocumentReference } from "firebase-admin/firestore";
 import { verifyAdminToken, verifyAuthHeader } from "@/lib/api-helpers/auth";
 
 async function generateUnsubKey(docRef: DocumentReference): Promise<string> {
-  const unsubKey = crypto.randomBytes(32).toString("hex");
+  const unsubKey = crypto.randomBytes(6).toString("hex");
   const writeResult = await docRef.update({
     unsubscribe_key: unsubKey,
     last_modified: admin.firestore.FieldValue.serverTimestamp(),
@@ -74,6 +74,14 @@ async function updateUnsub(uid: string, unsubKey: string) {
   }
 }
 
+/**
+ * Handles GET requests to the unsubscribe API.
+ * This endpoint is used to get the unsubscribe key for a specific user.
+ * The user is identified by their uid, which should be provided as a query parameter.
+ * @param {string} token - The admin token.
+ * @throws {InvalidBodyParamTypeError} If the uid query parameter is not a string.
+ * @returns {Promise<void>} A Promise that resolves when the unsubscribe key has been sent in the response.
+ */
 async function getHandler(
   req: NextApiRequest,
   res: NextApiResponse,
@@ -88,6 +96,12 @@ async function getHandler(
   return res.status(200).send({ unsubKey });
 }
 
+/**
+ * Handles PATCH requests to the unsubscribe API.
+ * This endpoint is used to unsubscribe a user. The uid and unsubKey should be provided in the request body.
+ * @throws {InvalidBodyParamTypeError} If the uid or unsubKey body parameters are not strings.
+ * @returns {Promise<void>} A Promise that resolves when a success message has been sent in the response.
+ */
 async function patchHandler(req: NextApiRequest, res: NextApiResponse) {
   checkBodyParams(req, {
     uid: "string",
@@ -99,6 +113,11 @@ async function patchHandler(req: NextApiRequest, res: NextApiResponse) {
   });
 }
 
+/**
+ * The main handler for the unsubscribe API.
+ * @throws {InvalidMethodError} If the request method is not GET or PATCH.
+ * @returns {Promise<void>} A Promise that resolves when the response has been sent.
+ */
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
