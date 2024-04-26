@@ -46,7 +46,7 @@ function AdminNav({
             { label: "Members", url: "/admin/directory", icon: <Users /> },
             { label: "Email List", url: "/admin/emails", icon: <Mails /> },
             {
-              label: "Email Test",
+              label: "Send Emails",
               url: "/admin/email-unsub-test",
               icon: <Mails />,
             },

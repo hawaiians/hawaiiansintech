@@ -1,5 +1,5 @@
 import Admin from "@/components/admin/Admin";
-import Button from "@/components/Button";
+import Button, { ButtonVariant } from "@/components/Button";
 import ErrorMessage from "@/components/form/ErrorMessage";
 import LoadingSpinner, {
   LoadingSpinnerVariant,
@@ -13,7 +13,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { signInWithGoogle, signOutWithGoogle } from "../../lib/firebase";
-import { Input } from "@/components/ui/input";
+import { StatusEnum } from "@/lib/enums";
 
 export async function getStaticProps() {
   return {
@@ -23,25 +23,42 @@ export async function getStaticProps() {
   };
 }
 
+interface EmailWithUnsub {
+  id?: string;
+  name?: string;
+  email?: string;
+  emailAbbr?: string;
+  status?: StatusEnum;
+  unsubscribed?: boolean;
+  unsubLink: string;
+}
+
 export default function EmailsPage(props: { pageTitle }) {
   const auth = getAuth();
   const [user, loading, error] = useAuthState(auth);
   const [isAdmin, isAdminLoading] = useIsAdmin(user, loading);
-  const [unsubEmailLink, setUnsubEmailLink] = useState<string>("");
   const [linkError, setLinkError] = useState<string>("");
-  const [uid, setUid] = useState<string>("");
+  const [emailsWithUnsub, setEmailsWithUnsub] = useState<EmailWithUnsub[]>([]);
   const router = useRouter();
 
   useEffect(() => {
     if (!isAdminLoading && !isAdmin) router.push(`/admin`);
   }, [isAdmin, isAdminLoading, router]);
 
-  const getUnsub = async () => {
-    if (!uid) {
-      setLinkError("Please enter a user ID");
+  const sendEmails = async () => {
+    if (emailsWithUnsub.length < 0) {
+      console.error("No emails to send to");
       return;
     }
-    await fetch(`/api/unsubscribe?uid=${uid}`, {
+    emailsWithUnsub.map((email) => {
+      console.log(
+        `sending email to ${email.email} with unsublink ${email.unsubLink}`,
+      );
+    });
+  };
+
+  const getUnsub = async (uid) => {
+    const unsubLink = await fetch(`/api/unsubscribe?uid=${uid}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -53,14 +70,42 @@ export default function EmailsPage(props: { pageTitle }) {
       })
       .then((data) => {
         const baseUrl = window.location.origin;
-        setUnsubEmailLink(
-          `${baseUrl}/edit/unsubscribe?uid=${uid}&unsubKey=${data.unsubKey}`,
-        );
+        return `${baseUrl}/edit/unsubscribe?uid=${uid}&unsubKey=${data.unsubKey}`;
       })
       .catch((error) => {
         console.log("error: ", error.message);
         setLinkError(error.message);
       });
+    return unsubLink;
+  };
+
+  const getEmailList = async () => {
+    const response = await fetch("/api/get-emails", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${await user.getIdToken()}`,
+      },
+    });
+    const data = await response.json();
+    if (data) {
+      const oneEmail = data.emails.filter((email) => {
+        return email?.email === "{test email here}";
+      });
+      Promise.all(
+        // uncomment this to get all emails
+        // data.emails.map(async (email) => {
+        oneEmail.map(async (email) => {
+          const unsubLink = await getUnsub(email.id);
+          return {
+            ...email,
+            unsubLink: unsubLink,
+          };
+        }),
+      ).then((emailsWithUnsubLink) => {
+        setEmailsWithUnsub((prev) => [...prev, ...emailsWithUnsubLink]);
+      });
+    }
   };
 
   return (
@@ -88,16 +133,16 @@ export default function EmailsPage(props: { pageTitle }) {
           {isAdmin && (
             <div className="mx-auto">
               <div className="m-4">
-                <p>Enter a user ID:</p>
-                <Input
-                  name={"usernamef"}
-                  value={uid}
-                  className={"mb-4 w-1/2"}
-                  onChange={(e) => {
-                    setUid(e.target.value);
-                  }}
-                />
-                <Button onClick={getUnsub}>get unsub link</Button>
+                {emailsWithUnsub.length > 0 ? (
+                  <Button onClick={sendEmails}>Send emails</Button>
+                ) : (
+                  <Button
+                    onClick={getEmailList}
+                    variant={ButtonVariant.Secondary}
+                  >
+                    Get list of emails
+                  </Button>
+                )}
                 {linkError && (
                   <div className="m-5">
                     <ErrorMessage
@@ -106,14 +151,28 @@ export default function EmailsPage(props: { pageTitle }) {
                     />
                   </div>
                 )}
-                {unsubEmailLink && (
+
+                {emailsWithUnsub.length > 0 && (
                   <div className="m-5">
-                    <strong>Unsubscribe link:</strong>
-                    <div>
-                      <a href={unsubEmailLink} target="_blank">
-                        {unsubEmailLink}
-                      </a>
-                    </div>
+                    <h2 className="mb-5">Emails:</h2>
+                    <ul>
+                      {emailsWithUnsub.map((email, i) => (
+                        <li key={i} className="flex flex-col">
+                          {email?.email}
+                          {email?.unsubscribed && (
+                            <span className="pl-4 text-red-500">
+                              unsubscribed
+                            </span>
+                          )}
+                          <div className="pl-4">
+                            <strong>link: </strong>
+                            <a href={email.unsubLink} target="_blank">
+                              {email.unsubLink}
+                            </a>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 )}
               </div>

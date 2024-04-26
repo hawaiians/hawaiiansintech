@@ -9,7 +9,7 @@ import LoadingSpinner, {
 } from "@/components/LoadingSpinner";
 import { useEffect, useState } from "react";
 
-export default function EditMemberPage({ pageTitle }) {
+export default function UnsubscribePage({ pageTitle }) {
   return (
     <>
       <Head>
@@ -18,20 +18,19 @@ export default function EditMemberPage({ pageTitle }) {
         <title>{pageTitle}</title>
       </Head>
       <Nav backUrl="/" />
-      <Heading>Edit Profile</Heading>
-      <EditMember />
+      <Heading>Unsubscribe from Email List</Heading>
+      <Unsubscribe />
     </>
   );
 }
 
-function EditMember() {
+function Unsubscribe() {
   const router = useRouter();
   const { uid, unsubKey } = router.query;
   const [loading, setLoading] = useState<boolean>(true);
   const [result, setResult] = useState<any>(null);
   useEffect(() => {
     if (uid && unsubKey) {
-      console.log("fetching...");
       fetch("/api/unsubscribe", {
         method: "PATCH",
         headers: {
