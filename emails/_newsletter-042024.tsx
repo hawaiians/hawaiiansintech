@@ -1,4 +1,4 @@
-import { Text, Link, Section } from "@react-email/components";
+import { Text, Link, Section, Hr } from "@react-email/components";
 import * as React from "react";
 import Base from "./ui/base";
 import Logo from "./ui/logo";
@@ -8,7 +8,7 @@ import List from "./ui/list";
 export default function _Newsletter() {
   return (
     <Base
-      preview="Our little hui grows by one (yeah, you)"
+      preview="Our first community event in the Bay Area!"
       title="Welcome to Hawaiians in Tech"
       align="left"
     >
@@ -18,7 +18,7 @@ export default function _Newsletter() {
           <span className="block text-lg font-semibold leading-loose">
             <em>Huuui!</em> Hawaiians in Tech
           </span>
-          <strong className="text-5xl font-semibold">Newsletter</strong>
+          <strong className="text-5xl font-semibold">April Newsletter</strong>
         </Text>
         <Text>Aloha e gangie,</Text>
         <Text>
@@ -41,18 +41,16 @@ export default function _Newsletter() {
         </Text>
         <Link
           href="https://maps.app.goo.gl/grtUs962CMPEkXaP9"
-          className="mb-12 text-inherit"
+          className="text-inherit"
         >
           <Text className="inline font-bold text-violet-700">Twitch</Text>
           <Text className="inline font-normal text-inherit">
             350 Bush St., SF, CA 94104
           </Text>
         </Link>
-      </Layout>
-      <Layout border={false}>
-        <Section className="text-center">
-          <Text className="m-0 mb-4 inline-block rounded-full bg-stone-800 px-4 py-1 text-center text-sm font-semibold tracking-wider text-white">
-            RSVP to this email
+        <Section>
+          <Text className="mb-4 mt-8 text-base font-bold tracking-wide">
+            RSVP to this email if you...
           </Text>
         </Section>
         <List
@@ -61,10 +59,10 @@ export default function _Newsletter() {
               icon: "✅",
               label: (
                 <>
-                  <strong>... if you can make it!</strong> A loose headcount
-                  will help us make sure there&rsquo;s enough food and drinks
-                  for everyone. We also plan to send out a calendar invite with
-                  more details as the event approaches.
+                  <strong>... can make it!</strong> A loose headcount will help
+                  us make sure there&rsquo;s enough food and drinks for
+                  everyone. We also plan to send out a calendar invite with more
+                  details as the event approaches.
                 </>
               ),
             },
@@ -110,23 +108,26 @@ export default function _Newsletter() {
               label: (
                 <>
                   <strong>
-                    ... have any questions or ideas for the event.
+                    ... have any questions or ideas for this or future events.
                   </strong>{" "}
-                  The day will really be about hanging out and talking story,
-                  but if you have any questions, thoughts, or concerns, please
-                  feel free to let us know.
+                  The day will really be about hanging out and talking story! If
+                  you have any mānaʻo to share, please feel free to let us know.
                 </>
               ),
             },
           ]}
         />
-        <Text>
+      </Layout>
+      <Layout border={false}>
+        <Text className="mt-0">
           Can&rsquo;t wait to catch up with everyone, old friends and new, at
           this casual pau hana. We are hoping to make this a regular thing, so
           come out and help us kick it off right!
         </Text>
-        <Text className="mb-0">E mālama,</Text>
-        <Text className="mt-0">Taylor Kekai Ho</Text>
+      </Layout>
+      <Layout border={false}>
+        <Text className="m-0">E mālama,</Text>
+        <Text className="m-0">Taylor Kekai Ho</Text>
       </Layout>
       <Text className="my-0 text-center text-stone-500">
         <Link
