@@ -1,9 +1,8 @@
-import { Text, Link, Section, Hr } from "@react-email/components";
+import { Text, Link, Hr, Img } from "@react-email/components";
 import * as React from "react";
 import Base from "./ui/base";
 import Logo from "./ui/logo";
 import Layout from "./ui/layout";
-import List from "./ui/list";
 
 export default function _Newsletter() {
   return (
@@ -12,122 +11,119 @@ export default function _Newsletter() {
       title="Welcome to Hawaiians in Tech"
       align="left"
     >
-      <Layout border={false}>
+      <Layout>
         <Logo align="left" />
         <Text>
-          <span className="block text-lg font-semibold leading-loose">
+          <span className="block text-base font-semibold leading-loose sm:text-lg">
             <em>Huuui!</em> Hawaiians in Tech
           </span>
-          <strong className="text-5xl font-semibold">April Newsletter</strong>
+          <strong className="text-2xl font-semibold sm:text-5xl">
+            May Newsletter
+          </strong>
         </Text>
         <Text>Aloha e gangie,</Text>
         <Text>
-          We&rsquo;re excited to extand an invite to all members of our
-          Hawaiians in Tech hui to our very first community event we&rsquo;re
-          co-hosting in the Bay Area! Mahalo to our friends at both the Amazon
-          and Google Pasifika chapters for their kokua in getting us all
-          together and for their generous support of this event.
+          Hope everyone has been doing swell. What a ride it&rsquo;s been over
+          the last few months, right? <em>ʻĀuwe.</em> Whether in a new job,
+          newly without a job, or in a newly stressful job, many of us are going
+          through it. Stand strong; we are here for each other. To make space
+          for that, we&rsquo;re excited to announce we&rsquo;re co-hosting our
+          first in-person event in the Bay Area!
         </Text>
-      </Layout>
-      <Layout accentColor="violet">
-        <Text className="my-0 inline-block rounded-full bg-violet-100 px-2 py-1 text-xs font-semibold tracking-wide text-violet-800">
-          BAY AREA COMMUNITY EVENT
+        <Link href="https://lu.ma/ofzvwvaj">
+          <Img
+            src="https://tj8xrxsxqdtxeknk.public.blob.vercel-storage.com/email/pasifika%20postcard-Qqsb3Z578u3UXtzGx05GxFL12L6ZSH.jpg"
+            alt="Flyer"
+            className="h-auto w-full rounded"
+          />
+        </Link>
+        <Text>
+          You&rsquo;re invited to the inaugural{" "}
+          <strong>Pasifika in Tech Bay Area Happy Hour</strong>! Join us to
+          celebrate and connect with our vibrant Polynesian, Melanesian, &
+          Micronesian tech community in the Bay Area.
         </Text>
-        <Text className="mb-2 text-base">
-          Wednesday, May 29th, 2024, 5:30 – 8PM
+        <Text className="my-1">
+          <strong>Save the date:</strong> Wednesday, May 29th
         </Text>
-        <Text className="mb-2 mt-0 text-2xl font-semibold">
-          Pasifika in Tech Happy Hour @ Twitch HQ
+        <Text className="my-1">
+          <strong>Time:</strong> 5:30–8PM
+        </Text>
+        <Text className="my-1">
+          <strong>Location:</strong> Twitch HQ (
+          <Link
+            className="text-brown-600"
+            href="https://maps.app.goo.gl/anb6ZbxZpMwXffwn6"
+          >
+            map
+          </Link>
+          )
+        </Text>
+        <Text className="my-1">
+          <strong>What to expect:</strong>
+        </Text>
+        <ul className="mt-0 text-sm">
+          <li className="mb-1">Network with Pasifika techies and allies</li>
+          <li className="my-1">Enjoy Pasifika music, food & drinks</li>
+          <li className="mt-1">
+            Fun activities being planned including a lei-making workshop and,
+            yes since this is Twitch, free arcade access with games like Killer
+            Queen and pinball
+          </li>
+        </ul>
+        <Text className="mb-2 text-center">
+          Space is limited. Let us know you&rsquo;re coming!
         </Text>
         <Link
-          href="https://maps.app.goo.gl/grtUs962CMPEkXaP9"
-          className="text-inherit"
+          href="https://lu.ma/ofzvwvaj"
+          className="block rounded bg-stone-800 px-2.5 py-2 text-center font-bold tracking-wide text-white"
         >
-          <Text className="inline font-bold text-violet-700">Twitch</Text>
-          <Text className="inline font-normal text-inherit">
-            350 Bush St., SF, CA 94104
+          RSVP{" "}
+          <Text className="mb-0 mt-1 text-center text-xs font-semibold text-stone-300">
+            May 29th 5:30–8PM @ Twitch HQ
           </Text>
         </Link>
-        <Section>
-          <Text className="mb-4 mt-8 text-base font-bold tracking-wide">
-            RSVP to this email if you...
+        <div className="mb-8 mt-4 sm:px-4">
+          <Img
+            className="w-full"
+            src="https://tj8xrxsxqdtxeknk.public.blob.vercel-storage.com/email/pasifika%20orgs-9izCj4uKUVq7xr1It0nwZF0L17abk0.png"
+          />
+        </div>
+        <div className="rounded bg-stone-100 p-2 text-center sm:p-4">
+          <Text className="mb-2 mt-0 text-xs font-bold">
+            Then,{" "}
+            <Link href="https://lu.ma/ofzvwvaj" className="text-brown-600">
+              share the RSVP
+            </Link>{" "}
+            with your Pasifika friends and colleagues
           </Text>
-        </Section>
-        <List
-          nodes={[
-            {
-              icon: "✅",
-              label: (
-                <>
-                  <strong>... can make it!</strong> A loose headcount will help
-                  us make sure there&rsquo;s enough food and drinks for
-                  everyone. We also plan to send out a calendar invite with more
-                  details as the event approaches.
-                </>
-              ),
-            },
-            {
-              icon: "🌺",
-              label: (
-                <>
-                  <strong>
-                    ... want to send your aloha but will miss this one.
-                  </strong>{" "}
-                  It&rsquo;d be great to figure out your situation so we can
-                  make sure you&rsquo;d be able to join us next time (like, a
-                  weekend potluck at Golden Gate Park, anyone?)
-                </>
-              ),
-            },
-            {
-              icon: "💼",
-              label: (
-                <>
-                  <strong>
-                    ... have a Pasifika-focused group or hui at your work.
-                  </strong>{" "}
-                  Drop us a line—we&rsquo;d love to expand our network and build
-                  pilina with more of our Pacific Islander ʻohana across the
-                  tech industry!
-                </>
-              ),
-            },
-            // {
-            //   icon: "🌺",
-            //   label: (
-            //     <>
-            //       <strong>Want to help support our lei-making workshop.</strong>{" "}
-            //       The day will really be about hanging out and talking story,
-            //       but we&rsquo;d love to have an activity to give everyone
-            //       something fun to do.
-            //     </>
-            //   ),
-            // },
-            {
-              icon: "💡",
-              label: (
-                <>
-                  <strong>
-                    ... have any questions or ideas for this or future events.
-                  </strong>{" "}
-                  The day will really be about hanging out and talking story! If
-                  you have any mānaʻo to share, please feel free to let us know.
-                </>
-              ),
-            },
-          ]}
-        />
-      </Layout>
-      <Layout border={false}>
-        <Text className="mt-0">
-          Can&rsquo;t wait to catch up with everyone, old friends and new, at
-          this casual pau hana. We are hoping to make this a regular thing, so
-          come out and help us kick it off right!
+          <Link href="https://tj8xrxsxqdtxeknk.public.blob.vercel-storage.com/email/pasifika%20flyer-N4j5yIwk22Hb15ESQdYKzHq6LH6K9t.jpg">
+            <Img
+              className="mr-4 inline-block w-1/3 rounded"
+              src="https://tj8xrxsxqdtxeknk.public.blob.vercel-storage.com/email/pasifika%20flyer-N4j5yIwk22Hb15ESQdYKzHq6LH6K9t.jpg"
+            />
+          </Link>
+          <Link href="https://tj8xrxsxqdtxeknk.public.blob.vercel-storage.com/email/pasifika%20postcard-Qqsb3Z578u3UXtzGx05GxFL12L6ZSH.jpg">
+            <Img
+              className="inline-block w-1/3 rounded"
+              src="https://tj8xrxsxqdtxeknk.public.blob.vercel-storage.com/email/pasifika%20postcard-Qqsb3Z578u3UXtzGx05GxFL12L6ZSH.jpg"
+            />
+          </Link>
+          <Text className="mb-0 mt-2 text-xs leading-normal text-stone-500">
+            Feel free to spruce up social posts with either of the full-res
+            graphics made specifically for the event.
+          </Text>
+        </div>
+        <Text>
+          Mahalo to everyone for their kokua and generous support in making this
+          event happen! Stoked to have collaborated with plenty folks including,
+          but not limited to, friends from Amazon&rsquo;s Pasifika Indigenous@,
+          Hawaiians in Tech, Google Pasifika Peoples Collective, and Apple. E
+          paʻi ka lima kākou!
         </Text>
-      </Layout>
-      <Layout border={false}>
         <Text className="m-0">E mālama,</Text>
         <Text className="m-0">Taylor Kekai Ho</Text>
+        <Text className="m-0">Hawaiians in Tech</Text>
       </Layout>
       <Text className="my-0 text-center text-stone-500">
         <Link
