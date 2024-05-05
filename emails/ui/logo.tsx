@@ -8,10 +8,10 @@ export default function Logo({
 }) {
   return (
     <Img
-      src="http://cdn.mcauto-images-production.sendgrid.net/c3cb94bafc1ef987/5ff60b90-4257-4ae9-babb-697d189b2df0/240x231.png"
+      src="https://tj8xrxsxqdtxeknk.public.blob.vercel-storage.com/email/logo-hawaiiansintech-xs-FL3C71uYfwNZ41s5VriRQ2eUq9ClR6.png"
       alt="Hawaiians in Tech"
       className={cn(
-        `mb-8 w-16`,
+        `mb-4 w-20`,
         align === "center" && "mx-auto",
         align === "right" && "ml-auto",
       )}
