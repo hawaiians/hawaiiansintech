@@ -4,7 +4,7 @@ import Base from "./ui/base";
 import Logo from "./ui/logo";
 import Layout from "./ui/layout";
 
-export default function _Newsletter() {
+export default function _Newsletter0524() {
   return (
     <Base
       preview="Our first community event in the Bay Area!"
