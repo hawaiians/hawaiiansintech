@@ -25,7 +25,7 @@ export default function LoginPromptEmail({
         We just received a request to sign in to{" "}
         <Link
           href="https://hawaiiansintech.org/?utm_source=login-link-email-body"
-          className="font-semibold text-inherit underline"
+          className="font-semibold text-inherit"
         >
           Hawaiians in Technology
         </Link>{" "}
