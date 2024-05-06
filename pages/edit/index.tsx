@@ -56,7 +56,7 @@ export default function LoginPage({ baseUrl, pageTitle }) {
         sm:py-8
       `}
       >
-        <LoginForm baseUrl={baseUrl} />
+        <EditForm baseUrl={baseUrl} />
       </section>
     </>
   );
@@ -69,7 +69,7 @@ enum PageState {
   Error = "ERROR",
 }
 
-function LoginForm({ baseUrl }) {
+function EditForm({ baseUrl }) {
   const router = useRouter();
   const [pageState, setPageState] = useState<PageState>(PageState.Loading);
   const [loading, setLoading] = useState<boolean>(false);
@@ -85,7 +85,7 @@ function LoginForm({ baseUrl }) {
     // baseUrl is passed in from getServerSideProps
     // to ensure the correct URL is used in the email
     // verification link.
-    const fullUrl = `${baseUrl}/login`;
+    const fullUrl = `${baseUrl}/edit`;
 
     fetch("/api/verify-email", {
       method: "POST",
@@ -107,7 +107,7 @@ function LoginForm({ baseUrl }) {
       });
   };
 
-  const checkUserExists = async (token: string) => {
+  const handleIdToken = async (token: string) => {
     try {
       const response = await fetch("/api/member-id", {
         method: "GET",
@@ -118,10 +118,12 @@ function LoginForm({ baseUrl }) {
       });
       switch (response.status) {
         case 200:
+          const { memberId } = await response.json();
           router.push({
-            pathname: "/",
-            query: { login: "success" },
+            pathname: `/edit/member/`,
+            query: { memberId },
           });
+          break;
         case 404:
           throw Error(
             "The email you provided is not associated with a Hawaiians in Tech account.",
@@ -158,7 +160,7 @@ function LoginForm({ baseUrl }) {
           } else {
             window.localStorage.removeItem("emailForSignIn");
             user.getIdToken().then((idToken) => {
-              checkUserExists(idToken);
+              handleIdToken(idToken);
             });
           }
         })

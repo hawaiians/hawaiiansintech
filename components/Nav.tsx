@@ -108,7 +108,7 @@ export default function Nav({
           <div className="flex items-center gap-6">
             <Link
               className="text-base font-medium text-stone-700"
-              href={`/login?nav=${NavAppearance.ToMin}`}
+              href={`/edit?nav=${NavAppearance.ToMin}`}
             >
               Update Profile
             </Link>
