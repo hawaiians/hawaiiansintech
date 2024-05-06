@@ -1,22 +1,10 @@
 import { Icon, IconAsset, IconColor } from "@/components/icon/icon";
 import Logo from "@/components/Logo";
-import { Pencil } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { Button, buttonVariants } from "./ui/button";
-import { getAuth } from "firebase/auth";
+import { buttonVariants } from "./ui/button";
 import { useRouter } from "next/router";
-import { useAuthState } from "react-firebase-hooks/auth";
-import { auth, signOutWithGoogle } from "../lib/firebase";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
 
 export enum NavAppearance {
   ToShow = "to-show",
