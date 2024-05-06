@@ -189,14 +189,14 @@ function RequestForm({ baseUrl }) {
 
               return (
                 <form
-                  className="flex w-full flex-col items-center gap-4 sm:rounded-lg sm:border sm:p-4"
+                  className="flex w-full flex-col items-center gap-6 sm:rounded-lg sm:border sm:p-4"
                   onSubmit={handleSubmit}
                 >
                   <header className="flex flex-col items-center gap-2">
                     <Logo />
-                    <h2 className="text-2xl">Welcome back</h2>
+                    <h2 className="text-2xl">Log in with email</h2>
                     <p className="text-secondary-foreground">
-                      Sign in using your email address
+                      Access your profile to update your information
                     </p>
                   </header>
                   <section className="flex w-full flex-col gap-2">
@@ -213,7 +213,7 @@ function RequestForm({ baseUrl }) {
                       type="submit"
                       disabled={!isValid || !dirty}
                     >
-                      Continue with email
+                      Log in
                     </Button>
                   </section>
                 </form>

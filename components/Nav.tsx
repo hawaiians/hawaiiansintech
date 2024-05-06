@@ -112,17 +112,15 @@ export default function Nav({
       {variant === "primary" && (
         <>
           {user === null && !loading && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-6">
               <Link
-                className={cn(
-                  buttonVariants({ size: "lg", variant: "secondary" }),
-                )}
+                className="text-base font-medium text-stone-700"
                 href={`/edit?nav=${NavAppearance.ToFade}`}
               >
-                Manage Profile
+                Log In
               </Link>
               <Link
-                className={cn(buttonVariants({ size: "lg" }))}
+                className={cn(buttonVariants({ size: "sm" }), "px-4")}
                 href={`/join/01-you?nav=${NavAppearance.ToMin}`}
               >
                 Join Us
