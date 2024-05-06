@@ -12,6 +12,8 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import LoadingSpinner, {
   LoadingSpinnerVariant,
 } from "@/components/LoadingSpinner";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { ShieldAlert } from "lucide-react";
 export async function getStaticProps() {
   return {
     props: {
@@ -37,11 +39,12 @@ export default function EditMemberPage({ pageTitle }) {
 
 function EditMember() {
   const [user] = useAuthState(auth);
+  const [error, setError] = useState<string>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
   const memberId = router.query.memberId as string;
   const [member, setMember] = useState<MemberPublic>(null);
-  // const [members, setMembers] = useState<MemberPublic[]>([]); {/* this isn't used anywhere */}
+  // const [members, setMembers] = useState<MemberPublic[]>([]); {/* TODO this isn't used anywhere */}
   const [regions, setRegions] = useState<DocumentData[]>([]);
 
   const getUser = async () => {
@@ -56,17 +59,25 @@ function EditMember() {
         })
           .then((res) => res.json())
           .then((data) => {
-            setMember(data.members.find((m) => m.id === memberId));
-            // setMembers(data.members);  {/* this isn't used anywhere */}
+            const member = data.members.find((m) => m.id === memberId);
+            if (!member) {
+              throw new Error(
+                `Something went wrong while fetching ${memberId}`,
+              );
+            }
+            setMember(member);
+            // setMembers(data.members);  {/* TODO this isn't used anywhere */}
             setRegions(data.regions);
             setLoading(false);
           })
           .catch((err) => {
-            console.error(err);
+            setError(err.message);
+            setLoading(false);
           });
       });
     } catch (error) {
-      console.error(error);
+      setError(error);
+      setLoading(false);
     }
   };
 
@@ -89,6 +100,13 @@ function EditMember() {
         px-4
       `}
     >
+      {error && (
+        <Alert variant="destructive">
+          <ShieldAlert />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
       {loading && <LoadingSpinner variant={LoadingSpinnerVariant.Invert} />}
       {member && regions && auth.currentUser && (
         // TODO Pretty sure selecting filters is failing
