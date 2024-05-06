@@ -35,7 +35,6 @@ export default function Nav({
   children,
   variant = "primary",
 }: NavProps) {
-  const [user, loading, error] = useAuthState(auth);
   const router = useRouter();
   const { nav } = router.query;
 
@@ -106,69 +105,20 @@ export default function Nav({
       ) : null}
       {variant === "primary" && (
         <>
-          {user === null && !loading && (
-            <div className="flex items-center gap-6">
-              <Link
-                className="text-base font-medium text-stone-700"
-                href={`/login?nav=${NavAppearance.ToMin}`}
-              >
-                Log In
-              </Link>
-              <Link
-                className={cn(buttonVariants({ size: "sm" }), "px-4")}
-                href={`/join/01-you?nav=${NavAppearance.ToMin}`}
-              >
-                Join Us
-              </Link>
-            </div>
-          )}
-
-          {user !== null && !loading && (
-            <div className="flex items-center gap-4">
-              <Button
-                size="sm"
-                variant="outline"
-                className="flex items-center gap-1.5"
-              >
-                <Pencil className="h-4 w-4" />
-                <span>Edit Profile</span>
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger className="rounded-full">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-violet-700 to-cyan-600 text-lg text-white">
-                    {user?.displayName ? user?.displayName.charAt(0) : "🤙🏽"}
-                  </div>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent side="bottom" align="end">
-                  <DropdownMenuLabel className="w-48">
-                    <h4 className="text-xs font-normal tracking-wide text-secondary-foreground">
-                      {user?.email}
-                    </h4>
-                  </DropdownMenuLabel>
-                  <DropdownMenuItem
-                    onClick={() => router.push("/privacy-policy")}
-                    className="flex-col items-start gap-0.5 border border-violet-700/20 bg-gradient-to-br from-violet-700/10 to-cyan-600/10 hover:border-cyan-600/20 hover:bg-cyan-600/20"
-                  >
-                    <h4 className="w-full text-xs font-medium text-secondary-foreground">
-                      You are currently active on the directory.
-                    </h4>
-                    <span className="text-xs font-semibold tracking-wide text-violet-700">
-                      Edit your Profile
-                    </span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => router.push("/privacy-policy")}
-                  >
-                    Privacy Policy
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={signOutWithGoogle}>
-                    Log out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          )}
+          <div className="flex items-center gap-6">
+            <Link
+              className="text-base font-medium text-stone-700"
+              href={`/login?nav=${NavAppearance.ToMin}`}
+            >
+              Update Profile
+            </Link>
+            <Link
+              className={cn(buttonVariants({ size: "sm" }), "px-4")}
+              href={`/join/01-you?nav=${NavAppearance.ToMin}`}
+            >
+              Join Us
+            </Link>
+          </div>
         </>
       )}
     </header>
