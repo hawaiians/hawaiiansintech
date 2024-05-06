@@ -47,11 +47,6 @@ export default function Nav({
 
   let logo = <Logo />;
 
-  if (user !== null && !loading) {
-    // const { displayName, email, emailVerified, metadata } = user;
-    console.log(user);
-  }
-
   if (backLinkTo) {
     logo = (
       <>
@@ -115,7 +110,7 @@ export default function Nav({
             <div className="flex items-center gap-6">
               <Link
                 className="text-base font-medium text-stone-700"
-                href={`/login?nav=${NavAppearance.ToFade}`}
+                href={`/login?nav=${NavAppearance.ToMin}`}
               >
                 Log In
               </Link>
@@ -139,10 +134,10 @@ export default function Nav({
                 <span>Edit Profile</span>
               </Button>
               <DropdownMenu>
-                <DropdownMenuTrigger>
-                  <button className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-violet-700 to-cyan-600 text-lg text-white">
+                <DropdownMenuTrigger className="rounded-full">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-violet-700 to-cyan-600 text-lg text-white">
                     {user?.displayName ? user?.displayName.charAt(0) : "🤙🏽"}
-                  </button>
+                  </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="bottom" align="end">
                   <DropdownMenuLabel className="w-48">
