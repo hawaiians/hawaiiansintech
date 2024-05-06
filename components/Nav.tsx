@@ -115,7 +115,7 @@ export default function Nav({
             <div className="flex items-center gap-6">
               <Link
                 className="text-base font-medium text-stone-700"
-                href={`/edit?nav=${NavAppearance.ToFade}`}
+                href={`/login?nav=${NavAppearance.ToFade}`}
               >
                 Log In
               </Link>
