@@ -12,8 +12,8 @@ export default function LoginPromptEmail({
 }) {
   return (
     <Base
-      preview={`New Member Submission from ${promptLink}`}
-      title={`New Member Submission from ${promptLink}`}
+      preview={`Log in requested for your email`}
+      title={`Log in requested for your email`}
       align="center"
     >
       <Text className="text-center text-3xl">
