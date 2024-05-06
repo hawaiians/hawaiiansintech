@@ -9,10 +9,6 @@ import Head from "next/head";
 import React, { useEffect, useState } from "react";
 import { getMembers } from "@/lib/firebase-helpers/members";
 import { getFilters, getFiltersBasic } from "@/lib/firebase-helpers/filters";
-import { useRouter } from "next/router";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, UserRoundCheck } from "lucide-react";
-import { motion } from "framer-motion";
 
 export async function getStaticProps() {
   const { members, focuses, industries, regions } = await getMembers();
@@ -44,11 +40,6 @@ export async function getStaticProps() {
   };
 }
 
-const alertVariants = {
-  hidden: { opacity: 0, translateY: -10 },
-  show: { opacity: 1, translateY: 0 },
-};
-
 export default function HomePage({
   fetchedMembers,
   fetchedFocuses,
@@ -75,10 +66,6 @@ export default function HomePage({
     experiences: fetchedExperiences,
     regions: fetchedRegions.filter((region) => region.count > 0),
   };
-
-  const router = useRouter();
-  const { query } = router;
-
   const [members, setMembers] = useState<DirectoryMember[]>(
     initialState.members,
   );
@@ -228,16 +215,6 @@ export default function HomePage({
     setFiltersList(filterMap[filterType]);
   };
 
-  useEffect(() => {
-    let timeout: NodeJS.Timeout;
-    if (query?.login === "success") {
-      timeout = setTimeout(() => {
-        router.replace("/", undefined, { shallow: true });
-      }, 3000);
-    }
-    return () => clearTimeout(timeout);
-  }, [query]);
-
   return (
     <>
       <Head>
@@ -246,28 +223,11 @@ export default function HomePage({
         <title>{pageTitle}</title>
       </Head>
       <Nav />
-
-      <div className="relative">
-        <motion.div
-          className="absolute left-0 top-0 h-full w-full px-4 lg:px-8"
-          variants={alertVariants}
-          initial="hidden"
-          animate={query.login === "success" ? "show" : "hidden"}
-          transition={{ duration: 0.25 }}
-        >
-          <Alert variant="success">
-            <UserRoundCheck />
-            <AlertTitle>Success</AlertTitle>
-            <AlertDescription>You are now logged in</AlertDescription>
-          </Alert>
-        </motion.div>
-      </div>
-
       <div
         className={`
-        px-4
-        pt-[26vh]
-        lg:px-8
+          px-4
+          pt-[26vh]
+          lg:px-8
         `}
       >
         <Title text="Hawaiians*in&nbsp;Technology" />
