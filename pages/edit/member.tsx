@@ -9,6 +9,9 @@ import { useEffect, useState } from "react";
 import { MemberEdit } from "@/components/MemberEdit";
 import { auth } from "@/lib/firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
+import LoadingSpinner, {
+  LoadingSpinnerVariant,
+} from "@/components/LoadingSpinner";
 export async function getStaticProps() {
   return {
     props: {
@@ -34,6 +37,7 @@ export default function EditMemberPage({ pageTitle }) {
 
 function EditMember() {
   const [user] = useAuthState(auth);
+  const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
   const memberId = router.query.memberId as string;
   const [member, setMember] = useState<MemberPublic>(null);
@@ -55,6 +59,7 @@ function EditMember() {
             setMember(data.members.find((m) => m.id === memberId));
             // setMembers(data.members);  {/* this isn't used anywhere */}
             setRegions(data.regions);
+            setLoading(false);
           })
           .catch((err) => {
             console.error(err);
@@ -84,7 +89,9 @@ function EditMember() {
         px-4
       `}
     >
+      {loading && <LoadingSpinner variant={LoadingSpinnerVariant.Invert} />}
       {member && regions && auth.currentUser && (
+        // TODO Pretty sure selecting filters is failing
         <MemberEdit
           member={member}
           regions={regions}
