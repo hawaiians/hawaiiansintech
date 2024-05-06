@@ -32,7 +32,7 @@ export async function getServerSideProps(context) {
   };
 }
 
-export default function LoginPage({ baseUrl, pageTitle }) {
+export default function EditPage({ baseUrl, pageTitle }) {
   return (
     <>
       <Head>
