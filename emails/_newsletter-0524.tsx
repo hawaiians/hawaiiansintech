@@ -119,7 +119,7 @@ export default function _Newsletter0524({
           </Text>
         </div>
         <Text>
-          Mahalo to everyone for their kokua and generous support in making this
+          Mahalo to everyone for their kōkua and generous support in making this
           event happen! Stoked to have collaborated with plenty folks including,
           but not limited to, friends from Amazon&rsquo;s Pasifika Indigenous@,
           Hawaiians in Tech, Google Pasifika Peoples Collective, and Apple. E

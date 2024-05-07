@@ -24,6 +24,8 @@ import { FC, useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { signInWithGoogle, signOutWithGoogle } from "../../lib/firebase";
 import { ADMIN_EMAILS } from "@/lib/email/utils";
+import _Newsletter0524 from "@/emails/_newsletter-0524";
+import { sendNewsletter0524 } from "@/emails/send_newsletter-0524";
 
 export async function getStaticProps() {
   return {
@@ -244,6 +246,10 @@ const EmailList: FC<{
       console.log(
         `sending email to ${email.email} with unsublink ${unsubLink}`,
       );
+      sendNewsletter0524({
+        email: email.email,
+        unsubscribeUrl: unsubLink,
+      });
     });
   };
 
@@ -357,7 +363,7 @@ const EmailList: FC<{
                 >
                   Select All
                 </Button>
-                <Button
+                {/* <Button
                   size={ButtonSize.XSmall}
                   variant={ButtonVariant.Secondary}
                   onClick={() => {
@@ -367,7 +373,7 @@ const EmailList: FC<{
                   }}
                 >
                   Select Subscribed
-                </Button>
+                </Button> */}
                 <Button
                   size={ButtonSize.XSmall}
                   variant={ButtonVariant.Secondary}
@@ -376,22 +382,19 @@ const EmailList: FC<{
                       [...emails].filter(
                         (em) =>
                           !em?.unsubscribed &&
-                          em?.status === StatusEnum.APPROVED,
+                          (em?.status === StatusEnum.APPROVED ||
+                            em?.status === StatusEnum.IN_PROGRESS),
                       ),
                     );
                   }}
                 >
-                  Select Approved Members
+                  Select Subscribed, Approved, & In Progress
                 </Button>
                 <Button
                   size={ButtonSize.XSmall}
                   variant={ButtonVariant.Secondary}
                   onClick={() => {
-                    const emailList = [
-                      "howzit@tellaho.com",
-                      "ataeoalii@gmail.com",
-                      "eparubrub@dons.usfca.edu",
-                    ];
+                    const emailList = [];
                     setSelectedEmails(
                       [...emails].filter((em) => emailList.includes(em?.email)),
                     );
@@ -435,7 +438,6 @@ const EmailList: FC<{
                   }}
                   size={ButtonSize.XSmall}
                   variant={ButtonVariant.Primary}
-                  disabled={true}
                 >
                   {`Send Emails to Selected (${selectedEmails.length})`}
                 </Button>
