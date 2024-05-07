@@ -1,10 +1,14 @@
-import { Text, Link, Hr, Img } from "@react-email/components";
+import { Text, Link, Img, Container } from "@react-email/components";
 import * as React from "react";
 import Base from "./ui/base";
 import Logo from "./ui/logo";
 import Layout from "./ui/layout";
 
-export default function _Newsletter0524() {
+export default function _Newsletter0524({
+  unsubscribeUrl,
+}: {
+  unsubscribeUrl: string;
+}) {
   return (
     <Base
       preview="Join our first community event in the Bay Area!"
@@ -125,21 +129,25 @@ export default function _Newsletter0524() {
         <Text className="m-0">Taylor Kekai Ho</Text>
         <Text className="m-0">Hawaiians in Tech</Text>
       </Layout>
-      <Text className="my-0 text-center text-stone-500">
+      <Container className="my-4 text-center text-stone-500">
+        <Link href={`${unsubscribeUrl}`} className="text-xs text-inherit">
+          Unsubscribe
+        </Link>
+        <span className="mx-2">·</span>
         <Link
           href="https://hawaiiansintech.org/about?utm_source=confirmation-email-footer"
           className="text-xs text-inherit"
         >
           About
         </Link>
-        <span className="mx-1">·</span>
+        <span className="mx-2">·</span>
         <Link
           href="https://hawaiiansintech.org/privacy-policy?utm_source=confirmation-email-footer"
           className="text-xs text-inherit"
         >
           Privacy Policy
         </Link>
-      </Text>
+      </Container>
     </Base>
   );
 }
