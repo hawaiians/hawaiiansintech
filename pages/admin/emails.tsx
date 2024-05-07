@@ -24,8 +24,6 @@ import { FC, useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { signInWithGoogle, signOutWithGoogle } from "../../lib/firebase";
 import { ADMIN_EMAILS } from "@/lib/email/utils";
-import _Newsletter0524 from "@/emails/_newsletter-0524";
-import { sendNewsletter0524 } from "@/emails/send_newsletter-0524";
 
 export async function getStaticProps() {
   return {
@@ -229,7 +227,7 @@ const EmailList: FC<{
     return false;
   };
 
-  const handleSendEmails = (emailList: MemberEmail[]) => {
+  const handleSendEmails = async (emailList: MemberEmail[]) => {
     if (emailList.length === 0) {
       console.error("No emails to send to");
       setError({
@@ -241,16 +239,28 @@ const EmailList: FC<{
     if (emailsHaveIssues(emailList)) {
       return;
     }
-    emailList.map((email) => {
-      const unsubLink = `${baseUrl}/edit/unsubscribe?uid=${email?.id}&unsubKey=${email?.unsubKey}`;
-      console.log(
-        `sending email to ${email.email} with unsublink ${unsubLink}`,
-      );
-      sendNewsletter0524({
-        email: email.email,
-        unsubscribeUrl: unsubLink,
-      });
-    });
+    await Promise.all(
+      emailList.map(async (email) => {
+        try {
+          const unsubLink = `${baseUrl}/edit/unsubscribe?uid=${email?.id}&unsubKey=${email?.unsubKey}`;
+          console.log(
+            `sending email to ${email.email} with unsublink ${unsubLink}`,
+          );
+          fetch("/api/newsletter", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: email.email,
+              unsubscribeUrl: unsubLink,
+            }),
+          });
+        } catch {
+          console.error("Failed to send email for: ", email.email);
+        }
+      }),
+    );
   };
 
   const handleGenerateUnsubKeys = async (emailList: MemberEmail[]) => {
@@ -394,9 +404,11 @@ const EmailList: FC<{
                   size={ButtonSize.XSmall}
                   variant={ButtonVariant.Secondary}
                   onClick={() => {
-                    const emailList = [];
+                    // const emailList = [];
                     setSelectedEmails(
-                      [...emails].filter((em) => emailList.includes(em?.email)),
+                      [...emails].filter((em) =>
+                        ADMIN_EMAILS.includes(em?.email),
+                      ),
                     );
                   }}
                 >
