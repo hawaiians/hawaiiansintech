@@ -1,18 +1,7 @@
-import { cn } from "@/lib/utils";
-
-export default function Code({
-  children,
-  noWrap,
-}: {
-  children: React.ReactNode;
-  noWrap?: boolean;
-}) {
+export default function Code({ children }) {
   return (
     <code
-      className={cn(
-        `rounded-md bg-tan-300 px-1.5 py-1 text-sm text-stone-600`,
-        noWrap && `whitespace-nowrap`,
-      )}
+      className={`whitespace-nowrap rounded-md bg-tan-300 px-1.5 py-1 text-sm text-stone-600`}
     >
       {children}
     </code>

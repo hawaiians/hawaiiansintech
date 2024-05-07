@@ -4,7 +4,7 @@ import Base from "./ui/base";
 import Logo from "./ui/logo";
 import Layout from "./ui/layout";
 
-export default function _Newsletter0524({
+export default function Newsletter0524({
   unsubscribeUrl,
 }: {
   unsubscribeUrl: string;
@@ -147,6 +147,11 @@ export default function _Newsletter0524({
         >
           Privacy Policy
         </Link>
+        <Text>
+          200 N Vineyard Blvd A325 - 5374
+          <br />
+          Honolulu, HI 96817
+        </Text>
       </Container>
     </Base>
   );

@@ -1,6 +1,6 @@
 import SendGrid from "@sendgrid/mail";
 import { render } from "@react-email/components";
-import _Newsletter0524 from "./_newsletter-0524";
+import Newsletter0524 from "./newsletter-0524";
 import { REPLY_EMAIL } from "@/lib/email/utils";
 SendGrid.setApiKey(process.env.SENDGRID_API_KEY);
 
@@ -24,7 +24,7 @@ export async function sendNewsletter0524({
       },
       to: email,
       subject: `🌺 Huuui! Hawaiian in Tech May Newsletter`,
-      html: render(<_Newsletter0524 unsubscribeUrl={unsubscribeUrl} />),
+      html: render(<Newsletter0524 unsubscribeUrl={unsubscribeUrl} />),
     });
   } catch (error) {
     console.error(`Error sending confirmation email to ${email}`, error);
