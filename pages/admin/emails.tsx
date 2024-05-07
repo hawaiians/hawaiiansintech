@@ -74,6 +74,20 @@ export default function EmailsPage(props: { pageTitle }) {
     return unsubLink;
   };
 
+  const sendNewsletter = async (email: string, unsubscribeUrl: string) => {
+    fetch("/api/newsletter", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${await user.getIdToken()}`,
+      },
+      body: JSON.stringify({
+        email: email,
+        unsubscribeUrl: unsubscribeUrl,
+      }),
+    });
+  };
+
   useEffect(() => {
     if (!isAdminLoading && !isAdmin) router.push(`/admin`);
   }, [isAdmin, isAdminLoading, router]);
@@ -109,7 +123,11 @@ export default function EmailsPage(props: { pageTitle }) {
           {isAdmin && (
             <div className="mx-auto">
               {emails ? (
-                <EmailList emails={emails} fetchUnsubKey={fetchUnsubKey} />
+                <EmailList
+                  emails={emails}
+                  fetchUnsubKey={fetchUnsubKey}
+                  sendNewsletter={sendNewsletter}
+                />
               ) : (
                 <strong>Authorized, but emails did not load.</strong>
               )}
@@ -129,7 +147,8 @@ enum EmailDirectoryFilter {
 const EmailList: FC<{
   emails: MemberEmail[];
   fetchUnsubKey: (uid: string) => Promise<void>;
-}> = ({ emails, fetchUnsubKey }) => {
+  sendNewsletter: (email: string, unsubscribeUrl: string) => Promise<void>;
+}> = ({ emails, fetchUnsubKey, sendNewsletter }) => {
   const baseUrl = window.location.origin;
   const [error, setError] = useState<ErrorMessageProps>(null);
   const [showCopiedNotification, setShowCopiedNotification] =
@@ -246,16 +265,7 @@ const EmailList: FC<{
           console.log(
             `sending email to ${email.email} with unsublink ${unsubLink}`,
           );
-          fetch("/api/newsletter", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email: email.email,
-              unsubscribeUrl: unsubLink,
-            }),
-          });
+          sendNewsletter(email.email, unsubLink);
         } catch {
           console.error("Failed to send email for: ", email.email);
         }
