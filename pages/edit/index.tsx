@@ -321,7 +321,7 @@ function TryAgain({ onReset }: { onReset: () => void }) {
     <div>
       <div className="my-4">
         <Button size="sm" onClick={onReset}>
-          Try Again
+          Try Logging In Again
         </Button>
       </div>
       <p className="text-xs text-stone-500">
