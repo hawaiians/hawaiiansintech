@@ -25,7 +25,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { DialogClose } from "@radix-ui/react-dialog";
 
@@ -81,14 +80,11 @@ enum PageState {
 function EditForm({ baseUrl }) {
   const router = useRouter();
   const [pageState, setPageState] = useState<PageState>(PageState.Loading);
-  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>(null);
   const [showEmailConfirmation, setShowEmailConfirmation] =
     useState<boolean>(false);
-  const [storedEmail, setStoredEmail] = useState<string>(null);
 
   const handleSignIn = (email: string) => {
-    setLoading(true);
     // baseUrl is passed in from getServerSideProps
     // to ensure the correct URL is used in the email
     // verification link.
@@ -109,8 +105,8 @@ function EditForm({ baseUrl }) {
         setPageState(PageState.EmailSent);
       })
       .catch((error) => {
-        // Handle the error here
-        console.error("An error occurred:", error);
+        setPageState(PageState.Error);
+        setError(error.message);
       });
   };
 
@@ -165,30 +161,34 @@ function EditForm({ baseUrl }) {
 
         if (error.code === "auth/invalid-action-code") {
           setError("The link is invalid or expired.");
+        } else if (error.code === "auth/invalid-email") {
+          setError("That email didn't match the one you initially entered.");
         } else {
           setError(error.message);
         }
       });
   };
 
-  const handleCancel = () => {
+  const handleReset = () => {
     setShowEmailConfirmation(false);
+    setError(null);
     setPageState(PageState.NotLoggedIn);
   };
 
   useEffect(() => {
     const email = window.localStorage.getItem("emailForSignIn") ?? null;
 
-    if (isSignInWithEmailLink(auth, window.location.href)) {
-      setPageState(PageState.Loading);
-      if (!email) {
-        setShowEmailConfirmation(true);
-      } else {
-        handleConfirm(email);
-      }
-    } else {
-      setPageState(PageState.NotLoggedIn);
+    if (!isSignInWithEmailLink(auth, window.location.href)) {
+      handleReset();
+      return;
     }
+
+    if (!email) {
+      setShowEmailConfirmation(true);
+      return;
+    }
+
+    handleConfirm(email);
   }, []);
 
   return (
@@ -201,35 +201,29 @@ function EditForm({ baseUrl }) {
         </Alert>
       )}
       {showEmailConfirmation && (
-        <EmailConfirmation onConfirm={handleConfirm} onCancel={handleCancel} />
+        <EmailConfirmation onConfirm={handleConfirm} onCancel={handleReset} />
       )}
-      {pageState === PageState.NotLoggedIn ? (
-        <LogInForm handleSignIn={handleSignIn} loading={loading} />
-      ) : pageState === PageState.EmailSent ? (
-        <SentConfirmation />
-      ) : pageState === PageState.Loading ? (
+      {pageState === PageState.Loading ? (
         <div className="flex w-full justify-center">
           <LoadingSpinner variant={LoadingSpinnerVariant.Invert} />
         </div>
-      ) : pageState === PageState.Error ? (
-        <TryAgain
-          backToLogin={() => {
-            setPageState(PageState.NotLoggedIn);
-            setError(null);
-          }}
-        />
-      ) : null}
+      ) : pageState === PageState.NotLoggedIn ? (
+        <LogInForm handleSignIn={handleSignIn} />
+      ) : pageState === PageState.EmailSent ? (
+        <EmailSent />
+      ) : (
+        <TryAgain onReset={handleReset} />
+      )}
     </>
   );
 }
 
 function LogInForm({
   handleSignIn,
-  loading,
 }: {
   handleSignIn: (email: string) => void;
-  loading: boolean;
 }) {
+  const [loading, setLoading] = useState<boolean>(false);
   return (
     <>
       <Formik
@@ -237,7 +231,10 @@ function LogInForm({
           email: "",
         }}
         validateOnChange
-        onSubmit={(values) => handleSignIn(values.email)}
+        onSubmit={(values) => {
+          setLoading(true);
+          handleSignIn(values.email);
+        }}
         validationSchema={Yup.object().shape({
           email: Yup.string().email(
             "That email doesn't look right. Please try again.",
@@ -303,7 +300,7 @@ function LogInForm({
   );
 }
 
-function SentConfirmation() {
+function EmailSent() {
   return (
     <header className="space-y-2 text-center">
       <h2 className="text-2xl">Please check your inbox</h2>
@@ -319,11 +316,11 @@ function SentConfirmation() {
   );
 }
 
-function TryAgain({ backToLogin }: { backToLogin: () => void }) {
+function TryAgain({ onReset }: { onReset: () => void }) {
   return (
     <div>
       <div className="my-4">
-        <Button size="sm" onClick={backToLogin}>
+        <Button size="sm" onClick={onReset}>
           Try Again
         </Button>
       </div>
@@ -345,29 +342,63 @@ function EmailConfirmation({
   onConfirm: (email: string) => void;
   onCancel: () => void;
 }) {
-  const [email, setEmail] = useState<string>("");
   return (
     <Dialog open onOpenChange={onCancel}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Please confirm your email</DialogTitle>
+          <DialogTitle>New browser detected</DialogTitle>
           <DialogDescription>
             You opened the sign-in link in a different window or device. For
-            security reasons, please re-enter your email.
+            security reasons, please re-enter the email you gave us earlier.
           </DialogDescription>
-          <Input
-            autoFocus
-            onChange={(e) => setEmail(e.target.value)}
-            value={email}
-          />
         </DialogHeader>
-        <DialogFooter className="sm:justify-start">
-          <DialogClose asChild>
-            <Button type="button" variant="secondary">
-              Close
-            </Button>
-          </DialogClose>
-        </DialogFooter>
+        <Formik
+          initialValues={{
+            email: "",
+          }}
+          validateOnChange
+          onSubmit={(values) => onConfirm(values.email)}
+          validationSchema={Yup.object().shape({
+            email: Yup.string().email(
+              "That email doesn't look right. Please try again.",
+            ),
+          })}
+        >
+          {(props) => {
+            const {
+              dirty,
+              handleBlur,
+              handleChange,
+              handleSubmit,
+              isValid,
+              values,
+            } = props;
+
+            return (
+              <form onSubmit={handleSubmit}>
+                <Input
+                  id="email"
+                  name="email"
+                  onBlur={handleBlur}
+                  value={values.email}
+                  onChange={handleChange}
+                  placeholder="Enter your email address"
+                  autoFocus
+                />
+                <DialogFooter className="mt-4 sm:justify-start">
+                  <Button type="submit" disabled={!isValid || !dirty}>
+                    Confirm
+                  </Button>
+                  <DialogClose asChild>
+                    <Button type="button" variant="secondary">
+                      Cancel
+                    </Button>
+                  </DialogClose>
+                </DialogFooter>
+              </form>
+            );
+          }}
+        </Formik>
       </DialogContent>
     </Dialog>
   );
