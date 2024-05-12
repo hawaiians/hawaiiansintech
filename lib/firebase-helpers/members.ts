@@ -53,7 +53,7 @@ export async function getMembers(token?: string): Promise<{
   if (token) {
     isAdmin = await verifyAdminToken(token, false);
     if (!isAdmin) {
-      console.warn("Token provided is not authorized");
+      console.warn("Token provided is not admin. Continuing.");
     }
     userEmail = await verifyEmailAuthToken(token);
     userId = await getIdByEmail(userEmail);
