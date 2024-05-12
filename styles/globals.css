@@ -25,6 +25,8 @@
     --input: 28 20% 70%;
     --ring: 28 83% 44%;
     --radius: 0.5rem;
+    --success: 161 28% 87%;
+    --success-foreground: 161 94% 30%;
   }
 
   .dark {

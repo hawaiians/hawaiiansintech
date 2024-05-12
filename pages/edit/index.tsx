@@ -1,18 +1,10 @@
-import Button from "@/components/Button";
-import { Heading, Subheading } from "@/components/Heading";
+import * as Yup from "yup";
 import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
 import Plausible from "@/components/Plausible";
-import Input from "@/components/form/Input";
-import Label from "@/components/form/Label";
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import {
-  getAuth,
-  isSignInWithEmailLink,
-  sendSignInLinkToEmail,
-  signInWithEmailLink,
-} from "firebase/auth";
+import { isSignInWithEmailLink, signInWithEmailLink } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import Code from "@/components/Code";
 import { useRouter } from "next/router";
@@ -20,6 +12,21 @@ import LoadingSpinner, {
   LoadingSpinnerVariant,
 } from "@/components/LoadingSpinner";
 import Link from "next/link";
+import { Formik } from "formik";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { DISCORD_URL } from "../about";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ShieldAlert } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { DialogClose } from "@radix-ui/react-dialog";
 
 export async function getServerSideProps(context) {
   const { req } = context;
@@ -42,9 +49,23 @@ export default function EditPage({ baseUrl, pageTitle }) {
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav backUrl="/" />
-      <Heading>Welcome back, Hawaiian.</Heading>
-      <RequestForm baseUrl={baseUrl} />
+      <Nav backLinkTo="/" variant="minimized" />
+      <section
+        className={`
+        mx-auto
+        mb-4
+        mt-8
+        flex
+        max-w-lg
+        flex-col
+        px-4
+        sm:rounded-lg
+        sm:border
+        sm:p-4
+      `}
+      >
+        <EditForm baseUrl={baseUrl} />
+      </section>
     </>
   );
 }
@@ -56,19 +77,19 @@ enum PageState {
   Error = "ERROR",
 }
 
-function RequestForm({ baseUrl }) {
+function EditForm({ baseUrl }) {
   const router = useRouter();
-  const [email, setEmail] = useState<string>("");
-  const [pageState, setPageState] = useState<PageState>(PageState.NotLoggedIn);
-  const [errorReason, setErrorReason] = useState<string>("");
-  const [errorBackup, setErrorBackup] = useState<string>("");
+  const [pageState, setPageState] = useState<PageState>(PageState.Loading);
+  const [error, setError] = useState<string>(null);
+  const [showEmailConfirmation, setShowEmailConfirmation] =
+    useState<boolean>(false);
 
-  const backToLogin = () => {
-    setPageState(PageState.NotLoggedIn);
-  };
-
-  const handleSignIn = () => {
+  const handleSignIn = (email: string) => {
+    // baseUrl is passed in from getServerSideProps
+    // to ensure the correct URL is used in the email
+    // verification link.
     const fullUrl = `${baseUrl}/edit`;
+
     fetch("/api/verify-email", {
       method: "POST",
       headers: {
@@ -84,151 +105,301 @@ function RequestForm({ baseUrl }) {
         setPageState(PageState.EmailSent);
       })
       .catch((error) => {
-        // Handle the error here
-        console.error("An error occurred:", error);
+        setPageState(PageState.Error);
+        setError(error.message);
       });
   };
 
-  const fetchMemberMapping = async (token: string) => {
-    const response = await fetch("/api/member-id", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    if (!response.ok) {
-      if (response.status === 404) {
-        setErrorReason("we don't have this email with any current members.");
-        setErrorBackup("Can't remember which email you used?");
+  const handleIdToken = async (token: string) => {
+    try {
+      const response = await fetch("/api/member-id", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      switch (response.status) {
+        case 200:
+          const { memberId } = await response.json();
+          router.push({
+            pathname: `/edit/member/`,
+            query: { memberId },
+          });
+          break;
+        case 404:
+          throw Error(
+            "The email you provided is not associated with a Hawaiians in Tech account.",
+          );
+        default:
+          throw Error("Something went wrong");
       }
+    } catch (error) {
       setPageState(PageState.Error);
+      setError(error.message);
     }
-    const data = await response.json();
-    const memberId = data.memberId;
-    router.push({
-      pathname: `/edit/member/`,
-      query: { memberId },
-    });
+  };
+
+  const handleConfirm = (email: string) => {
+    if (showEmailConfirmation) {
+      setShowEmailConfirmation(false);
+    }
+    signInWithEmailLink(auth, email, window.location.href)
+      .then((result) => {
+        const { user } = result;
+        if (user.email !== email) {
+          throw Error("Something was wrong with the information you provided.");
+        } else {
+          window.localStorage.removeItem("emailForSignIn");
+          user.getIdToken().then((idToken) => {
+            handleIdToken(idToken);
+          });
+        }
+      })
+      .catch((error) => {
+        setPageState(PageState.Error);
+
+        if (error.code === "auth/invalid-action-code") {
+          setError("The link is invalid or expired.");
+        } else if (error.code === "auth/invalid-email") {
+          setError("That email didn't match the one you initially entered.");
+        } else {
+          setError(error.message);
+        }
+      });
+  };
+
+  const handleReset = () => {
+    setShowEmailConfirmation(false);
+    setError(null);
+    setPageState(PageState.NotLoggedIn);
   };
 
   useEffect(() => {
-    if (isSignInWithEmailLink(auth, window.location.href)) {
-      setPageState(PageState.Loading);
-      let email = window.localStorage.getItem("emailForSignIn");
-      if (!email) {
-        // User opened the link on a different device. To prevent session fixation
-        // attacks, ask the user to provide the associated email again:
-        email = window.prompt(
-          "Looks like you've opened the sign-in link in a different " +
-            "window or device. For security reasons, please enter your " +
-            "email again for confirmation.",
-        );
-        window.localStorage.setItem("emailForSignIn", email);
-      }
-      signInWithEmailLink(auth, email, window.location.href)
-        .then((result) => {
-          if (result.user.email !== email) {
-            setErrorReason("the email you signed in with doesn't match.");
-            setPageState(PageState.Error);
-          } else {
-            window.localStorage.removeItem("emailForSignIn");
-            result.user.getIdToken().then((idToken) => {
-              fetchMemberMapping(idToken);
-            });
-          }
-        })
-        .catch((error) => {
-          if (error.code === "auth/invalid-action-code") {
-            setErrorReason("the link is invalid or expired.");
-          }
-          setPageState(PageState.Error);
-        });
+    const email = window.localStorage.getItem("emailForSignIn") ?? null;
+
+    if (!isSignInWithEmailLink(auth, window.location.href)) {
+      handleReset();
+      return;
     }
+
+    if (!email) {
+      setShowEmailConfirmation(true);
+      return;
+    }
+
+    handleConfirm(email);
   }, []);
 
   return (
-    <div
-      className={`
-        mx-auto
-        mb-4
-        mt-8
-        flex
-        max-w-3xl
-        flex-col
-        items-center
-        px-4
-      `}
-    >
-      {pageState === PageState.NotLoggedIn ? (
-        <>
-          <Subheading centered>
-            First, let's sign you in with the email you registered with.
-          </Subheading>
-          <div className="mb-8 w-3/4">
-            <div className="mb-2">
-              <Label label={"Email:"} />
-            </div>
-            <Input
-              name={"email"}
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-              }}
-            />
-          </div>
-          <Button onClick={handleSignIn}>Sign In</Button>
-        </>
-      ) : pageState === PageState.EmailSent ? (
-        <div className="mt-4 text-center">
-          <h2 className="text-base">
-            You should receive a sign in email from us real soon. If you didn't,
-            you may need to add <Code>no-reply@hawaiiansintech.org</Code> to
-            your address book.
-          </h2>
-        </div>
-      ) : pageState === PageState.Loading ? (
-        <>
-          <Subheading centered> Logging in...</Subheading>
-          <div className="flex w-full justify-center p-4">
-            <LoadingSpinner
-              className="h-16 w-16"
-              variant={LoadingSpinnerVariant.Invert}
-            />
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="mt-4 text-center">
-            <p className="mb-8 text-2xl">
-              Gonfunnit, looks like{" "}
-              {errorReason ? errorReason : "something went wrong"}
-            </p>
-            <div className="mb-8">
-              <Button onClick={backToLogin}>
-                {errorReason === "the link is invalid or expired."
-                  ? "Try logging in again"
-                  : "Try another email"}
-              </Button>
-            </div>
-            <p>
-              {errorBackup
-                ? errorBackup
-                : "If you still having trouble, no worries"}
-              <br />
-              Contact{" "}
-              <Link href="mailto:kekai@hawaiiansintech.org" target="_blank">
-                kekai
-              </Link>{" "}
-              or{" "}
-              <Link href="mailto:kamakani@hawaiiansintech.org" target="_blank">
-                kamakani
-              </Link>{" "}
-              and we&rsquo;ll get you sorted out.
-            </p>
-          </div>
-        </>
+    <>
+      {error && (
+        <Alert variant="destructive">
+          <ShieldAlert />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       )}
+      {showEmailConfirmation && (
+        <EmailConfirmation onConfirm={handleConfirm} onCancel={handleReset} />
+      )}
+      {pageState === PageState.Loading ? (
+        <div className="flex w-full justify-center">
+          <LoadingSpinner variant={LoadingSpinnerVariant.Invert} />
+        </div>
+      ) : pageState === PageState.NotLoggedIn ? (
+        <LogInForm handleSignIn={handleSignIn} />
+      ) : pageState === PageState.EmailSent ? (
+        <EmailSent />
+      ) : (
+        <TryAgain onReset={handleReset} />
+      )}
+    </>
+  );
+}
+
+function LogInForm({
+  handleSignIn,
+}: {
+  handleSignIn: (email: string) => void;
+}) {
+  const [loading, setLoading] = useState<boolean>(false);
+  return (
+    <>
+      <Formik
+        initialValues={{
+          email: "",
+        }}
+        validateOnChange
+        onSubmit={(values) => {
+          setLoading(true);
+          handleSignIn(values.email);
+        }}
+        validationSchema={Yup.object().shape({
+          email: Yup.string().email(
+            "That email doesn't look right. Please try again.",
+          ),
+        })}
+      >
+        {(props) => {
+          const {
+            dirty,
+            handleBlur,
+            handleChange,
+            handleSubmit,
+            isValid,
+            values,
+          } = props;
+
+          return (
+            <form
+              className="flex flex-col items-center gap-6"
+              onSubmit={handleSubmit}
+            >
+              <header className="space-y-2 text-center">
+                <h2 className="text-2xl">Log in with email</h2>
+                <p className="text-secondary-foreground">
+                  Access your profile to update your information
+                </p>
+              </header>
+              <section className="flex flex-col gap-2 self-stretch">
+                <Input
+                  id="email"
+                  name="email"
+                  onBlur={handleBlur}
+                  value={values.email}
+                  onChange={handleChange}
+                  placeholder="Enter your email address"
+                  autoFocus
+                />
+                <Button
+                  type="submit"
+                  disabled={!isValid || !dirty || loading}
+                  loading={loading}
+                >
+                  Log in
+                </Button>
+              </section>
+            </form>
+          );
+        }}
+      </Formik>
+      <p className="mt-4 text-center text-sm">
+        New to Hawaiians in Tech?{" "}
+        <Link href="/join/01-you" className="font-semibold">
+          Join Us
+        </Link>
+      </p>
+      <p className="mt-2 text-center text-sm">
+        Having issues?{" "}
+        <Link href={DISCORD_URL} className="font-semibold">
+          Let us know on Discord
+        </Link>
+      </p>
+    </>
+  );
+}
+
+function EmailSent() {
+  return (
+    <header className="space-y-2 text-center">
+      <h2 className="text-2xl">Please check your inbox</h2>
+      <p>
+        We&rsquo;ve sent you a magic link to{" "}
+        <strong>{window.localStorage.getItem("emailForSignIn")}</strong>.
+      </p>
+      <p className="px-2 text-sm leading-normal text-secondary-foreground">
+        If you didn&rsquo;t receive it, you may need to add{" "}
+        <Code>no-reply@hawaiiansintech.org</Code> to your address book.
+      </p>
+    </header>
+  );
+}
+
+function TryAgain({ onReset }: { onReset: () => void }) {
+  return (
+    <div>
+      <div className="my-4">
+        <Button size="sm" onClick={onReset}>
+          Try Logging In Again
+        </Button>
+      </div>
+      <p className="text-xs text-stone-500">
+        If you keep having issues, please contact us on{" "}
+        <Link href={DISCORD_URL} className="text-inherit underline">
+          our Discord server
+        </Link>
+        .
+      </p>
     </div>
+  );
+}
+
+function EmailConfirmation({
+  onConfirm,
+  onCancel,
+}: {
+  onConfirm: (email: string) => void;
+  onCancel: () => void;
+}) {
+  return (
+    <Dialog open onOpenChange={onCancel}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>New browser detected</DialogTitle>
+          <DialogDescription>
+            You opened the sign-in link in a different window or device. For
+            security reasons, please re-enter the email you gave us earlier.
+          </DialogDescription>
+        </DialogHeader>
+        <Formik
+          initialValues={{
+            email: "",
+          }}
+          validateOnChange
+          onSubmit={(values) => onConfirm(values.email)}
+          validationSchema={Yup.object().shape({
+            email: Yup.string().email(
+              "That email doesn't look right. Please try again.",
+            ),
+          })}
+        >
+          {(props) => {
+            const {
+              dirty,
+              handleBlur,
+              handleChange,
+              handleSubmit,
+              isValid,
+              values,
+            } = props;
+
+            return (
+              <form onSubmit={handleSubmit}>
+                <Input
+                  id="email"
+                  name="email"
+                  onBlur={handleBlur}
+                  value={values.email}
+                  onChange={handleChange}
+                  placeholder="Enter your email address"
+                  autoFocus
+                />
+                <DialogFooter className="mt-4 sm:justify-start">
+                  <Button type="submit" disabled={!isValid || !dirty}>
+                    Confirm
+                  </Button>
+                  <DialogClose asChild>
+                    <Button type="button" variant="secondary">
+                      Cancel
+                    </Button>
+                  </DialogClose>
+                </DialogFooter>
+              </form>
+            );
+          }}
+        </Formik>
+      </DialogContent>
+    </Dialog>
   );
 }
