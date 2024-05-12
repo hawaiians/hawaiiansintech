@@ -38,10 +38,11 @@ import {
 } from "@/lib/enums";
 import { User } from "firebase/auth";
 import { convertStringSnake, useEmailCloaker } from "helpers";
-import { ExternalLink, Trash } from "lucide-react";
+import { ExternalLink, EyeOff, Info, Trash } from "lucide-react";
 import Link from "next/link";
 import { FC, useState } from "react";
 import { Dictionary } from "lodash";
+import { ADMIN_EMAILS } from "@/lib/email/utils";
 
 function getMemberChanges(
   memberDataOld: MemberPublic,
@@ -111,7 +112,7 @@ export const MemberEdit: FC<{
     return data.email;
   };
 
-  const handleManageEmail = async () => {
+  const handleRevealEmail = async () => {
     if (email === null) {
       setLoadingEmail(true);
       await fetchEmailById().then((email) => {
@@ -339,22 +340,28 @@ export const MemberEdit: FC<{
           <div className="relative col-span-2 flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <h2 className="grow text-sm font-semibold">Email</h2>
-              {loadingEmail && (
-                <LoadingSpinner
-                  variant={LoadingSpinnerVariant.Invert}
-                  className="h-4 w-4 border-2"
-                />
-              )}
-              {!email && (
-                <button
-                  className="text-xs font-medium text-primary"
-                  onClick={handleManageEmail}
-                >
-                  Update
-                </button>
+              {!adminView && (
+                <Popover>
+                  <PopoverTrigger>
+                    <Info className="h-4 w-4 text-secondary-foreground" />
+                  </PopoverTrigger>
+                  <PopoverContent side="left">
+                    <p className="text-xs">
+                      If you need to update your email, please reach out to{" "}
+                      {ADMIN_EMAILS.map((email, i) => (
+                        <>
+                          <Link href={`mailto:${email}`} target="_blank">
+                            {email}
+                          </Link>
+                          {i < ADMIN_EMAILS.length - 1 && " or "}
+                        </>
+                      ))}
+                    </p>
+                  </PopoverContent>
+                </Popover>
               )}
             </div>
-            <div className="relative flex flex-col gap-2">
+            <div className="relative">
               <Input
                 name="email"
                 className={
@@ -368,139 +375,37 @@ export const MemberEdit: FC<{
                   setEmail(newEmail);
                 }}
               />
-              {!adminView && email && (
-                <span className="text-xs text-gray-500">
-                  If you need to update your email, please reach out to{" "}
-                  <Link href="mailto:kekai@hawaiiansintech.org" target="_blank">
-                    kekai
-                  </Link>{" "}
-                  or{" "}
-                  <Link
-                    href="mailto:kamakani@hawaiiansintech.org"
-                    target="_blank"
-                  >
-                    kamakani
-                  </Link>{" "}
-                </span>
-              )}
-              {email ? (
-                <>
-                  <section className="flex items-start gap-2">
-                    <Checkbox
-                      id="subscribed"
-                      checked={!unsubscribed}
-                      onCheckedChange={(e) => {
-                        setUnsubscribed(!e);
-                      }}
-                      defaultChecked
-                    />
-                    <div className="text-xs leading-relaxed">
-                      {adminView ? (
-                        <>
-                          <label
-                            htmlFor="subscribed"
-                            className="font-semibold peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                          >
-                            Subscribed
-                          </label>
-                          <p className="leading-relaxed text-secondary-foreground">
-                            Members opt out of emails during sign-up and/or
-                            using unsubscribe links.
-                          </p>
-                        </>
-                      ) : (
-                        <label
-                          htmlFor="send-me-emails"
-                          className="font-semibold peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          Please let me know about{" "}
-                          <strong className="font-semibold">
-                            features and community updates
-                          </strong>{" "}
-                          <span className="text-stone-500">
-                            (~once a month)
-                          </span>
-                          .
-                        </label>
-                      )}
-                    </div>
-                  </section>
-                  {adminView && (
-                    <section className="flex items-start gap-2">
-                      <Checkbox disabled id="verified" />
-                      <div className="text-xs leading-relaxed">
-                        <label
-                          htmlFor="verified"
-                          className="font-semibold opacity-40 peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                        >
-                          Verified (to be implemented)
-                        </label>
-                        <p className="leading-relaxed text-secondary-foreground opacity-50">
-                          Members verify their email address by replying or
-                          authenticating.
-                        </p>
-                      </div>
-                    </section>
-                  )}
-                </>
-              ) : (
-                <div className="absolute right-0 top-1/2 flex grow -translate-y-1/2 gap-0.5 pr-2 opacity-80">
-                  {adminView && <Badge variant="secondary">Verified</Badge>}
-                  {member.unsubscribed ? (
-                    <Badge variant="destructive">Unsubscribed</Badge>
-                  ) : (
-                    <Badge variant="secondary">Subscribed</Badge>
-                  )}
-                </div>
-              )}
+              <div className="absolute right-3 top-0 flex h-full items-center">
+                {loadingEmail ? (
+                  <LoadingSpinner
+                    variant={LoadingSpinnerVariant.Invert}
+                    className="h-4 w-4 border-2"
+                  />
+                ) : !email ? (
+                  <button onClick={handleRevealEmail}>
+                    <EyeOff />
+                  </button>
+                ) : null}
+              </div>
             </div>
-          </div>
-          {/* <div className="flex items-start gap-x-2">
-            <Checkbox id="verified" checked={true} />
-            <div className="flex gap-1 leading-none">
-              <label
-                htmlFor="verified"
-                className="flex flex-col text-xs font-semibold leading-none text-secondary-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Verified
-              </label>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-secondary-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>
-                      Confirmed ownership of email (through reply or
-                      authentication)
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div>
+            <section className="flex items-start gap-2 text-xs leading-relaxed">
+              <Checkbox
+                id="subscribed"
+                checked={!unsubscribed}
+                onCheckedChange={(e) => {
+                  setUnsubscribed(!e);
+                }}
+                defaultChecked
+              />
 
-          <div className="flex items-start gap-x-2">
-            <Checkbox id="subscribed" checked={member.unsubscribed} />
-            <div className="flex gap-1 leading-none">
               <label
                 htmlFor="subscribed"
-                className="flex flex-col text-xs font-semibold leading-none text-secondary-foreground peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className="font-semibold peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
-                Unsubscribed
+                Subscribe to newsletter updates
               </label>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-secondary-foreground" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Opted-out during sign-up or requested directly</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div> */}
+            </section>
+          </div>
 
           <div className="flex flex-col items-start gap-1">
             <h2
