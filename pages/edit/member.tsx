@@ -8,6 +8,12 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { MemberEdit } from "@/components/MemberEdit";
 import { auth } from "@/lib/firebase";
+import { useAuthState } from "react-firebase-hooks/auth";
+import LoadingSpinner, {
+  LoadingSpinnerVariant,
+} from "@/components/LoadingSpinner";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { ShieldAlert } from "lucide-react";
 export async function getStaticProps() {
   return {
     props: {
@@ -24,26 +30,27 @@ export default function EditMemberPage({ pageTitle }) {
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav backUrl="/" />
+      <Nav variant="minimized" backLinkTo="/" />
       <Heading>Edit Profile</Heading>
-      {/* <Subheading centered>Welcome back, Hawaiian.</Subheading> */}
       <EditMember />
     </>
   );
 }
 
 function EditMember() {
+  const [user] = useAuthState(auth);
+  const [error, setError] = useState<string>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   const router = useRouter();
-  const memberId = router.query.memberId;
+  const memberId = router.query.memberId as string;
   const [member, setMember] = useState<MemberPublic>(null);
-  const [members, setMembers] = useState<MemberPublic[]>([]);
+  // const [members, setMembers] = useState<MemberPublic[]>([]); {/* TODO this isn't used anywhere */}
   const [regions, setRegions] = useState<DocumentData[]>([]);
 
-  useEffect(() => {
-    if (!memberId) return;
-    if (!member && auth.currentUser) {
-      auth.currentUser.getIdToken().then((token) => {
-        fetch(`/api/members`, {
+  const getUser = async () => {
+    try {
+      user.getIdToken().then(async (token) => {
+        await fetch(`/api/members`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -52,37 +59,62 @@ function EditMember() {
         })
           .then((res) => res.json())
           .then((data) => {
-            setMember(data.members.find((m) => m.id === memberId));
-            setMembers(data.members);
+            const member = data.members.find((m) => m.id === memberId);
+            if (!member) {
+              throw new Error(
+                `Something went wrong while fetching ${memberId}`,
+              );
+            }
+            setMember(member);
+            // setMembers(data.members);  {/* TODO this isn't used anywhere */}
             setRegions(data.regions);
+            setLoading(false);
           })
           .catch((err) => {
-            console.error(err);
+            setError(err.message);
+            setLoading(false);
           });
       });
+    } catch (error) {
+      setError(error);
+      setLoading(false);
     }
-  }, [memberId]);
+  };
+
+  useEffect(() => {
+    if (user) {
+      getUser();
+    }
+  }, [user]);
 
   return (
     <div
       className={`
-            mx-auto
-            mb-8
-            mt-8
-            flex
-            max-w-3xl
-            flex-col
-            items-center
-            px-4
-          `}
+        mx-auto
+        mb-8
+        mt-8
+        flex
+        max-w-3xl
+        flex-col
+        items-center
+        px-4
+      `}
     >
+      {error && (
+        <Alert variant="destructive">
+          <ShieldAlert />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      {loading && <LoadingSpinner variant={LoadingSpinnerVariant.Invert} />}
       {member && regions && auth.currentUser && (
+        // TODO Pretty sure selecting filters is failing
         <MemberEdit
           member={member}
           regions={regions}
           user={auth.currentUser}
           adminView={false}
-          onSave={() => router.push("/")}
         />
       )}
     </div>

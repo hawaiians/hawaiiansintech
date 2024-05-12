@@ -38,7 +38,18 @@ export default function Base({
               '-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"',
           }}
         >
-          {children}
+          <Container className="m-4 mx-auto max-w-[540px] rounded-xl border border-solid border-stone-200 bg-white p-4 pt-8">
+            <Img
+              src="http://cdn.mcauto-images-production.sendgrid.net/c3cb94bafc1ef987/5ff60b90-4257-4ae9-babb-697d189b2df0/240x231.png"
+              alt="Hawaiians in Tech"
+              className={cn(
+                `mb-8 w-16`,
+                align === "center" && "mx-auto",
+                align === "right" && "ml-auto",
+              )}
+            />
+            {children}
+          </Container>
         </Body>
       </Tailwind>
     </Html>

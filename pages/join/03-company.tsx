@@ -157,7 +157,7 @@ export default function JoinStep3({ industries, pageTitle }) {
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav backUrl="02-work" />
+      <Nav backLinkTo="02-work" variant="minimized" />
 
       <Heading>Welcome to our little hui.</Heading>
       <section className="mx-auto mb-4 mt-0 max-w-3xl space-y-6 px-8">
@@ -300,7 +300,7 @@ export default function JoinStep3({ industries, pageTitle }) {
         </section>
       </section>
 
-      <div style={{ margin: "1rem 0 4rem" }}>
+      <div className="mt-6 pb-12">
         <ProgressBar currentCount={3} totalCount={4} width="6.4rem" />
       </div>
     </>

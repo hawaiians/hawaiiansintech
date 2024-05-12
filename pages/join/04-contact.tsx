@@ -144,7 +144,7 @@ export default function JoinStep4({ pageTitle }) {
         <MetaTags title={pageTitle} />
         <title>{pageTitle}</title>
       </Head>
-      <Nav backUrl="03-company" />
+      <Nav backLinkTo="03-company" variant="minimized" />
 
       <Heading>Welcome to our little hui.</Heading>
 
@@ -241,7 +241,9 @@ export default function JoinStep4({ pageTitle }) {
           }}
         </Formik>
       </section>
-      <ProgressBar currentCount={4} totalCount={4} width="6.4rem" />
+      <div className="mt-6 pb-12">
+        <ProgressBar currentCount={4} totalCount={4} width="6.4rem" />
+      </div>
     </>
   );
 }
