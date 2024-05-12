@@ -460,11 +460,13 @@ export const MemberEdit: FC<{
                 <SelectValue placeholder="Region" />
               </SelectTrigger>
               <SelectContent className="max-h-72">
-                {regions?.map((region) => (
-                  <SelectItem value={region.id} key={region.fields.id}>
-                    {region.fields.name}
-                  </SelectItem>
-                ))}
+                {[...regions]
+                  .sort((a, b) => a.fields.name.localeCompare(b.fields.name))
+                  .map((region) => (
+                    <SelectItem value={region.id} key={region.fields.id}>
+                      {region.fields.name}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
