@@ -88,6 +88,13 @@ export class InvalidEnumValueError extends Error {
   }
 }
 
+export class KeyVerificationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "KeyVerificationError";
+  }
+}
+
 export function handleApiErrors(error: Error, res: NextApiResponse) {
   console.error("Error caught in handleApiErrors:", error);
   if (
@@ -101,7 +108,8 @@ export function handleApiErrors(error: Error, res: NextApiResponse) {
   }
   if (
     error instanceof MissingTokenError ||
-    error instanceof TokenVerificationError
+    error instanceof TokenVerificationError ||
+    error instanceof KeyVerificationError
   ) {
     return res.status(401).json({ message: error.message });
   }
