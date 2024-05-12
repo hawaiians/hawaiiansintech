@@ -15,7 +15,6 @@ import Link from "next/link";
 import { Formik } from "formik";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { DISCORD_URL } from "../about";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ShieldAlert } from "lucide-react";
 import {
@@ -27,6 +26,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { DialogClose } from "@radix-ui/react-dialog";
+
+const DISCORD_SUPPORT_LINK =
+  "https://discord.com/channels/840774778616938526/1239337945006342204";
 
 export async function getServerSideProps(context) {
   const { req } = context;
@@ -292,7 +294,7 @@ function LogInForm({
       </p>
       <p className="mt-2 text-center text-sm">
         Having issues?{" "}
-        <Link href={DISCORD_URL} className="font-semibold">
+        <Link href={DISCORD_SUPPORT_LINK} className="font-semibold">
           Let us know on Discord
         </Link>
       </p>
@@ -326,7 +328,7 @@ function TryAgain({ onReset }: { onReset: () => void }) {
       </div>
       <p className="text-xs text-stone-500">
         If you keep having issues, please contact us on{" "}
-        <Link href={DISCORD_URL} className="text-inherit underline">
+        <Link href={DISCORD_SUPPORT_LINK} className="text-inherit underline">
           our Discord server
         </Link>
         .
