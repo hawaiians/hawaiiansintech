@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -38,11 +37,12 @@ import {
 } from "@/lib/enums";
 import { User } from "firebase/auth";
 import { convertStringSnake, useEmailCloaker } from "helpers";
-import { ExternalLink, EyeOff, Info, Trash } from "lucide-react";
+import { Check, ExternalLink, EyeOff, Info, Trash } from "lucide-react";
 import Link from "next/link";
 import { FC, useState } from "react";
 import { Dictionary } from "lodash";
 import { ADMIN_EMAILS } from "@/lib/email/utils";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 function getMemberChanges(
   memberDataOld: MemberPublic,
@@ -71,6 +71,8 @@ export const MemberEdit: FC<{
 }> = ({ member, regions, onClose, onDelete, onSave, user, adminView }) => {
   const [email, setEmail] = useState<MemberEmail>(null);
   const [loadingEmail, setLoadingEmail] = useState<boolean>(null);
+  const [saveInProgress, setSaveInProgress] = useState<boolean>(false);
+  const [showSuccess, setShowSuccess] = useState<boolean>(false);
   const [originalEmail, setOriginalEmail] = useState<string>(null);
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [name, setName] = useState<string>(member.name);
@@ -175,6 +177,8 @@ export const MemberEdit: FC<{
   };
 
   const saveChanges = async () => {
+    setSaveInProgress(true);
+
     const emailChanged: boolean = email?.email && email.email !== originalEmail;
     const updatedMember: MemberPublic = {
       ...member,
@@ -198,14 +202,21 @@ export const MemberEdit: FC<{
 
     // TODO: use this object to send email to admins for changes
     const memberChanges = getMemberChanges(member, updatedMember);
+    console.log(memberChanges);
 
     await updateMember(updatedMember);
     emailChanged && (await updateSecureEmail(member.id, email.email));
     if (onSave) {
       onSave();
-    } else {
-      window.location.reload();
     }
+
+    setShowSuccess(() => {
+      setTimeout(() => {
+        setShowSuccess(false);
+      }, 5000);
+      return true;
+    });
+    setSaveInProgress(false);
   };
 
   const mapTabsTriggerToVariant = (
@@ -282,6 +293,15 @@ export const MemberEdit: FC<{
             </Tabs>
           )}
           <div className="col-span-2 flex flex-col items-start gap-1">
+            {showSuccess && (
+              <Alert variant="success">
+                <Check />
+                <AlertTitle>Successfully updated profile</AlertTitle>
+                <AlertDescription>
+                  Your changes should now be live
+                </AlertDescription>
+              </Alert>
+            )}
             <h2
               className={`text-sm font-semibold ${
                 name !== member.name && "text-brown-600"
@@ -593,12 +613,14 @@ export const MemberEdit: FC<{
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <div
-              className={
-                adminView ? "flex grow justify-end" : "flex grow justify-center"
-              }
-            >
-              <Button onClick={saveChanges} size="sm">
+            <div className="flex grow justify-end">
+              <Button
+                className="w-full"
+                onClick={saveChanges}
+                size="sm"
+                loading={saveInProgress}
+                disabled={saveInProgress}
+              >
                 Save
               </Button>
             </div>

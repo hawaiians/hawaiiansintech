@@ -115,7 +115,6 @@ function EditMember() {
           regions={regions}
           user={auth.currentUser}
           adminView={false}
-          onSave={() => router.push("/")}
         />
       )}
     </div>
