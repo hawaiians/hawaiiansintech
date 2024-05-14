@@ -63,7 +63,7 @@ export default function FilterEditor({
     } else if (suggestedFilter === "" || suggestedFilter === null) {
       setSuggestOpen(false);
     }
-    fetch("/api/filters")
+    await fetch(`/api/filters?filterTable=${filterTable}`)
       .then((response) => response.json())
       .then((data) => {
         const filters = data.filters;

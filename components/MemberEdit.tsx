@@ -148,7 +148,7 @@ export const MemberEdit: FC<{
     if (!response.ok) {
       return response.json().then((err) => {
         throw new Error(
-          `Error updating ${memberPublic.name} in firebase: err.message`,
+          `Error updating ${memberPublic.name} in firebase: ${err.message}`,
         );
       });
     }
