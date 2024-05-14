@@ -65,6 +65,7 @@ export async function getMembers(token?: string): Promise<{
     FirebaseTablesEnum.MEMBERS,
     memberConverter,
     approved,
+    isAdmin,
     userId,
   );
 
@@ -423,6 +424,7 @@ export async function getMembersTable(
   table: FirebaseTablesEnum,
   converter: FirestoreDataConverter<any>,
   approved: boolean = false,
+  isAdmin: boolean = false,
   userId?: string,
 ): Promise<any[]> {
   const documentsCollection = collection(db, table).withConverter(converter);
@@ -432,7 +434,7 @@ export async function getMembersTable(
   }
   const documentsSnapshot = await getDocs(q);
   return documentsSnapshot.docs.map((doc) => {
-    if (approved || doc.id === userId) {
+    if (approved || doc.id === userId || isAdmin) {
       return doc.data();
     }
     const { lastModified, lastModifiedBy, requests, unsubscribed, ...data } =
