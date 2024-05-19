@@ -47,14 +47,27 @@ import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 function getMemberChanges(
   memberDataOld: MemberPublic,
   memberDataNew: MemberPublic,
+  textAndSuggestedOnly: boolean = false,
 ): Dictionary<any> {
+  const textAndSuggestedKeys = [
+    "name",
+    "title",
+    "link",
+    "location",
+    "focusSuggested",
+    "industrySuggested",
+  ];
   const changes = {};
   for (const key in memberDataNew) {
-    if (memberDataOld[key] !== memberDataNew[key]) {
-      changes[key] = {
-        old: memberDataOld[key],
-        new: memberDataNew[key],
-      };
+    if (memberDataOld[key] != memberDataNew[key]) {
+      if (textAndSuggestedOnly && !textAndSuggestedKeys.includes(key)) {
+        continue;
+      } else {
+        changes[key] = {
+          old: memberDataOld[key],
+          new: memberDataNew[key],
+        };
+      }
     }
   }
   return changes;
@@ -201,7 +214,7 @@ export const MemberEdit: FC<{
     };
 
     // TODO: use this object to send email to admins for changes
-    const memberChanges = getMemberChanges(member, updatedMember);
+    const memberChanges = getMemberChanges(member, updatedMember, true);
     console.log(memberChanges);
 
     await updateMember(updatedMember);
