@@ -26,6 +26,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { DialogClose } from "@radix-ui/react-dialog";
+import TurnstileWidget from "@/components/TurnstileWidget";
 
 const DISCORD_SUPPORT_LINK =
   "https://discord.com/channels/840774778616938526/1239337945006342204";
@@ -85,6 +86,8 @@ function EditForm({ baseUrl }) {
   const [error, setError] = useState<string>(null);
   const [showEmailConfirmation, setShowEmailConfirmation] =
     useState<boolean>(false);
+  const [turnstileToken, setTurnstileToken] = useState<string>(null);
+  const [widgetKey, setWidgetKey] = useState<number>(0);
 
   const handleSignIn = (email: string) => {
     // baseUrl is passed in from getServerSideProps
@@ -97,11 +100,26 @@ function EditForm({ baseUrl }) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email: email, url: fullUrl }),
+      body: JSON.stringify({
+        email: email,
+        url: fullUrl,
+        turnstileToken,
+      }),
     })
       .then((response) => {
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          return response.json().then((json) => {
+            if (json.message.includes("Turnstile verification failed")) {
+              // re-render the TurnstileWidget
+              setWidgetKey((prevKey) => prevKey + 1);
+              throw Error(
+                "There was an issue with the " +
+                  "cloudflare check. Please try again.",
+              );
+            } else {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+          });
         }
         window.localStorage.setItem("emailForSignIn", email);
         setPageState(PageState.EmailSent);
@@ -210,7 +228,11 @@ function EditForm({ baseUrl }) {
           <LoadingSpinner variant={LoadingSpinnerVariant.Invert} />
         </div>
       ) : pageState === PageState.NotLoggedIn ? (
-        <LogInForm handleSignIn={handleSignIn} />
+        <LogInForm
+          handleSignIn={handleSignIn}
+          widgetKey={widgetKey}
+          setTurnstileToken={setTurnstileToken}
+        />
       ) : pageState === PageState.EmailSent ? (
         <EmailSent />
       ) : (
@@ -222,8 +244,12 @@ function EditForm({ baseUrl }) {
 
 function LogInForm({
   handleSignIn,
+  widgetKey,
+  setTurnstileToken,
 }: {
   handleSignIn: (email: string) => void;
+  widgetKey: number;
+  setTurnstileToken: (token: string) => void;
 }) {
   const [loading, setLoading] = useState<boolean>(false);
   return (
@@ -254,35 +280,43 @@ function LogInForm({
           } = props;
 
           return (
-            <form
-              className="flex flex-col items-center gap-6"
-              onSubmit={handleSubmit}
-            >
-              <header className="space-y-2 text-center">
-                <h2 className="text-2xl">Log in with email</h2>
-                <p className="text-secondary-foreground">
-                  Access your profile to update your information
-                </p>
-              </header>
-              <section className="flex flex-col gap-2 self-stretch">
-                <Input
-                  id="email"
-                  name="email"
-                  onBlur={handleBlur}
-                  value={values.email}
-                  onChange={handleChange}
-                  placeholder="Enter your email address"
-                  autoFocus
-                />
-                <Button
-                  type="submit"
-                  disabled={!isValid || !dirty || loading}
-                  loading={loading}
-                >
-                  Log in
-                </Button>
-              </section>
-            </form>
+            <>
+              <form
+                className="flex flex-col items-center gap-6"
+                onSubmit={handleSubmit}
+              >
+                <header className="space-y-2 text-center">
+                  <h2 className="text-2xl">Log in with email</h2>
+                  <p className="text-secondary-foreground">
+                    Access your profile to update your information
+                  </p>
+                </header>
+                <section className="flex flex-col gap-2 self-stretch">
+                  <Input
+                    id="email"
+                    name="email"
+                    onBlur={handleBlur}
+                    value={values.email}
+                    onChange={handleChange}
+                    placeholder="Enter your email address"
+                    autoFocus
+                  />
+                  <Button
+                    type="submit"
+                    disabled={!isValid || !dirty || loading}
+                    loading={loading}
+                  >
+                    Log in
+                  </Button>
+                </section>
+              </form>
+              <div className="mt-4 flex justify-center">
+                <TurnstileWidget
+                  key={widgetKey}
+                  onVerify={setTurnstileToken}
+                ></TurnstileWidget>{" "}
+              </div>
+            </>
           );
         }}
       </Formik>

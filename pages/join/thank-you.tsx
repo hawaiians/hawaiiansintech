@@ -154,11 +154,11 @@ export default function ThankYou({ pageTitle, focuses, industries, members }) {
                                     (member) =>
                                       (items[0].filterType === "focuses" &&
                                         member.focus
-                                          ?.map((foc) => foc.id)
+                                          ?.map((foc) => foc?.id)
                                           .includes(item.id)) ||
                                       (items[0].filterType === "industries" &&
                                         member.industry
-                                          ?.map((foc) => foc.id)
+                                          ?.map((ind) => ind?.id)
                                           .includes(item.id)),
                                   )
                                   .map((member) => (

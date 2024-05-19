@@ -44,7 +44,6 @@ function EditMember() {
   const router = useRouter();
   const memberId = router.query.memberId as string;
   const [member, setMember] = useState<MemberPublic>(null);
-  // const [members, setMembers] = useState<MemberPublic[]>([]); {/* TODO this isn't used anywhere */}
   const [regions, setRegions] = useState<DocumentData[]>([]);
 
   const getUser = async () => {
@@ -66,7 +65,6 @@ function EditMember() {
               );
             }
             setMember(member);
-            // setMembers(data.members);  {/* TODO this isn't used anywhere */}
             setRegions(data.regions);
             setLoading(false);
           })
@@ -109,7 +107,6 @@ function EditMember() {
       )}
       {loading && <LoadingSpinner variant={LoadingSpinnerVariant.Invert} />}
       {member && regions && auth.currentUser && (
-        // TODO Pretty sure selecting filters is failing
         <MemberEdit
           member={member}
           regions={regions}

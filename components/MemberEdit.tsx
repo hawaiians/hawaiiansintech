@@ -453,7 +453,8 @@ export const MemberEdit: FC<{
               >
                 Region
               </h2>
-              <Popover>
+              {/* TODO: Implement add region */}
+              {/* <Popover>
                 <PopoverTrigger>
                   <h2 className="text-xs font-medium text-primary">Add</h2>
                 </PopoverTrigger>
@@ -463,10 +464,9 @@ export const MemberEdit: FC<{
                   className="flex flex-col gap-1"
                 >
                   <Input placeholder="Region" autoFocus />
-                  {/* HERE */}
                   <Button size="sm">Add Region</Button>
                 </PopoverContent>
-              </Popover>
+              </Popover> */}
             </div>
             <Select
               defaultValue={getRegionIdFromName(member.region)}

@@ -2,12 +2,16 @@ import * as admin from "firebase-admin";
 import { initializeAdmin } from "../firebase-helpers/initializeAdmin";
 import { NextApiRequest, NextApiResponse } from "next";
 import {
+  CloudflareVerificationError,
   MissingHeaderError,
   MissingTokenError,
   TokenVerificationError,
 } from "./errors";
 import { MemberEmail } from "../firebase-helpers/interfaces";
 import { getEmailById } from "../firebase-helpers/emails";
+
+const CLOUDFLARE_URL =
+  "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
 const verifyTokenExpiration = (decodedToken: admin.auth.DecodedIdToken) => {
   const now = Math.floor(Date.now() / 1000); // Convert to Unix timestamp (in seconds)
@@ -80,4 +84,21 @@ export async function verifyAdminOrEmailAuthToken(
     throw new TokenVerificationError("Not authorized to access this account");
   }
   return email;
+}
+
+export async function verifyTurnstileToken(token: string, ip: string) {
+  let formData = new FormData();
+  formData.append("secret", process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY);
+  formData.append("response", token);
+  formData.append("remoteip", typeof ip === "string" ? ip : ip ? ip[0] : "");
+  const result = await fetch(CLOUDFLARE_URL, {
+    method: "POST",
+    body: formData,
+  });
+  const outcome = await result.json();
+  if (!outcome.success) {
+    throw new CloudflareVerificationError(
+      "Turnstile verification failed: " + outcome["error-codes"].join(", "),
+    );
+  }
 }

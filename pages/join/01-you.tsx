@@ -95,12 +95,13 @@ export default function JoinStep1({ pageTitle }) {
       <div className="mt-6">
         <ProgressBar currentCount={1} totalCount={4} width="6.4rem" />
       </div>
-      <p className="mt-4 text-center text-sm">
+      {/* TODO: Add login link */}
+      {/* <p className="mt-4 text-center text-sm">
         Have an account?{" "}
         <Link href="/login" className="font-semibold">
           Login
         </Link>
-      </p>
+      </p> */}
     </>
   );
 }

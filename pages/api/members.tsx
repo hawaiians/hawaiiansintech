@@ -2,6 +2,7 @@ import {
   verifyAdminOrEmailAuthToken,
   verifyAdminToken,
   verifyAuthHeader,
+  verifyTurnstileToken,
 } from "@/lib/api-helpers/auth";
 import { NextApiRequest, NextApiResponse } from "next";
 import { memberPublicValidator } from "@/lib/validators/memberPublicValidator";
@@ -63,6 +64,13 @@ async function putHandler(req: NextApiRequest, res: NextApiResponse) {
 }
 
 async function postHandler(req: NextApiRequest, res: NextApiResponse) {
+  checkBodyParams(req, { turnstileToken: "string" });
+  const turnstileToken = req.body.turnstileToken;
+  const ip = Array.isArray(req.headers["CF-Connecting-IP"])
+    ? req.headers["CF-Connecting-IP"][0]
+    : req.headers["CF-Connecting-IP"];
+  await verifyTurnstileToken(turnstileToken, ip);
+
   const {
     email,
     name,
