@@ -41,7 +41,7 @@ export default function EmailsPage(props: { pageTitle }) {
   const [emails, setEmails] = useState<MemberEmail[]>([]);
 
   const fetchEmails = async () => {
-    const response = await fetch("/api/get-emails", {
+    const response = await fetch("/api/emails", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

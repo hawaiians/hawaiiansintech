@@ -52,6 +52,7 @@ export interface MemberEmail {
   emailAbbr?: string;
   status?: StatusEnum;
   unsubscribed?: boolean;
+  unsubKey?: string;
 }
 
 export interface Filter {
