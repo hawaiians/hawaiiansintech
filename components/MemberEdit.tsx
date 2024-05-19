@@ -158,7 +158,7 @@ export const MemberEdit: FC<{
 
   const updateSecureEmail = async (uid: string, email: string) => {
     const response = await fetch("/api/emails", {
-      method: "PUT",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${await user.getIdToken()}`,

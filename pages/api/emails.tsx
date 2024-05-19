@@ -83,7 +83,7 @@ async function getHandler(
   }
 }
 
-async function putHandler(
+async function patchHandler(
   req: NextApiRequest,
   res: NextApiResponse,
   token: string,
@@ -110,14 +110,14 @@ export default async function handler(
   res: NextApiResponse,
 ) {
   try {
-    checkMethods(req.method, ["GET", "PUT"]);
+    checkMethods(req.method, ["GET", "PATCH"]);
     const token = await verifyAuthHeader(req);
     if (req.method === "GET") {
       await getHandler(req, res, token);
-    } else if (req.method === "PUT") {
-      await putHandler(req, res, token);
+    } else if (req.method === "PATCH") {
+      await patchHandler(req, res, token);
     } else {
-      res.status(405).json({ message: "Only GET and PUT requests allowed" });
+      res.status(405).json({ message: "Only GET and PATCH requests allowed" });
     }
   } catch (error) {
     return handleApiErrors(error, res);

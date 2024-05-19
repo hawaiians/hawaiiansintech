@@ -32,10 +32,12 @@ export async function getEmails(
               emailAbbr: docSnapshot.data().masked_email || null,
               status: docSnapshot.data().status || null,
               unsubscribed: docSnapshot.data().unsubscribed || false,
+              unsubKey: secM.fields.unsubscribe_key || null,
             };
           }
         } catch (error) {
           console.error(error);
+          throw error;
         }
       }),
   );
