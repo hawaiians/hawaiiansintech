@@ -1,5 +1,5 @@
-import { sendNewsletter0524 } from "@/emails/send_newsletter-0524";
 import { verifyAdminToken, verifyAuthHeader } from "@/lib/api-helpers/auth";
+import { sendNewsletter0524 } from "@/lib/email/send-newsletter-0524";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
