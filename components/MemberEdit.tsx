@@ -39,12 +39,11 @@ import { User } from "firebase/auth";
 import { convertStringSnake, useEmailCloaker } from "helpers";
 import { Check, ExternalLink, EyeOff, Info, Trash } from "lucide-react";
 import Link from "next/link";
-import { Dictionary } from "lodash";
 import { ADMIN_EMAILS } from "@/lib/email/utils";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { useRouter } from "next/router";
+import { FC, useEffect, useState } from "react";
 
-function getMemberChanges(
 type MemberChange = {
   [K in keyof MemberPublic]?: {
     old: MemberPublic[K] | undefined;
@@ -52,31 +51,29 @@ type MemberChange = {
   };
 };
 
+function getSensitiveChanges(
   memberDataOld: MemberPublic,
   memberDataNew: MemberPublic,
-  textAndSuggestedOnly: boolean = false,
-  const textAndSuggestedKeys = [
 ): MemberChange {
+  const changes = {};
+  [
     "name",
     "title",
     "link",
     "location",
     "focusSuggested",
     "industrySuggested",
-  ];
-  const changes = {};
-  for (const key in memberDataNew) {
-    if (memberDataOld[key] != memberDataNew[key]) {
-      if (textAndSuggestedOnly && !textAndSuggestedKeys.includes(key)) {
-        continue;
-      } else {
-        changes[key] = {
-          old: memberDataOld[key],
-          new: memberDataNew[key],
-        };
-      }
+  ].forEach((key) => {
+    const oldValue = memberDataOld[key];
+    const newValue = memberDataNew[key];
+
+    if (oldValue !== newValue) {
+      changes[key] = {
+        old: oldValue,
+        new: newValue,
+      };
     }
-  }
+  });
   return changes;
 }
 
@@ -239,12 +236,8 @@ export const MemberEdit: FC<{
     };
 
     // TODO: use this object to send email to admins for changes
-    const memberChanges = getMemberChanges(member, updatedMember, true);
-    console.log(memberChanges);
-    if (Object.keys(memberChanges).length === 0) {
-      setSaveInProgress(false);
-      return;
-    }
+    const sensitiveChanges = getSensitiveChanges(member, updatedMember);
+    console.log(sensitiveChanges);
 
     await updateMember(updatedMember);
     emailChanged && (await updateSecureEmail(member.id, email.email));
@@ -341,7 +334,7 @@ export const MemberEdit: FC<{
                 <Check />
                 <AlertTitle>Successfully updated profile</AlertTitle>
                 <AlertDescription>
-                  Your changes should now be live
+                  Your changes will be reflected on the website shortly.
                 </AlertDescription>
               </Alert>
             )}
