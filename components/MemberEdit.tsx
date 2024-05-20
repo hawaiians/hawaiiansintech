@@ -83,6 +83,8 @@ export const MemberEdit: FC<{
   user?: User;
   adminView?: boolean;
 }> = ({ member, regions, onClose, onDelete, onSave, user, adminView }) => {
+  const router = useRouter();
+  const { query } = router;
   const [email, setEmail] = useState<MemberEmail>(null);
   const [loadingEmail, setLoadingEmail] = useState<boolean>(null);
   const [saveInProgress, setSaveInProgress] = useState<boolean>(false);
@@ -110,6 +112,22 @@ export const MemberEdit: FC<{
     { name: string; id: string }[] | string[]
   >(member.industry);
   const [suggestedIndustry, setSuggestedIndustry] = useState<string>(null);
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (query.updated === "success") {
+      setShowSuccess(() => {
+        timeout = setTimeout(() => {
+          setShowSuccess(false);
+        }, 10000);
+        return true;
+      });
+    }
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [query.updated]);
 
   const getRegionIdFromName = (name: string): string => {
     const region = regions.find((r) => r.fields.name === name);
@@ -228,12 +246,13 @@ export const MemberEdit: FC<{
       onSave();
     }
 
-    setShowSuccess(() => {
-      setTimeout(() => {
-        setShowSuccess(false);
-      }, 5000);
-      return true;
-    });
+    if (!adminView) {
+      router.push({
+        pathname: router.pathname,
+        query: { memberId: member.id, updated: "success" },
+      });
+      router.reload();
+    }
     setSaveInProgress(false);
   };
 
