@@ -17,6 +17,7 @@ import {
 import { emailExists } from "@/lib/firebase-helpers/emails";
 import { DocumentReference } from "firebase/firestore";
 import { sendConfirmationEmails } from "@/lib/email";
+import { sendSensitiveChangesEmail } from "@/lib/email/send-sensitive-change-email";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   checkMethods(req.method, ["GET"]);
@@ -99,7 +100,11 @@ async function putHandler(req: NextApiRequest, res: NextApiResponse) {
   );
 
   if (Object.keys(sensitiveChanges).length > 0) {
-    console.log("🔒 Sensitive changes detected:", sensitiveChanges);
+    await sendSensitiveChangesEmail({
+      name: memberNew.name,
+      recordID: memberNew.id,
+      changes: JSON.stringify(sensitiveChanges),
+    });
   }
 
   return res.status(200).json({
