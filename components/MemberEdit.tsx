@@ -44,7 +44,6 @@ import { ADMIN_EMAILS } from "@/lib/email/utils";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { useRouter } from "next/router";
 
- */
 function getMemberChanges(
   memberDataOld: MemberPublic,
   memberDataNew: MemberPublic,
