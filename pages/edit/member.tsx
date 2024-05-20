@@ -17,7 +17,7 @@ import { ShieldAlert } from "lucide-react";
 export async function getStaticProps() {
   return {
     props: {
-      pageTitle: "Request Changes · Hawaiians in Technology",
+      pageTitle: "Update Profile · Hawaiians in Technology",
     },
   };
 }

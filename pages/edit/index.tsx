@@ -39,7 +39,7 @@ export async function getServerSideProps(context) {
   return {
     props: {
       baseUrl: baseUrl,
-      pageTitle: "Request Changes · Hawaiians in Technology",
+      pageTitle: "Update Profile · Hawaiians in Technology",
     },
   };
 }
