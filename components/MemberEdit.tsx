@@ -382,12 +382,12 @@ export const MemberEdit: FC<{
                     <p className="text-xs">
                       If you need to update your email, please reach out to{" "}
                       {ADMIN_EMAILS.map((email, i) => (
-                        <>
+                        <span key={`${email}-${i}`}>
                           <Link href={`mailto:${email}`} target="_blank">
                             {email}
                           </Link>
                           {i < ADMIN_EMAILS.length - 1 && " or "}
-                        </>
+                        </span>
                       ))}
                     </p>
                   </PopoverContent>
@@ -496,7 +496,10 @@ export const MemberEdit: FC<{
                 {[...regions]
                   .sort((a, b) => a.fields.name.localeCompare(b.fields.name))
                   .map((region) => (
-                    <SelectItem value={region.id} key={region.fields.id}>
+                    <SelectItem
+                      value={region.id}
+                      key={`region-${region.fields.name}`}
+                    >
                       {region.fields.name}
                     </SelectItem>
                   ))}
