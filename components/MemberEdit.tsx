@@ -39,26 +39,10 @@ import { User } from "firebase/auth";
 import { convertStringSnake, useEmailCloaker } from "helpers";
 import { Check, ExternalLink, EyeOff, Info, Trash } from "lucide-react";
 import Link from "next/link";
-import { FC, useState } from "react";
-import { Dictionary } from "lodash";
 import { ADMIN_EMAILS } from "@/lib/email/utils";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
-
-function getMemberChanges(
-  memberDataOld: MemberPublic,
-  memberDataNew: MemberPublic,
-): Dictionary<any> {
-  const changes = {};
-  for (const key in memberDataNew) {
-    if (memberDataOld[key] !== memberDataNew[key]) {
-      changes[key] = {
-        old: memberDataOld[key],
-        new: memberDataNew[key],
-      };
-    }
-  }
-  return changes;
-}
+import { useRouter } from "next/router";
+import { FC, useEffect, useState } from "react";
 
 export const MemberEdit: FC<{
   member: MemberPublic;
@@ -69,6 +53,8 @@ export const MemberEdit: FC<{
   user?: User;
   adminView?: boolean;
 }> = ({ member, regions, onClose, onDelete, onSave, user, adminView }) => {
+  const router = useRouter();
+  const { query } = router;
   const [email, setEmail] = useState<MemberEmail>(null);
   const [loadingEmail, setLoadingEmail] = useState<boolean>(null);
   const [saveInProgress, setSaveInProgress] = useState<boolean>(false);
@@ -91,11 +77,27 @@ export const MemberEdit: FC<{
   const [focuses, setFocuses] = useState<
     { name: string; id: string }[] | string[]
   >(member.focus);
-  const [suggestedFocus, setSuggestedFocus] = useState<string>(null);
+  const [suggestedFocus, setSuggestedFocus] = useState<string>(undefined);
   const [industries, setIndustries] = useState<
     { name: string; id: string }[] | string[]
   >(member.industry);
-  const [suggestedIndustry, setSuggestedIndustry] = useState<string>(null);
+  const [suggestedIndustry, setSuggestedIndustry] = useState<string>(undefined);
+
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (query.updated === "success") {
+      setShowSuccess(() => {
+        timeout = setTimeout(() => {
+          setShowSuccess(false);
+        }, 10000);
+        return true;
+      });
+    }
+
+    return () => {
+      clearTimeout(timeout);
+    };
+  }, [query.updated]);
 
   const getRegionIdFromName = (name: string): string => {
     const region = regions.find((r) => r.fields.name === name);
@@ -133,7 +135,7 @@ export const MemberEdit: FC<{
     }
   };
 
-  const updateMember = async (memberPublic: MemberPublic) => {
+  const updateMember = async (memberNew: MemberPublic) => {
     const response = await fetch("/api/members", {
       method: "PUT",
       headers: {
@@ -141,24 +143,25 @@ export const MemberEdit: FC<{
         Authorization: `Bearer ${await user.getIdToken()}`,
       },
       body: JSON.stringify({
-        memberPublic: memberPublic,
+        memberOld: member,
+        memberNew: memberNew,
         currentUser: user.displayName || user.uid,
       }),
     });
     if (!response.ok) {
       return response.json().then((err) => {
         throw new Error(
-          `Error updating ${memberPublic.name} in firebase: ${err.message}`,
+          `Error updating ${member.name} in firebase: ${err.message}`,
         );
       });
     }
-    console.log(`✅ updated ${memberPublic.name} in firebase`);
+    console.log(`✅ updated ${member.name} in firebase`);
     return response;
   };
 
   const updateSecureEmail = async (uid: string, email: string) => {
     const response = await fetch("/api/emails", {
-      method: "PUT",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${await user.getIdToken()}`,
@@ -200,22 +203,19 @@ export const MemberEdit: FC<{
       yearsExperience: yearsOfExperience,
     };
 
-    // TODO: use this object to send email to admins for changes
-    const memberChanges = getMemberChanges(member, updatedMember);
-    console.log(memberChanges);
-
     await updateMember(updatedMember);
     emailChanged && (await updateSecureEmail(member.id, email.email));
     if (onSave) {
       onSave();
     }
 
-    setShowSuccess(() => {
-      setTimeout(() => {
-        setShowSuccess(false);
-      }, 5000);
-      return true;
-    });
+    if (!adminView) {
+      router.push({
+        pathname: router.pathname,
+        query: { memberId: member.id, updated: "success" },
+      });
+      router.reload();
+    }
     setSaveInProgress(false);
   };
 
@@ -298,7 +298,7 @@ export const MemberEdit: FC<{
                 <Check />
                 <AlertTitle>Successfully updated profile</AlertTitle>
                 <AlertDescription>
-                  Your changes should now be live
+                  Your changes will be reflected on the website shortly.
                 </AlertDescription>
               </Alert>
             )}
@@ -369,12 +369,12 @@ export const MemberEdit: FC<{
                     <p className="text-xs">
                       If you need to update your email, please reach out to{" "}
                       {ADMIN_EMAILS.map((email, i) => (
-                        <>
+                        <span key={`${email}-${i}`}>
                           <Link href={`mailto:${email}`} target="_blank">
                             {email}
                           </Link>
                           {i < ADMIN_EMAILS.length - 1 && " or "}
-                        </>
+                        </span>
                       ))}
                     </p>
                   </PopoverContent>
@@ -395,7 +395,7 @@ export const MemberEdit: FC<{
                   setEmail(newEmail);
                 }}
               />
-              <div className="absolute right-3 top-0 flex h-full items-center">
+              <div className="absolute right-4 top-0 flex h-full items-center">
                 {loadingEmail ? (
                   <LoadingSpinner
                     variant={LoadingSpinnerVariant.Invert}
@@ -403,7 +403,7 @@ export const MemberEdit: FC<{
                   />
                 ) : !email ? (
                   <button onClick={handleRevealEmail}>
-                    <EyeOff />
+                    <EyeOff className="h-4 w-4" />
                   </button>
                 ) : null}
               </div>
@@ -483,7 +483,10 @@ export const MemberEdit: FC<{
                 {[...regions]
                   .sort((a, b) => a.fields.name.localeCompare(b.fields.name))
                   .map((region) => (
-                    <SelectItem value={region.id} key={region.fields.id}>
+                    <SelectItem
+                      value={region.id}
+                      key={`region-${region.fields.name}`}
+                    >
                       {region.fields.name}
                     </SelectItem>
                   ))}
@@ -589,10 +592,10 @@ export const MemberEdit: FC<{
             </section>
           )}
           <div className="col-span-2 mt-2 flex flex-col gap-2 sm:flex-row">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  {adminView && (
+            {adminView && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
                     <Button
                       variant="secondary"
                       onClick={() => {
@@ -606,13 +609,13 @@ export const MemberEdit: FC<{
                         Archive
                       </span>
                     </Button>
-                  )}
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Disabled · Read-only</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Disabled · Read-only</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
             <div className="flex grow justify-end">
               <Button
                 className="w-full"
