@@ -39,11 +39,12 @@ import { User } from "firebase/auth";
 import { convertStringSnake, useEmailCloaker } from "helpers";
 import { Check, ExternalLink, EyeOff, Info, Trash } from "lucide-react";
 import Link from "next/link";
-import { FC, useState } from "react";
 import { Dictionary } from "lodash";
 import { ADMIN_EMAILS } from "@/lib/email/utils";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
+import { useRouter } from "next/router";
 
+ */
 function getMemberChanges(
   memberDataOld: MemberPublic,
   memberDataNew: MemberPublic,
@@ -216,6 +217,10 @@ export const MemberEdit: FC<{
     // TODO: use this object to send email to admins for changes
     const memberChanges = getMemberChanges(member, updatedMember, true);
     console.log(memberChanges);
+    if (Object.keys(memberChanges).length === 0) {
+      setSaveInProgress(false);
+      return;
+    }
 
     await updateMember(updatedMember);
     emailChanged && (await updateSecureEmail(member.id, email.email));
