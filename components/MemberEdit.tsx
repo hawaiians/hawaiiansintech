@@ -110,11 +110,11 @@ export const MemberEdit: FC<{
   const [focuses, setFocuses] = useState<
     { name: string; id: string }[] | string[]
   >(member.focus);
-  const [suggestedFocus, setSuggestedFocus] = useState<string>(null);
+  const [suggestedFocus, setSuggestedFocus] = useState<string>(undefined);
   const [industries, setIndustries] = useState<
     { name: string; id: string }[] | string[]
   >(member.industry);
-  const [suggestedIndustry, setSuggestedIndustry] = useState<string>(null);
+  const [suggestedIndustry, setSuggestedIndustry] = useState<string>(undefined);
 
   useEffect(() => {
     let timeout: NodeJS.Timeout;
