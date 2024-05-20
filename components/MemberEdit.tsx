@@ -592,10 +592,10 @@ export const MemberEdit: FC<{
             </section>
           )}
           <div className="col-span-2 mt-2 flex flex-col gap-2 sm:flex-row">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger>
-                  {adminView && (
+            {adminView && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
                     <Button
                       variant="secondary"
                       onClick={() => {
@@ -609,13 +609,13 @@ export const MemberEdit: FC<{
                         Archive
                       </span>
                     </Button>
-                  )}
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Disabled · Read-only</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Disabled · Read-only</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
             <div className="flex grow justify-end">
               <Button
                 className="w-full"
