@@ -408,7 +408,7 @@ export const MemberEdit: FC<{
                   setEmail(newEmail);
                 }}
               />
-              <div className="absolute right-3 top-0 flex h-full items-center">
+              <div className="absolute right-4 top-0 flex h-full items-center">
                 {loadingEmail ? (
                   <LoadingSpinner
                     variant={LoadingSpinnerVariant.Invert}
@@ -416,7 +416,7 @@ export const MemberEdit: FC<{
                   />
                 ) : !email ? (
                   <button onClick={handleRevealEmail}>
-                    <EyeOff />
+                    <EyeOff className="h-4 w-4" />
                   </button>
                 ) : null}
               </div>
