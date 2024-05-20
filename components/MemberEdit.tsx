@@ -45,11 +45,18 @@ import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { useRouter } from "next/router";
 
 function getMemberChanges(
+type MemberChange = {
+  [K in keyof MemberPublic]?: {
+    old: MemberPublic[K] | undefined;
+    new: MemberPublic[K] | undefined;
+  };
+};
+
   memberDataOld: MemberPublic,
   memberDataNew: MemberPublic,
   textAndSuggestedOnly: boolean = false,
-): Dictionary<any> {
   const textAndSuggestedKeys = [
+): MemberChange {
     "name",
     "title",
     "link",
