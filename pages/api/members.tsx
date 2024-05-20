@@ -8,6 +8,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { memberPublicValidator } from "@/lib/validators/memberPublicValidator";
 import { handleApiErrors } from "@/lib/api-helpers/errors";
 import { checkMethods, checkBodyParams } from "@/lib/api-helpers/format";
+import { MemberPublic } from "@/lib/firebase-helpers/interfaces";
 import {
   addMemberToFirebase,
   getMembers,
@@ -39,27 +40,70 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   });
 }
 
+type MemberChange = {
+  [K in keyof MemberPublic]?: {
+    old: MemberPublic[K] | undefined;
+    new: MemberPublic[K] | undefined;
+  };
+};
+
+function getSensitiveChanges(
+  memberOld: MemberPublic,
+  memberNew: MemberPublic,
+): MemberChange {
+  const changes = {};
+  [
+    "name",
+    "title",
+    "link",
+    "location",
+    "focusSuggested",
+    "industrySuggested",
+  ].forEach((key) => {
+    const oldValue = memberOld[key];
+    const newValue = memberNew[key];
+
+    if (oldValue !== newValue) {
+      changes[key] = {
+        old: oldValue,
+        new: newValue,
+      };
+    }
+  });
+  return changes;
+}
+
 async function putHandler(req: NextApiRequest, res: NextApiResponse) {
   checkBodyParams(req, {
-    memberPublic: "object",
+    memberOld: "object",
+    memberNew: "object",
     currentUser: "string",
   });
+  const { memberOld, memberNew } = req.body;
   try {
-    await memberPublicValidator.validate(req.body.memberPublic);
+    await memberPublicValidator.validate(memberNew);
   } catch (error) {
     return res.status(422).json({ message: error.message });
   }
+
   const token = await verifyAuthHeader(req);
   const isAdmin = await verifyAdminToken(token, false);
-  await verifyAdminOrEmailAuthToken(req.body.memberPublic.id, token);
+  await verifyAdminOrEmailAuthToken(memberNew.id, token);
 
-  await updateMember(req.body.memberPublic, req.body.currentUser, isAdmin).then(
+  const sensitiveChanges = getSensitiveChanges(memberOld, memberNew);
+
+  await updateMember(memberNew, req.body.currentUser, isAdmin).then(
     (writeResult) => {
       console.debug("writeResult for /update-member:", writeResult);
     },
   );
+
+  if (Object.keys(sensitiveChanges).length > 0) {
+    console.log("🔒 Sensitive changes detected:", sensitiveChanges);
+  }
+
   return res.status(200).json({
-    message: `Successfully updated ${req.body.memberPublic.id}`,
+    message: `Successfully updated ${memberNew.id}`,
   });
 }
 

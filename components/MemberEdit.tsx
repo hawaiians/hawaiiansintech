@@ -44,39 +44,6 @@ import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
 
-type MemberChange = {
-  [K in keyof MemberPublic]?: {
-    old: MemberPublic[K] | undefined;
-    new: MemberPublic[K] | undefined;
-  };
-};
-
-function getSensitiveChanges(
-  memberDataOld: MemberPublic,
-  memberDataNew: MemberPublic,
-): MemberChange {
-  const changes = {};
-  [
-    "name",
-    "title",
-    "link",
-    "location",
-    "focusSuggested",
-    "industrySuggested",
-  ].forEach((key) => {
-    const oldValue = memberDataOld[key];
-    const newValue = memberDataNew[key];
-
-    if (oldValue !== newValue) {
-      changes[key] = {
-        old: oldValue,
-        new: newValue,
-      };
-    }
-  });
-  return changes;
-}
-
 export const MemberEdit: FC<{
   member: MemberPublic;
   regions?: DocumentData[];
@@ -168,7 +135,7 @@ export const MemberEdit: FC<{
     }
   };
 
-  const updateMember = async (memberPublic: MemberPublic) => {
+  const updateMember = async (memberNew: MemberPublic) => {
     const response = await fetch("/api/members", {
       method: "PUT",
       headers: {
@@ -176,18 +143,19 @@ export const MemberEdit: FC<{
         Authorization: `Bearer ${await user.getIdToken()}`,
       },
       body: JSON.stringify({
-        memberPublic: memberPublic,
+        memberOld: member,
+        memberNew: memberNew,
         currentUser: user.displayName || user.uid,
       }),
     });
     if (!response.ok) {
       return response.json().then((err) => {
         throw new Error(
-          `Error updating ${memberPublic.name} in firebase: ${err.message}`,
+          `Error updating ${member.name} in firebase: ${err.message}`,
         );
       });
     }
-    console.log(`✅ updated ${memberPublic.name} in firebase`);
+    console.log(`✅ updated ${member.name} in firebase`);
     return response;
   };
 
@@ -234,10 +202,6 @@ export const MemberEdit: FC<{
       unsubscribed: unsubscribed,
       yearsExperience: yearsOfExperience,
     };
-
-    // TODO: use this object to send email to admins for changes
-    const sensitiveChanges = getSensitiveChanges(member, updatedMember);
-    console.log(sensitiveChanges);
 
     await updateMember(updatedMember);
     emailChanged && (await updateSecureEmail(member.id, email.email));
