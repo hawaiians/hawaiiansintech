@@ -59,23 +59,21 @@ export async function getMembers(token?: string): Promise<{
     userId = await getIdByEmail(userEmail);
   }
 
-  const approved = isAdmin ? false : true;
-
   const members = await getMembersTable(
     FirebaseTablesEnum.MEMBERS,
     memberConverter,
-    approved,
+    !isAdmin,
     isAdmin,
     userId,
   );
 
   const focusesData = await getFirebaseTable(
     FirebaseTablesEnum.FOCUSES,
-    approved,
+    isAdmin || userId !== "" ? false : true,
   );
   const industriesData = await getFirebaseTable(
     FirebaseTablesEnum.INDUSTRIES,
-    approved,
+    isAdmin || userId !== "" ? false : true,
   );
 
   // Note: Regions do not have statuses so no need to filter by approved

@@ -36,8 +36,9 @@ export default function FilterEditor({
 }: FilterEditorProps) {
   const [open, setOpen] = useState(false);
   const [allFilters, setAllFilters] = useState<Filter[]>([]);
+  const [filterAlreadySuggested, setFilterAlreadySuggested] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<string[]>(
-    filters ? filters.map((f) => f.id) : [],
+    filters ? filters.map((f) => f?.id) : [],
   );
   const [suggestOpen, setSuggestOpen] = useState(false);
   const unnapprovedFilters = filters
@@ -97,18 +98,25 @@ export default function FilterEditor({
         <div className="flex grow flex-wrap items-start gap-1">
           {filters &&
             filters.map((filter, i) => {
-              const focusNotApproved = filter.status !== StatusEnum.APPROVED;
+              const filterNotApproved = filter.status !== StatusEnum.APPROVED;
+              if (
+                !suggestedFilter &&
+                filterNotApproved &&
+                !filterAlreadySuggested
+              ) {
+                setFilterAlreadySuggested(true);
+              }
               return (
                 <div className={filterClass} key={`${filter.id}-${i}`}>
                   <span
                     className={cn(
-                      focusNotApproved &&
+                      filterNotApproved &&
                         `bg-violet-600/20 font-medium text-violet-600`,
                     )}
                     key={memberId + filter.id}
                   >
                     {filter.name}
-                    {focusNotApproved ? ` (${filter.status})` : null}
+                    {filterNotApproved ? ` (${filter.status})` : null}
                   </span>
                 </div>
               );
@@ -181,10 +189,11 @@ export default function FilterEditor({
                   consider any existing labels that might fit your situation.
                 </p>
                 <Input
-                  name={"usernamef"}
+                  name={"suggestion"}
                   placeholder={"New " + labels.singular}
                   className={suggestedFilter ? "bg-brown-600/20" : "bg-white"}
                   value={suggestedFilter}
+                  disabled={filterAlreadySuggested}
                   onChange={(e) => {
                     setSuggestedFilter(e.target.value);
                   }}
