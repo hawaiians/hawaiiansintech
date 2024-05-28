@@ -11,7 +11,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { useState } from "react";
-import { Filter, getFilters } from "@/lib/api";
+import { Filter } from "@/lib/firebase-helpers/interfaces";
 import { Input } from "@/components/ui/input";
 import { Pencil } from "lucide-react";
 
@@ -36,8 +36,9 @@ export default function FilterEditor({
 }: FilterEditorProps) {
   const [open, setOpen] = useState(false);
   const [allFilters, setAllFilters] = useState<Filter[]>([]);
+  const [filterAlreadySuggested, setFilterAlreadySuggested] = useState(false);
   const [selectedFilters, setSelectedFilters] = useState<string[]>(
-    filters ? filters.map((f) => f.id) : [],
+    filters ? filters.map((f) => f?.id) : [],
   );
   const [suggestOpen, setSuggestOpen] = useState(false);
   const unnapprovedFilters = filters
@@ -57,14 +58,18 @@ export default function FilterEditor({
 
   const handleOpen = async () => {
     setOpen(!open);
-
     if (unnapprovedFilters.length > 0) {
       setSuggestedFilter(unnapprovedFilters[0]);
       setSuggestOpen(true);
     } else if (suggestedFilter === "" || suggestedFilter === null) {
       setSuggestOpen(false);
     }
-    allFilters.length === 0 && setAllFilters(await getFilters(filterTable));
+    await fetch(`/api/filters?filterTable=${filterTable}`)
+      .then((response) => response.json())
+      .then((data) => {
+        const filters = data.filters;
+        setAllFilters(filters);
+      });
   };
 
   const handleSelect = (filter: Filter) => {
@@ -90,21 +95,28 @@ export default function FilterEditor({
     <div className="col-span-2">
       <h4 className="text-sm font-semibold">{labels.plural}</h4>
       <div className="flex">
-        <div className="flex items-start grow flex-wrap gap-1">
+        <div className="flex grow flex-wrap items-start gap-1">
           {filters &&
             filters.map((filter, i) => {
-              const focusNotApproved = filter.status !== StatusEnum.APPROVED;
+              const filterNotApproved = filter.status !== StatusEnum.APPROVED;
+              if (
+                !suggestedFilter &&
+                filterNotApproved &&
+                !filterAlreadySuggested
+              ) {
+                setFilterAlreadySuggested(true);
+              }
               return (
-                <div className={filterClass}>
+                <div className={filterClass} key={`${filter.id}-${i}`}>
                   <span
                     className={cn(
-                      focusNotApproved &&
+                      filterNotApproved &&
                         `bg-violet-600/20 font-medium text-violet-600`,
                     )}
                     key={memberId + filter.id}
                   >
                     {filter.name}
-                    {focusNotApproved ? ` (${filter.status})` : null}
+                    {filterNotApproved ? ` (${filter.status})` : null}
                   </span>
                 </div>
               );
@@ -125,7 +137,7 @@ export default function FilterEditor({
           )}
         </div>
         <Button
-          className="p-2 shrink-0"
+          className="shrink-0 p-2"
           variant="outline"
           size="icon"
           onClick={handleOpen}
@@ -157,7 +169,7 @@ export default function FilterEditor({
             </CommandGroup>
           </CommandList>
 
-          <div className="p-2 border-t">
+          <div className="border-t p-2">
             {!suggestOpen ? (
               <>
                 <Button
@@ -171,16 +183,17 @@ export default function FilterEditor({
             ) : (
               <>
                 <h4 className="text-sm">Please suggest with care 🤙🏽</h4>
-                <p className="text-xs pb-2">
+                <p className="pb-2 text-xs">
                   Suggesting a new label increases the time it takes to approve
                   your entry, as we manually review all submissions. Please
                   consider any existing labels that might fit your situation.
                 </p>
                 <Input
-                  name={"usernamef"}
+                  name={"suggestion"}
                   placeholder={"New " + labels.singular}
                   className={suggestedFilter ? "bg-brown-600/20" : "bg-white"}
                   value={suggestedFilter}
+                  disabled={filterAlreadySuggested}
                   onChange={(e) => {
                     setSuggestedFilter(e.target.value);
                   }}
