@@ -116,6 +116,14 @@ function EditForm({ baseUrl }) {
                 "There was an issue with the " +
                   "cloudflare check. Please try again.",
               );
+            } else if (
+              json.message.includes(`Member with email ${email} not found`)
+            ) {
+              setPageState(PageState.Error);
+              setError(
+                `Looks like the email ${email} is not associated with a ` +
+                  `Hawaiians in Tech account`,
+              );
             } else {
               throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -350,7 +358,7 @@ function EmailSent() {
           <Code>no-reply@hawaiiansintech.org</Code> to your address book.
         </p>
         <p className="mt-2 ">
-          If you're still not receiving it, please{" "}
+          If you&rsquo;re still not receiving it, please{" "}
           <Link href={DISCORD_SUPPORT_LINK} className="font-semibold">
             Let us know on Discord
           </Link>

@@ -36,7 +36,7 @@ import {
   YearsOfExperienceEnum,
 } from "@/lib/enums";
 import { User } from "firebase/auth";
-import { convertStringSnake, useEmailCloaker } from "helpers";
+import { convertStringSnake, scrollToTop, useEmailCloaker } from "helpers";
 import { Check, ExternalLink, EyeOff, Info, Trash } from "lucide-react";
 import Link from "next/link";
 import { ADMIN_EMAILS } from "@/lib/email/utils";
@@ -97,10 +97,11 @@ export const MemberEdit: FC<{
         return true;
       });
     }
+    if (error) scrollToTop();
     return () => {
       clearTimeout(timeout);
     };
-  }, [query.updated]);
+  }, [query.updated, error]);
 
   const getRegionIdFromName = (name: string): string => {
     const region = regions.find((r) => r.fields.name === name);
@@ -157,6 +158,7 @@ export const MemberEdit: FC<{
           headline: "Error updating member data",
           body: err.message,
         });
+        return response;
       });
     }
     console.log(`✅ updated ${member.name}`);
@@ -213,7 +215,11 @@ export const MemberEdit: FC<{
       yearsExperience: yearsOfExperience,
     };
 
-    await updateMember(updatedMember);
+    const updateResult = await updateMember(updatedMember);
+    if (!updateResult.ok) {
+      setSaveInProgress(false);
+      return;
+    }
     emailChanged && (await updateSecureEmail(member.id, email.email));
     if (onSave) {
       onSave();
@@ -312,6 +318,11 @@ export const MemberEdit: FC<{
                   Your changes will be reflected on the website shortly.
                 </AlertDescription>
               </Alert>
+            )}
+            {error && (
+              <div className="mt-2 w-full">
+                <ErrorMessage headline={error.headline} body={error.body} />
+              </div>
             )}
             <h2
               className={`text-sm font-semibold ${
@@ -602,11 +613,6 @@ export const MemberEdit: FC<{
               </p>
             </section>
           )}
-          <div className="col-span-2 mt-2">
-            {error && (
-              <ErrorMessage headline={error.headline} body={error.body} />
-            )}
-          </div>
           <div className="col-span-2 mt-2 flex flex-col gap-2 sm:flex-row">
             {adminView && (
               <TooltipProvider>
