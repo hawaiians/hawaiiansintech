@@ -123,11 +123,11 @@ function EditForm({ baseUrl }) {
                 setTimeout(() => {
                   setPageState(PageState.Error);
                   setError(
-                    `Looks like the email ${email} is not associated with a ` +
-                      `Hawaiians in Tech account`,
+                    `We don't recognize the email ${email}. Did you sign up ` +
+                      `with another? `,
                   );
                   resolve(response);
-                }, 5000); // 5-second delay if the email is not found
+                }, 2000); // 2-second delay if the email is not found
               });
             } else {
               throw new Error(`HTTP error! status: ${response.status}`);
