@@ -119,11 +119,16 @@ function EditForm({ baseUrl }) {
             } else if (
               json.message.includes(`Member with email ${email} not found`)
             ) {
-              setPageState(PageState.Error);
-              setError(
-                `Looks like the email ${email} is not associated with a ` +
-                  `Hawaiians in Tech account`,
-              );
+              return new Promise((resolve) => {
+                setTimeout(() => {
+                  setPageState(PageState.Error);
+                  setError(
+                    `Looks like the email ${email} is not associated with a ` +
+                      `Hawaiians in Tech account`,
+                  );
+                  resolve(response);
+                }, 5000); // 5-second delay if the email is not found
+              });
             } else {
               throw new Error(`HTTP error! status: ${response.status}`);
             }
