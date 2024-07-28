@@ -103,7 +103,7 @@ function EditForm({ baseUrl }) {
       body: JSON.stringify({
         email: email,
         url: fullUrl,
-        turnstileToken: "debugging",
+        turnstileToken,
       }),
     })
       .then((response) => {
@@ -310,12 +310,12 @@ function LogInForm({
                   </Button>
                 </section>
               </form>
-              {/* <div className="mt-4 flex justify-center">
+              <div className="mt-4 flex justify-center">
                 <TurnstileWidget
                   key={widgetKey}
                   onVerify={setTurnstileToken}
                 ></TurnstileWidget>{" "}
-              </div> */}
+              </div>
             </>
           );
         }}

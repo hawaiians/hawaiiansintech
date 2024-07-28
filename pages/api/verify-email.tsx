@@ -10,11 +10,11 @@ async function postHandler(req: NextApiRequest, res: NextApiResponse) {
     email: "string",
     url: "string",
   });
-  // const turnstileToken = req.body.turnstileToken;
-  // const ip = Array.isArray(req.headers["CF-Connecting-IP"])
-  //   ? req.headers["CF-Connecting-IP"][0]
-  //   : req.headers["CF-Connecting-IP"];
-  // await verifyTurnstileToken(turnstileToken, ip);
+  const turnstileToken = req.body.turnstileToken;
+  const ip = Array.isArray(req.headers["CF-Connecting-IP"])
+    ? req.headers["CF-Connecting-IP"][0]
+    : req.headers["CF-Connecting-IP"];
+  await verifyTurnstileToken(turnstileToken, ip);
   await sendVerificationEmail(req.body.email, req.body.url);
   res.status(200).json({
     message: `Successfully sent verification email to ${req.body.email}`,
