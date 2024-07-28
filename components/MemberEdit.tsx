@@ -43,6 +43,9 @@ import { ADMIN_EMAILS } from "@/lib/email/utils";
 import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
+import ErrorMessage, {
+  ErrorMessageProps,
+} from "@/components/form/ErrorMessage";
 
 export const MemberEdit: FC<{
   member: MemberPublic;
@@ -82,6 +85,7 @@ export const MemberEdit: FC<{
     { name: string; id: string }[] | string[]
   >(member.industry);
   const [suggestedIndustry, setSuggestedIndustry] = useState<string>(undefined);
+  const [error, setError] = useState<ErrorMessageProps>(undefined);
 
   useEffect(() => {
     let timeout: NodeJS.Timeout;
@@ -93,7 +97,6 @@ export const MemberEdit: FC<{
         return true;
       });
     }
-
     return () => {
       clearTimeout(timeout);
     };
@@ -150,12 +153,13 @@ export const MemberEdit: FC<{
     });
     if (!response.ok) {
       return response.json().then((err) => {
-        throw new Error(
-          `Error updating ${member.name} in firebase: ${err.message}`,
-        );
+        setError({
+          headline: "Error updating member data",
+          body: err.message,
+        });
       });
     }
-    console.log(`✅ updated ${member.name} in firebase`);
+    console.log(`✅ updated ${member.name}`);
     return response;
   };
 
@@ -173,13 +177,19 @@ export const MemberEdit: FC<{
       }),
     });
     if (response.status !== 200) {
-      throw new Error(`Error updating email for ${uid}`);
+      return response.json().then((err) => {
+        setError({
+          headline: `Error updating member email for ${uid}`,
+          body: err.message,
+        });
+      });
     }
-    console.log(`✅ updated email in firebase for ${uid}`);
+    console.log(`✅ updated email for ${uid}`);
     return response;
   };
 
   const saveChanges = async () => {
+    setError(undefined);
     setSaveInProgress(true);
 
     const emailChanged: boolean = email?.email && email.email !== originalEmail;
@@ -217,6 +227,7 @@ export const MemberEdit: FC<{
       router.reload();
     }
     setSaveInProgress(false);
+    setShowSuccess(true);
   };
 
   const mapTabsTriggerToVariant = (
@@ -591,6 +602,11 @@ export const MemberEdit: FC<{
               </p>
             </section>
           )}
+          <div className="col-span-2 mt-2">
+            {error && (
+              <ErrorMessage headline={error.headline} body={error.body} />
+            )}
+          </div>
           <div className="col-span-2 mt-2 flex flex-col gap-2 sm:flex-row">
             {adminView && (
               <TooltipProvider>
