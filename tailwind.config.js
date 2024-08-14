@@ -88,6 +88,7 @@ module.exports = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 0.1rem)",
         sm: "calc(var(--radius) - 0.2rem)",
+        xs: "calc(var(--radius) - 0.35rem)",
       },
       keyframes: {
         "accordion-down": {
