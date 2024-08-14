@@ -56,18 +56,18 @@ export default function BasicInformationForm({
           }}
           validationSchema={Yup.object().shape({
             name: Yup.string().required(
-              "We need to know what to call you. Name is required."
+              "We need to know what to call you. Name is required.",
             ),
             location: Yup.string().required(
-              "A location, imprecise or not, is required."
+              "A location, imprecise or not, is required.",
             ),
             website: Yup.string()
               .matches(
                 urlRegex({ strict: false }),
-                "That URL looks funny. Please try again."
+                "That URL looks funny. Please try again.",
               )
               .required(
-                "A website is required; think about a place where people can learn more about you."
+                "A website is required; think about a place where people can learn more about you.",
               ),
           })}
         >

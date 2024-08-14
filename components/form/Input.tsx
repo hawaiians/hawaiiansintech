@@ -95,8 +95,6 @@ export default function Input({
 
 export function InputError({ children }: { children: React.ReactNode }) {
   return (
-    <span className="mt-8 block text-xs font-normal text-red-500">
-      {children}
-    </span>
+    <span className="block text-xs font-normal text-red-500">{children}</span>
   );
 }

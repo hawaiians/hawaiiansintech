@@ -2,17 +2,18 @@ import Button from "@/components/Button";
 import ErrorMessage, {
   ErrorMessageProps,
 } from "@/components/form/ErrorMessage";
-import Input from "@/components/form/Input";
+import Input, { InputError } from "@/components/form/Input";
+import Label from "@/components/form/Label";
 import ProgressBar from "@/components/form/ProgressBar";
 import { Heading } from "@/components/Heading";
 import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
 import Plausible from "@/components/Plausible";
 import TurnstileWidget from "@/components/TurnstileWidget";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Checkbox, checkboxVariants } from "@/components/ui/checkbox";
 import { useStorage } from "@/lib/hooks";
-import { clearAllStoredFields, useInvalid } from "@/lib/utils";
-import { Formik } from "formik";
+import { clearAllStoredFields, cn, useInvalid } from "@/lib/utils";
+import { Field, Formik } from "formik";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -177,7 +178,7 @@ export default function JoinStep4({ pageTitle }) {
         )}
         <Formik
           enableReinitialize
-          initialValues={{ email: email }}
+          initialValues={{ email: email, heHawaiiAu: false }}
           validateOnBlur={validateAfterSubmit}
           validateOnChange={validateAfterSubmit}
           validate={() => setValidateAfterSubmit(true)}
@@ -190,6 +191,10 @@ export default function JoinStep4({ pageTitle }) {
               .required(
                 "It's important that we can reach you. Email is required.",
               ),
+            heHawaiiAu: Yup.bool().oneOf(
+              [true],
+              "Representation on the Hawaiians in Tech directory is open to individuals who identify as Native Hawaiian",
+            ),
           })}
         >
           {(props) => {
@@ -238,6 +243,29 @@ export default function JoinStep4({ pageTitle }) {
                     <span className="text-stone-500">(~once a month)</span>.
                   </label>
                 </div>
+                <Label
+                  htmlFor={"heHawaiiAu"}
+                  label={"Do you identify as kānaka maoli?"}
+                  labelTranslation={"He mamo Hawaiʻi ʻoe?"}
+                />
+                <div className="flex gap-x-2">
+                  <Field
+                    type="checkbox"
+                    name="heHawaiiAu"
+                    id="heHawaiiAu"
+                    as="input"
+                    className={cn(checkboxVariants({ variant: "default" }))}
+                  />
+                  <label
+                    htmlFor="heHawaiiAu"
+                    className="text-sm font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    I identify as Native Hawaiian.
+                  </label>
+                </div>
+                {props.errors.heHawaiiAu && (
+                  <InputError>{props.errors.heHawaiiAu}</InputError>
+                )}
                 <p className="my-2 text-center text-xs text-secondary-foreground">
                   By continuing, you confirm that you've agreed to our{" "}
                   <Link
@@ -249,7 +277,12 @@ export default function JoinStep4({ pageTitle }) {
                   </Link>
                   .
                 </p>
-
+                <div className="flex justify-center">
+                  <TurnstileWidget
+                    key={widgetKey}
+                    onVerify={setTurnstileToken}
+                  ></TurnstileWidget>{" "}
+                </div>
                 <div className="mx-auto w-full max-w-md px-4">
                   <Button fullWidth loading={loading} type="submit">
                     Submit
@@ -260,14 +293,8 @@ export default function JoinStep4({ pageTitle }) {
           }}
         </Formik>
       </section>
-      <div className="mt-6">
+      <div className="mt-6 pb-12">
         <ProgressBar currentCount={4} totalCount={4} width="6.4rem" />
-      </div>
-      <div className="mt-8 flex justify-center pb-12">
-        <TurnstileWidget
-          key={widgetKey}
-          onVerify={setTurnstileToken}
-        ></TurnstileWidget>{" "}
       </div>
     </>
   );

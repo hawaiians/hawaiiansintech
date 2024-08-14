@@ -92,7 +92,7 @@ export default function JoinStep1({ pageTitle }) {
         onSubmit={handleSubmit}
         onReset={handleReset}
       />
-      <div className="mt-6">
+      <div className="mt-6 pb-12">
         <ProgressBar currentCount={1} totalCount={4} width="6.4rem" />
       </div>
       {/* TODO: Add login link */}
