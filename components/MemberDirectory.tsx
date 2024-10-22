@@ -22,35 +22,36 @@ export default function MemberDirectory({ members }: MemberDirectoryProps) {
           .concat(mem.regionFilter)
           ?.filter((foc) => foc.active).length > 0,
     ).length > 0;
+
   return (
     <section
       className={`
         mt-8
         grid
-        grid-flow-row
-        grid-cols-1
         gap-4
         px-4
         pb-4
-        sm:auto-rows-fr
-        sm:grid-cols-2
-        md:grid-cols-3
-        lg:grid-cols-4
       `}
     >
-      {members.map((member, i) => {
-        const isSelected =
-          member.focus
-            .concat(member.industry)
-            .concat(member.experienceFilter)
-            .concat(member.regionFilter)
-            ?.filter((foc) => foc.active).length > 0;
-        return (
-          <a
-            className={cn(
-              `
+      {members
+        .filter(
+          (member) =>
+            member.link.includes("linkedin.com") ||
+            member.link.includes("lnkd.in"),
+        )
+        .map((member, i) => {
+          const isSelected =
+            member.focus
+              .concat(member.industry)
+              .concat(member.experienceFilter)
+              .concat(member.regionFilter)
+              ?.filter((foc) => foc.active).length > 0;
+          return (
+            <a
+              className={cn(
+                `
+              group
               flex
-              min-h-[140px]
               flex-col
               rounded-2xl
               border-4
@@ -65,169 +66,33 @@ export default function MemberDirectory({ members }: MemberDirectoryProps) {
               sm:px-4
               sm:py-2
             `,
-              isSelected
-                ? "border-brown-600/50 bg-brown-600/10 hover:border-brown-600/30 hover:bg-brown-600/30"
-                : isFiltered
-                  ? "opacity-50 hover:opacity-100"
-                  : "",
-            )}
-            key={`member-${member.id}`}
-            href={member.link}
-            target="_blank"
-          >
-            <h2
-              className={cn(
-                `
+                isSelected
+                  ? "border-brown-600/50 bg-brown-600/10 hover:border-brown-600/30 hover:bg-brown-600/30"
+                  : isFiltered
+                    ? "opacity-50 hover:opacity-100"
+                    : "",
+              )}
+              key={`member-${member.id}`}
+              href={member.link}
+              target="_blank"
+            >
+              <h2
+                className={cn(
+                  `
                 text-2xl
                 font-medium
                 tracking-tight
                 text-stone-800
+                group-visited:text-red-400
               `,
-                isSelected && "text-stone-900",
-              )}
-            >
-              {member.name}
-            </h2>
-            <div className="flex grow flex-col gap-2">
-              {member.title ? (
-                <h3
-                  className={cn(
-                    `
-                  text-lg
-                  font-medium
-                  leading-tight
-                  text-brown-600
-                `,
-                    isSelected && "text-stone-700",
-                  )}
-                >
-                  {member.title}
-                </h3>
-              ) : (
-                <></>
-              )}
-              <div className="flex flex-col gap-1">
-                {member.focus.length > 0 && (
-                  <section className="border-b border-tan-400/50 pb-2">
-                    <h5 className="text-sm font-medium text-stone-600">
-                      Focus{member.focus.length >= 2 && "es"}
-                    </h5>
-                    {member.focus?.map((fil, index) => (
-                      <h4
-                        className={cn(
-                          `
-                            inline
-                            text-base
-                            font-semibold
-                            leading-snug
-                            text-stone-900
-                          `,
-                          fil.active && "text-brown-600",
-                        )}
-                        key={`member-meta-${fil.id}`}
-                      >
-                        {fil.name}
-                        {index !== member.focus.length - 1 && ", "}
-                      </h4>
-                    ))}
-                  </section>
+                  isSelected && "text-stone-900",
                 )}
-                {member.industry.length > 0 && (
-                  <section className="border-b border-tan-400/50 pb-2">
-                    <h5 className="text-sm font-medium text-stone-600">
-                      Industr{member.industry.length >= 2 ? "ies" : "y"}
-                    </h5>
-                    <h4 className="leading-snug">
-                      {member.industry?.map((fil, index) => (
-                        <span
-                          className={cn(
-                            `
-                            text-base
-                            font-semibold
-                            text-stone-900
-                          `,
-                            fil.active && "text-brown-600",
-                          )}
-                          key={`member-meta-${fil.id}`}
-                        >
-                          {fil.name}
-                          {index !== member.industry.length - 1 && ", "}
-                        </span>
-                      ))}
-                    </h4>
-                  </section>
-                )}
-                {member.experienceFilter.length > 0 && (
-                  <section className="border-b border-tan-400/50 pb-2">
-                    <h5
-                      className={cn(
-                        `
-                          text-sm
-                          font-medium
-                          text-stone-600
-                        `,
-                      )}
-                    >
-                      Years of Experience
-                    </h5>
-                    <h4 className="leading-snug">
-                      {member.experienceFilter?.map((fil) => (
-                        <span
-                          className={cn(
-                            `
-                            text-base
-                            font-semibold
-                            leading-snug
-                            text-stone-900
-                            `,
-                            member.experienceFilter[0]?.active &&
-                              "text-brown-600",
-                          )}
-                          key={`member-meta-${fil.id}`}
-                        >
-                          {fil.name}
-                        </span>
-                      ))}
-                    </h4>
-                  </section>
-                )}
-
-                <section>
-                  <h5
-                    className={cn(
-                      `
-                      text-sm
-                      font-medium
-                      text-stone-600
-                    `,
-                    )}
-                  >
-                    Location
-                  </h5>
-                  <h4
-                    className={cn(
-                      `
-                    text-base
-                    font-semibold
-                    leading-snug
-                    text-stone-900
-                  `,
-                      member.regionFilter[0]?.active && "text-brown-600",
-                    )}
-                  >
-                    {member.location ? member.location + ", " : ""}
-                    {member.regionFilter[0] ? (
-                      <span>{member.regionFilter[0].name}</span>
-                    ) : (
-                      <span>{member.region}</span>
-                    )}
-                  </h4>
-                </section>
-              </div>
-            </div>
-          </a>
-        );
-      })}
+              >
+                {member.name}
+              </h2>
+            </a>
+          );
+        })}
     </section>
   );
 }

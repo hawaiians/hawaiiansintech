@@ -162,7 +162,7 @@ export default function HomePage({
           .map((fil) => fil?.active)
           .filter((fil) => fil).length;
         // if same count, randomize
-        if (nextActive === firstActive) return 0.5 - Math.random();
+        // if (nextActive === firstActive) return 0.5 - Math.random(); // Removed randomization
         // or sort by
         return nextActive > firstActive ? 1 : -1;
       });
