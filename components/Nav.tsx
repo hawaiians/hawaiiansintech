@@ -1,9 +1,18 @@
+import * as React from "react";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+  navigationMenuTriggerStyle,
+} from "@/components/ui/navigation-menu";
 import { Icon, IconAsset, IconColor } from "@/components/icon/icon";
 import Logo from "@/components/Logo";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { buttonVariants } from "./ui/button";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
@@ -79,44 +88,87 @@ export default function Nav({
     if (variant !== "primary") return null;
 
     return (
-      <>
-        <Link
-          href={generateNavUrl(`/about`, NavAppearance.ToMin)}
-          className="text-base font-medium text-stone-700 hover:no-underline"
-        >
-          About
-        </Link>
-        <Link
-          href={generateNavUrl(`/hackathon`, NavAppearance.ToMin)}
-          className="font-script text-2xl hover:no-underline"
-        >
-          Hackathon
-        </Link>
-      </>
-    );
-  };
-
-  const renderActionItems = () => {
-    if (variant !== "primary") return null;
-
-    return (
-      <div className="flex items-center gap-6">
-        <Link
-          className="text-base font-medium text-stone-700 hover:no-underline"
-          href={generateNavUrl(`/edit`, NavAppearance.ToMin)}
-        >
-          Update Profile
-        </Link>
-        <Link
-          className={cn(
-            buttonVariants({ size: "sm" }),
-            "px-4 hover:no-underline",
-          )}
-          href={generateNavUrl(`/join/01-you`, NavAppearance.ToMin)}
-        >
-          Join Us
-        </Link>
-      </div>
+      <NavigationMenu>
+        <NavigationMenuList>
+          <Link
+            href={generateNavUrl(`/about`, NavAppearance.ToMin)}
+            legacyBehavior
+            passHref
+          >
+            <NavigationMenuLink
+              className={cn(navigationMenuTriggerStyle(), "text-foreground")}
+            >
+              About
+            </NavigationMenuLink>
+          </Link>
+          <NavigationMenuItem>
+            <NavigationMenuTrigger>Community</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid gap-1.5 p-3 md:w-[400px] lg:w-[720px] lg:grid-cols-[.75fr_1fr_1fr]">
+                <li className="row-span-2">
+                  <NavigationMenuLink asChild>
+                    <a
+                      className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/25 to-muted/50 p-3 no-underline outline-none hover:from-muted/60 hover:to-muted/60 focus:shadow-md"
+                      href={generateNavUrl(`/join/01-you`, NavAppearance.ToMin)}
+                    >
+                      <h6 className="mb-1 font-medium">Join Directory</h6>
+                      <p className="text-sm leading-tight text-muted-foreground">
+                        We simply ask that you are{" "}
+                        <strong className="font-medium text-secondary-foreground">
+                          Native Hawaiian
+                        </strong>{" "}
+                        and work in the{" "}
+                        <strong className="font-medium text-secondary-foreground">
+                          field / industry of technology
+                        </strong>{" "}
+                        to join the list.
+                      </p>
+                    </a>
+                  </NavigationMenuLink>
+                </li>
+                <ListItem
+                  href={generateNavUrl(`/edit`, NavAppearance.ToMin)}
+                  title="Update Profile"
+                  variant="accent"
+                >
+                  Manage your profile on the directory
+                </ListItem>
+                <ListItem href="/discord" title="Discord" target="_blank">
+                  Our community mostly congregates on our Discord server
+                </ListItem>
+                <ListItem
+                  href="https://github.com/hawaiians/hawaiiansintech"
+                  title="Github"
+                  target="_blank"
+                >
+                  Contributions are welcome on our projects, including this
+                  website
+                </ListItem>
+                <ListItem
+                  href="https://www.linkedin.com/company/hawaiians-in-technology/"
+                  title="LinkedIn"
+                  target="_blank"
+                >
+                  Join our community on the professional network
+                </ListItem>
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <NavigationMenuTrigger>Events</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid gap-1.5 p-3 md:w-[320px]">
+                <ListItem
+                  href={generateNavUrl(`/hackathon`, NavAppearance.ToMin)}
+                  title="Hackathon 2022"
+                >
+                  An event co-hosted with Purple Maiʻa
+                </ListItem>
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+      </NavigationMenu>
     );
   };
 
@@ -134,7 +186,34 @@ export default function Nav({
       {children && (
         <div className="flex grow items-center gap-4">{children}</div>
       )}
-      {renderActionItems()}
     </header>
   );
 }
+
+const ListItem = React.forwardRef<
+  React.ElementRef<"a">,
+  React.ComponentPropsWithoutRef<"a"> & { variant?: "default" | "accent" }
+>(({ className, title, variant, children, ...props }, ref) => {
+  return (
+    <li>
+      <NavigationMenuLink asChild>
+        <a
+          ref={ref}
+          className={cn(
+            "block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-muted/20 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            variant === "accent" &&
+              "border border-brown-600/20 hover:bg-brown-600/5",
+            className,
+          )}
+          {...props}
+        >
+          <div className="text-sm font-medium leading-none">{title}</div>
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+            {children}
+          </p>
+        </a>
+      </NavigationMenuLink>
+    </li>
+  );
+});
+ListItem.displayName = "ListItem";

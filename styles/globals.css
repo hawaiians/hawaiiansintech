@@ -62,9 +62,6 @@
   a {
     @apply text-primary;
   }
-  a:hover {
-    @apply underline decoration-primary/50;
-  }
 }
 
 @layer components {
