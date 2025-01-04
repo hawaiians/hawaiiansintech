@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "fastapi-dev": "python3 -m pip install -r requirements.txt && python3 -m uvicorn api.index:app --reload",
+    "fastapi-dev": "export NODE_ENV=development && python3 -m pip install -r backend/requirements.txt && python3 -m uvicorn backend.api.index:app --reload",
     "next-dev": "next dev",
     "dev": "concurrently \"npm run next-dev\" \"npm run fastapi-dev\"",
     "dev:email": "email dev",

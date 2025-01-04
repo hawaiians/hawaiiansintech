@@ -1,0 +1,5 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic==2.10.4
+firebase-admin==6.1.0
+fastapi-pagination==0.12.34
