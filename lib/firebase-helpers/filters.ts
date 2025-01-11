@@ -33,18 +33,15 @@ export const fieldNameToTable = {
 };
 
 export const addNewLabel = async (
-  id: string,
   newFitler: string,
   filterName: string,
   currentUser: string,
   docRef: admin.firestore.DocumentReference,
 ) => {
-  const memberRefPublic = await getMemberRef(id);
   const newLabelRef = await addLabelRef(
     newFitler,
     fieldNameToTable[filterName],
   );
-  await addMemberToLabels([newLabelRef], memberRefPublic);
   const writeResult = await docRef.update({
     [filterName]: admin.firestore.FieldValue.arrayUnion(
       ...[admin.firestore().doc(newLabelRef.path)],
@@ -169,22 +166,50 @@ export const addLabelRef = async (
   return docRef;
 };
 
-export const addMemberToLabels = async (
-  labelReferences: DocumentReference[],
-  memberRef: DocumentReference,
-) => {
-  for (const labelRef of labelReferences) {
-    await updateDoc(labelRef, {
-      members: arrayUnion(memberRef),
-      last_modified: serverTimestamp(),
-    });
+export const addMemberToLabels = async (memberRef: DocumentReference) => {
+  const memberSnapshot = await getDoc(memberRef);
+  const memberData = memberSnapshot.data();
+  const industries = memberData[FirebaseMemberFieldsEnum.INDUSTRIES];
+  const focuses = memberData[FirebaseMemberFieldsEnum.FOCUSES];
+  const regions = memberData[FirebaseMemberFieldsEnum.REGIONS];
+  const experience = [memberData[FirebaseMemberFieldsEnum.EXPERIENCE]];
+  for (const label of [industries, focuses, regions, experience]) {
+    if (label) {
+      for (const ref of label) {
+        await updateDoc(ref, {
+          members: arrayUnion(memberRef),
+          last_modified: serverTimestamp(),
+          last_modified_by: "admin edit",
+        });
+      }
+    }
+  }
+};
+
+export const deleteMemberFromLabels = async (memberRef: DocumentReference) => {
+  const memberSnapshot = await getDoc(memberRef);
+  const memberData = memberSnapshot.data();
+  const industries = memberData[FirebaseMemberFieldsEnum.INDUSTRIES];
+  const focuses = memberData[FirebaseMemberFieldsEnum.FOCUSES];
+  const regions = memberData[FirebaseMemberFieldsEnum.REGIONS];
+  const experience = [memberData[FirebaseMemberFieldsEnum.EXPERIENCE]];
+  for (const label of [industries, focuses, regions, experience]) {
+    if (label) {
+      for (const ref of label) {
+        await updateDoc(ref, {
+          members: arrayUnion(memberRef),
+          last_modified: serverTimestamp(),
+          last_modified_by: "admin edit",
+        });
+      }
+    }
   }
 };
 
 export function filterLookup(
   items: DocumentData[],
   memberData?: DocumentReference[],
-  isRegionLookup: boolean = false,
+  returnFirstName: boolean = false,
 ): FilterData[] | string | null {
   if (memberData && Array.isArray(memberData) && memberData.length !== 0) {
     const results = memberData.map((item) => {
@@ -205,9 +230,7 @@ export function filterLookup(
           })[0] || null
       );
     });
-    // TODO: Allow for users to have multiple regions, temporarily returning
-    //  the first region's name
-    return isRegionLookup ? results[0].name : results;
+    return returnFirstName ? results[0].name : results;
   }
   return null;
 }

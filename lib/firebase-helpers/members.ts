@@ -8,7 +8,6 @@ import {
 } from "@/lib/enums";
 import {
   addLabelRef,
-  addMemberToLabels,
   filterLookup,
   updateFilterReferences,
 } from "@/lib/firebase-helpers/filters";
@@ -78,6 +77,7 @@ export async function getMembers(token?: string): Promise<{
 
   // Note: Regions do not have statuses so no need to filter by approved
   const regionsData = await getFirebaseTable(FirebaseTablesEnum.REGIONS);
+  const experienceData = await getFirebaseTable(FirebaseTablesEnum.EXPERIENCE);
 
   return {
     members: members
@@ -92,12 +92,15 @@ export async function getMembers(token?: string): Promise<{
           emailAbbr,
           requests,
           unsubscribed,
+          experience,
           ...rest
         } = member;
 
         let memberObject = {
           ...rest,
+          // TODO: Allow for users to have multiple regions
           region: filterLookup(regionsData, regions, true),
+          experience: filterLookup(experienceData, experience, true),
           industry: filterLookup(industriesData, industries),
           focus: filterLookup(focusesData, focuses),
         };
@@ -188,13 +191,7 @@ export const updateMember = async (
   for (const field of suggested) {
     const suggestedField = memberData[fieldSingular[field] + "Suggested"];
     if (suggestedField) {
-      await addNewLabel(
-        memberData.id,
-        suggestedField,
-        field,
-        currentUser,
-        docRef,
-      );
+      await addNewLabel(suggestedField, field, currentUser, docRef);
     }
   }
 
@@ -243,6 +240,7 @@ export interface CreateMemberFields {
   focusSuggested?: string;
   title?: string;
   yearsExperience?: string;
+  experience?: string;
   industriesSelected?: string | string[];
   industrySuggested?: string;
   companySize?: string;
@@ -257,6 +255,20 @@ const idToRef = async (
   const collectionRef = collection(db, collectionName);
   const docRef = doc(collectionRef, labelId);
   return docRef;
+};
+
+const nameToRef = async (
+  labelName: string,
+  collectionName: string,
+): Promise<DocumentReference> => {
+  const collectionRef = collection(db, collectionName);
+  const querySnapshot = await getDocs(
+    query(collectionRef, where("name", "==", labelName)),
+  );
+  if (querySnapshot.empty) {
+    throw new Error(`No ${collectionName} found with name ${labelName}`);
+  }
+  return querySnapshot.docs[0].ref;
 };
 
 const idsToRefs = async (
@@ -299,6 +311,30 @@ const addMember = async (
   }
 };
 
+async function handleLabelRefs(
+  selectedIds: string[] | string,
+  suggested: string,
+  collectionName: "focuses" | "industries",
+): Promise<DocumentReference[]> {
+  let refs: DocumentReference[] = [];
+
+  if (typeof selectedIds === "string") {
+    selectedIds = [selectedIds];
+  }
+
+  if (selectedIds) {
+    const selectedRefs = await idsToRefs(selectedIds, collectionName);
+    refs = [...refs, ...selectedRefs];
+  }
+
+  if (suggested) {
+    const suggestedRef = await addLabelRef(suggested, collectionName);
+    refs = [...refs, suggestedRef];
+  }
+
+  return refs;
+}
+
 export const addMemberToFirebase = async (
   fields: CreateMemberFields,
 ): Promise<DocumentReference> => {
@@ -316,44 +352,27 @@ export const addMemberToFirebase = async (
     unsubscribed: fields.unsubscribed,
   };
 
-  // Handle focuses
-  let focuses: DocumentReference[] = [];
-  if (fields.focusesSelected) {
-    const selectedFocusesRefs = await idsToRefs(
-      fields.focusesSelected,
-      "focuses",
-    );
-    focuses = [...focuses, ...selectedFocusesRefs];
-  }
-  if (fields.focusSuggested) {
-    const focusRef = await addLabelRef(fields.focusSuggested, "focuses");
-    focuses = [...focuses, focusRef];
-  }
-  if (focuses) member.focuses = focuses;
+  const focuses = await handleLabelRefs(
+    fields.focusesSelected,
+    fields.focusSuggested,
+    "focuses",
+  );
+  if (focuses.length > 0) member.focuses = focuses;
 
-  // Handle industries
-  let industries: DocumentReference[] = [];
-  if (fields.industriesSelected) {
-    const selectedIndustriesRefs = await idsToRefs(
-      fields.industriesSelected,
-      "industries",
-    );
-    industries = [...industries, ...selectedIndustriesRefs];
-  }
-  if (fields.industrySuggested) {
-    const industryRef = await addLabelRef(
-      fields.industrySuggested,
-      "industries",
-    );
-    industries = [...industries, industryRef];
-  }
-  if (industries) member.industries = industries;
+  const industries = await handleLabelRefs(
+    fields.industriesSelected,
+    fields.industrySuggested,
+    "industries",
+  );
+  if (industries.length > 0) member.industries = industries;
+
+  member["experience"] = await nameToRef(fields.yearsExperience, "experience");
 
   return new Promise(async (resolve, reject) => {
     try {
       const docRef = await addMember(member);
-      await addMemberToLabels(focuses, docRef);
-      await addMemberToLabels(industries, docRef);
+      // await addMemberToLabels(focuses, docRef);
+      // await addMemberToLabels(industries, docRef);
       resolve(docRef);
     } catch (error) {
       console.error("Error adding member:", error);
@@ -367,6 +386,7 @@ interface referencesToDelete {
   focuses: DocumentReference[];
   industries: DocumentReference[];
   regions: DocumentReference[];
+  experience: DocumentReference;
   secureMemberData: DocumentReference;
 }
 
@@ -386,6 +406,7 @@ export async function getAllMemberReferencesToDelete(
     focuses: data.focuses,
     industries: data.industries,
     regions: data.regions,
+    experience: data.experience,
     secureMemberData: doc(db, FirebaseTablesEnum.SECURE_MEMBER_DATA, uid),
   };
   return returnData;
@@ -444,6 +465,7 @@ export async function getMembersTable(
 export default serverSideOnly({
   getMembers,
   updateMember,
+  handleLabelRefs,
   addMemberToFirebase,
   getAllMemberReferencesToDelete,
   deleteReferences,
