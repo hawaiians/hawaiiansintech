@@ -20,19 +20,23 @@ import { memberConverter } from "../firestore-converters/member";
 import {
   DocumentData,
   MemberPublic,
-  // regionLookup,
+  // regionLookup
 } from "@/lib/firebase-helpers/interfaces";
 import { verifyAdminToken, verifyEmailAuthToken } from "@/lib/api-helpers/auth";
 import {
   DocumentReference,
   FirestoreDataConverter,
+  QueryDocumentSnapshot,
   addDoc,
   collection,
   doc,
   getDoc,
   getDocs,
+  limit,
+  orderBy,
   query,
   serverTimestamp,
+  startAfter,
   updateDoc,
   where,
 } from "firebase/firestore";
@@ -40,11 +44,39 @@ import { useEmailCloaker } from "@/helpers";
 import { addSecureEmail, getIdByEmail } from "./emails";
 import { db } from "@/lib/firebase";
 
-export async function getMembers(token?: string): Promise<{
+interface GetMembersOptions {
+  token?: string;
+  limit?: number;
+  cursor?: string;
+  paginated?: boolean;
+  regions?: DocumentData[];
+  industries?: DocumentData[];
+  focuses?: DocumentData[];
+  experience?: DocumentData[];
+}
+
+interface PaginatedResponse {
+  items: any[];
+  hasMore: boolean;
+  lastId: string | null;
+}
+
+export async function getMembers({
+  token,
+  limit = 10,
+  cursor,
+  paginated = false,
+  regions,
+  industries,
+  focuses,
+  experience,
+}: GetMembersOptions = {}): Promise<{
   members: MemberPublic[];
   regions: DocumentData[];
   industries: DocumentData[];
   focuses: DocumentData[];
+  experience: DocumentData[];
+  cursor?: string;
 }> {
   let isAdmin = false;
   let userEmail = "";
@@ -58,29 +90,47 @@ export async function getMembers(token?: string): Promise<{
     userId = await getIdByEmail(userEmail);
   }
 
-  const members = await getMembersTable(
-    FirebaseTablesEnum.MEMBERS,
-    memberConverter,
-    !isAdmin,
-    isAdmin,
-    userId,
-  );
+  let membersArray = [];
+  let membersPaginated = null;
+  if (paginated) {
+    membersPaginated = await getMembersTablePaged(
+      memberConverter,
+      limit,
+      cursor,
+    );
+    membersArray = membersPaginated.items;
+  } else {
+    membersArray = await getMembersTable(
+      FirebaseTablesEnum.MEMBERS,
+      memberConverter,
+      !isAdmin,
+      isAdmin,
+      userId,
+    );
+  }
 
-  const focusesData = await getFirebaseTable(
-    FirebaseTablesEnum.FOCUSES,
-    isAdmin || userId !== "" ? false : true,
-  );
-  const industriesData = await getFirebaseTable(
-    FirebaseTablesEnum.INDUSTRIES,
-    isAdmin || userId !== "" ? false : true,
-  );
+  const focusesData =
+    focuses ||
+    (await getFirebaseTable(
+      FirebaseTablesEnum.FOCUSES,
+      isAdmin || userId !== "" ? false : true,
+    ));
+
+  const industriesData =
+    industries ||
+    (await getFirebaseTable(
+      FirebaseTablesEnum.INDUSTRIES,
+      isAdmin || userId !== "" ? false : true,
+    ));
 
   // Note: Regions do not have statuses so no need to filter by approved
-  const regionsData = await getFirebaseTable(FirebaseTablesEnum.REGIONS);
-  const experienceData = await getFirebaseTable(FirebaseTablesEnum.EXPERIENCE);
+  const regionsData =
+    regions || (await getFirebaseTable(FirebaseTablesEnum.REGIONS));
+  const experienceData =
+    experience || (await getFirebaseTable(FirebaseTablesEnum.EXPERIENCE));
 
   return {
-    members: members
+    members: membersArray
       .map((member) => {
         const {
           regions,
@@ -124,6 +174,8 @@ export async function getMembers(token?: string): Promise<{
     focuses: focusesData,
     industries: industriesData,
     regions: regionsData,
+    experience: experienceData,
+    cursor: paginated ? membersPaginated.lastId : undefined,
   };
 }
 
@@ -456,10 +508,35 @@ export async function getMembersTable(
     if (approved || doc.id === userId || isAdmin) {
       return doc.data();
     }
-    const { lastModified, lastModifiedBy, requests, unsubscribed, ...data } =
-      doc.data();
-    return data;
   });
+}
+
+async function getMembersTablePaged(
+  converter: FirestoreDataConverter<any>,
+  pageSize: number = 10,
+  cursor?: string,
+): Promise<PaginatedResponse> {
+  let membersQuery = query(
+    collection(db, FirebaseTablesEnum.MEMBERS).withConverter(converter),
+    where("status", "==", StatusEnum.APPROVED),
+  );
+  if (cursor) {
+    const cursorDoc = await getDoc(doc(db, FirebaseTablesEnum.MEMBERS, cursor));
+    if (!cursorDoc.exists()) {
+      throw new Error("Invalid cursor");
+    }
+    membersQuery = query(membersQuery, startAfter(cursorDoc));
+  }
+  membersQuery = query(membersQuery, limit(pageSize + 1));
+  const snapshot = await getDocs(membersQuery);
+  const members = snapshot.docs
+    .slice(0, pageSize)
+    .map((doc) => ({ ...doc.data(), id: doc.id }));
+  return {
+    items: members,
+    hasMore: snapshot.docs.length > pageSize,
+    lastId: members.length > 0 ? members[members.length - 1].id : null,
+  };
 }
 
 export default serverSideOnly({

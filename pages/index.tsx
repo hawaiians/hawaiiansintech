@@ -11,7 +11,9 @@ import { getMembers } from "@/lib/firebase-helpers/members";
 import { getFilters, getFiltersBasic } from "@/lib/firebase-helpers/filters";
 
 export async function getStaticProps() {
-  const { members, focuses, industries, regions } = await getMembers();
+  const { members, focuses, industries, regions } = await getMembers({
+    paginated: true,
+  });
 
   return {
     props: {
