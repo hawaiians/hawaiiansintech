@@ -11,13 +11,14 @@ import { getMembers } from "@/lib/firebase-helpers/members";
 import { getFilters, getFiltersBasic } from "@/lib/firebase-helpers/filters";
 
 export async function getStaticProps() {
-  const { members, focuses, industries, regions } = await getMembers({
+  const { members, focuses, industries, regions, cursor } = await getMembers({
     paginated: true,
   });
 
   return {
     props: {
       fetchedMembers: members,
+      fetchedMembersCursor: cursor,
       fetchedFocuses: await getFilters(
         FirebaseTablesEnum.FOCUSES,
         true,
@@ -42,8 +43,21 @@ export async function getStaticProps() {
   };
 }
 
+const transformMemberData = (member: any) => ({
+  ...member,
+  focus: member.focus
+    ? member.focus.map((item) => ({ ...item, active: false }))
+    : [],
+  industry: member.industry
+    ? member.industry.map((item) => ({ ...item, active: false }))
+    : [],
+  experienceFilter: [],
+  regionFilter: [],
+});
+
 export default function HomePage({
   fetchedMembers,
+  fetchedMembersCursor,
   fetchedFocuses,
   fetchedIndustries,
   fetchedExperiences,
@@ -51,18 +65,8 @@ export default function HomePage({
   pageTitle,
 }) {
   const initialState = {
-    members: fetchedMembers.map((mem) => ({
-      ...mem,
-      // mutate & add active prop
-      focus: mem.focus
-        ? mem.focus.map((foc) => ({ ...foc, active: false }))
-        : [],
-      industry: mem.industry
-        ? mem.industry.map((ind) => ({ ...ind, active: false }))
-        : [],
-      experienceFilter: [],
-      regionFilter: [],
-    })),
+    members: fetchedMembers.map(transformMemberData),
+    membersCursor: fetchedMembersCursor,
     focuses: fetchedFocuses.filter((focus) => focus.count > 0),
     industries: fetchedIndustries.filter((industry) => industry.count > 0),
     experiences: fetchedExperiences,
@@ -71,7 +75,9 @@ export default function HomePage({
   const [members, setMembers] = useState<DirectoryMember[]>(
     initialState.members,
   );
-
+  const [membersCursor, setMembersCursor] = useState<string>(
+    initialState.membersCursor,
+  );
   const [activeFilters, setActiveFilters] = useState<PickerFilter[]>([]);
   const [filtersList, setFiltersList] = useState<PickerFilter[]>(
     initialState.focuses.slice(0, 6),
@@ -88,7 +94,10 @@ export default function HomePage({
     initialState.members.length,
   );
   const [viewAll, setViewAll] = useState<boolean>(true);
+  const [loadingMoreMembers, setLoadingMoreMembers] = useState(false);
 
+  // TODO: Refactor filter logic to allow for all filters to be selected,
+  // and update number of all members to reflect all approved members
   useEffect(() => {
     const activeFilters = focuses
       .concat(industries)
@@ -217,6 +226,21 @@ export default function HomePage({
     setFiltersList(filterMap[filterType]);
   };
 
+  const loadMoreMembers = async () => {
+    setLoadingMoreMembers(true);
+    try {
+      const response = await fetch(`/api/members?cursor=${membersCursor}`);
+      const data = await response.json();
+      const transformedMembers = data.members.map(transformMemberData);
+      setMembers((prevMembers) => [...prevMembers, ...transformedMembers]);
+      setMembersCursor(data.cursor);
+    } catch (error) {
+      console.error("Error loading more members:", error);
+    } finally {
+      setLoadingMoreMembers(false);
+    }
+  };
+
   return (
     <>
       <Head>
@@ -248,7 +272,13 @@ export default function HomePage({
           />
         )}
       </div>
-      {members && <MemberDirectory members={members} />}
+      {members && (
+        <MemberDirectory
+          members={members}
+          loadMoreMembers={loadMoreMembers}
+          isLoadingMoreMembers={loadingMoreMembers}
+        />
+      )}
     </>
   );
 }

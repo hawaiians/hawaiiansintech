@@ -32,10 +32,17 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   if (authHeader) {
     const token = authHeader.split(" ")[1];
-    data = await getMembers(token);
+    data = await getMembers({ token: token });
   } else {
     console.log({ message: "No authorization header included" });
-    data = await getMembers();
+    if (req.query.cursor) {
+      data = await getMembers({
+        cursor: req.query.cursor as string,
+        paginated: true,
+      });
+    } else {
+      data = await getMembers();
+    }
   }
 
   return res.status(200).json({
@@ -44,6 +51,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     focuses: data.focuses,
     industries: data.industries,
     regions: data.regions,
+    cursor: data.cursor,
   });
 }
 

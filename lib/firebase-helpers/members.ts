@@ -58,7 +58,7 @@ interface GetMembersOptions {
 interface PaginatedResponse {
   items: any[];
   hasMore: boolean;
-  lastId: string | null;
+  cursor: string;
 }
 
 export async function getMembers({
@@ -175,7 +175,7 @@ export async function getMembers({
     industries: industriesData,
     regions: regionsData,
     experience: experienceData,
-    cursor: paginated ? membersPaginated.lastId : undefined,
+    cursor: paginated ? membersPaginated.cursor : undefined,
   };
 }
 
@@ -520,7 +520,7 @@ async function getMembersTablePaged(
     collection(db, FirebaseTablesEnum.MEMBERS).withConverter(converter),
     where("status", "==", StatusEnum.APPROVED),
   );
-  if (cursor) {
+  if (cursor && cursor.trim() !== "") {
     const cursorDoc = await getDoc(doc(db, FirebaseTablesEnum.MEMBERS, cursor));
     if (!cursorDoc.exists()) {
       throw new Error("Invalid cursor");
@@ -535,7 +535,7 @@ async function getMembersTablePaged(
   return {
     items: members,
     hasMore: snapshot.docs.length > pageSize,
-    lastId: members.length > 0 ? members[members.length - 1].id : null,
+    cursor: members.length > 0 ? members[members.length - 1].id : null,
   };
 }
 
