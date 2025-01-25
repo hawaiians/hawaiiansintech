@@ -7,7 +7,7 @@ import { Title } from "@/components/Title";
 import { FirebaseTablesEnum } from "@/lib/enums";
 import Head from "next/head";
 import React, { useEffect, useState } from "react";
-import { getMembers } from "@/lib/firebase-helpers/members";
+import { getMembers, getNumberOfMembers } from "@/lib/firebase-helpers/members";
 import { getFilters, getFiltersBasic } from "@/lib/firebase-helpers/filters";
 
 export async function getStaticProps() {
@@ -37,6 +37,7 @@ export async function getStaticProps() {
         FirebaseTablesEnum.REGIONS,
         regions,
       ),
+      fetchedTotalMemberCount: await getNumberOfMembers(),
       pageTitle: "Hawaiians in Tech",
     },
     revalidate: 60,
@@ -62,6 +63,7 @@ export default function HomePage({
   fetchedIndustries,
   fetchedExperiences,
   fetchedRegions,
+  fetchedTotalMemberCount,
   pageTitle,
 }) {
   const initialState = {
@@ -263,6 +265,7 @@ export default function HomePage({
             activeFilters={activeFilters}
             onFilterClick={handleFilter}
             onFilterSelect={filterSelect}
+            totalMemberCount={fetchedTotalMemberCount}
             onViewAll={() => {
               setFiltersList(focuses);
               setViewAll(false);

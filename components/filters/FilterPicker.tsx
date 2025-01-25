@@ -15,6 +15,7 @@ interface FilterPickerProps {
   onFilterClick: (id?: string, filterType?: string) => any;
   onViewAll: () => any;
   onFilterSelect: (filterSelect?: string, enable?: boolean) => any;
+  totalMemberCount: number;
   selectedMemberCount?: number;
   viewAll?: boolean;
 }
@@ -24,6 +25,7 @@ export default function FilterPicker({
   activeFilters,
   onFilterClick,
   onFilterSelect,
+  totalMemberCount,
   selectedMemberCount,
   onViewAll,
   viewAll,
@@ -95,7 +97,7 @@ export default function FilterPicker({
           >{`${
             filterIsSelected
               ? `Selected (${selectedMemberCount})`
-              : `All (${selectedMemberCount})`
+              : `All (${totalMemberCount})`
           }`}</h4>
         </div>
 

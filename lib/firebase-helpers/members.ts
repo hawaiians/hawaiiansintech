@@ -30,6 +30,7 @@ import {
   addDoc,
   collection,
   doc,
+  getCountFromServer,
   getDoc,
   getDocs,
   limit,
@@ -509,6 +510,15 @@ export async function getMembersTable(
       return doc.data();
     }
   });
+}
+
+export async function getNumberOfMembers(): Promise<number> {
+  const membersCollection = query(
+    collection(db, FirebaseTablesEnum.MEMBERS),
+    where("status", "==", StatusEnum.APPROVED),
+  );
+  const snapshot = await getCountFromServer(membersCollection);
+  return snapshot.data().count;
 }
 
 async function getMembersTablePaged(
