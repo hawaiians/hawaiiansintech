@@ -220,12 +220,21 @@ export default function HomePage({
     );
     if (membersToLoad.length > 0) {
       setLoadingFilteredMembers(true);
-      const response = await fetch(
-        `/api/members?memberIds=${membersToLoad}&withoutFilters=true`,
-      );
-      const data = await response.json();
-      const transformedMembers = await handleFetchedMembers(data.members);
-      setMembers((prevMembers) => [...prevMembers, ...transformedMembers]);
+      const batchSize = 10;
+      let allTransformedMembers = [];
+      for (let i = 0; i < membersToLoad.length; i += batchSize) {
+        const batch = membersToLoad.slice(i, i + batchSize);
+        const response = await fetch(
+          `/api/members?memberIds=${batch.join(",")}&withoutFilters=true`,
+        );
+        const data = await response.json();
+        const transformedMembers = await handleFetchedMembers(data.members);
+        allTransformedMembers = [
+          ...allTransformedMembers,
+          ...transformedMembers,
+        ];
+      }
+      setMembers((prevMembers) => [...prevMembers, ...allTransformedMembers]);
       setMembersIdSet((prevMembersIdSet) => {
         const newMembersIdSet = new Set(prevMembersIdSet);
         membersToLoad.forEach((memberId) => newMembersIdSet.add(memberId));
