@@ -15,12 +15,14 @@ interface MemberDirectoryProps {
   members?: DirectoryMember[];
   loadMoreMembers?: () => void;
   isLoadingMoreMembers?: boolean;
+  isLoadingFilteredMembers?: boolean;
 }
 
 export default function MemberDirectory({
   members,
   loadMoreMembers,
   isLoadingMoreMembers,
+  isLoadingFilteredMembers,
 }: MemberDirectoryProps) {
   const handleScroll = useCallback(
     debounce(() => {
@@ -47,6 +49,25 @@ export default function MemberDirectory({
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
+  const loadingDiv = (
+    <div
+      className={cn(`
+    flex
+    min-h-[140px]
+    w-full
+    items-center
+    justify-center
+  `)}
+    >
+      <div className="flex aspect-square w-1/4 items-center justify-center">
+        <LoadingSpinner
+          className="h-full w-full"
+          variant={LoadingSpinnerVariant.Invert}
+        />
+      </div>
+    </div>
+  );
+
   const isFiltered =
     members.filter(
       (mem) =>
@@ -72,6 +93,7 @@ export default function MemberDirectory({
         lg:grid-cols-4
       `}
     >
+      {isLoadingFilteredMembers && loadingDiv}
       {members.map((member, i) => {
         const isSelected =
           member.focus
@@ -262,24 +284,7 @@ export default function MemberDirectory({
           </a>
         );
       })}
-      {isLoadingMoreMembers && (
-        <div
-          className={cn(`
-          flex
-          min-h-[140px]
-          w-full
-          items-center
-          justify-center
-        `)}
-        >
-          <div className="flex aspect-square w-1/4 items-center justify-center">
-            <LoadingSpinner
-              className="h-full w-full"
-              variant={LoadingSpinnerVariant.Invert}
-            />
-          </div>
-        </div>
-      )}
+      {isLoadingMoreMembers && loadingDiv}
     </section>
   );
 }

@@ -35,14 +35,20 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     data = await getMembers({ token: token });
   } else {
     console.log({ message: "No authorization header included" });
+    let payload = {};
     if (req.query.cursor) {
-      data = await getMembers({
-        cursor: req.query.cursor as string,
-        paginated: true,
-      });
-    } else {
-      data = await getMembers();
+      payload["cursor"] = req.query.cursor as string;
+      payload["paginated"] = true;
     }
+    if (req.query.memberIds) {
+      payload["memberIds"] = (req.query.memberIds as string)
+        .split(",")
+        .filter(Boolean);
+    }
+    if (req.query.withoutFilters) {
+      payload["includeFilters"] = false;
+    }
+    data = await getMembers(payload);
   }
 
   return res.status(200).json({

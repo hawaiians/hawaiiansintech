@@ -9,6 +9,7 @@ import Head from "next/head";
 import React, { useEffect, useState } from "react";
 import { getMembers, getNumberOfMembers } from "@/lib/firebase-helpers/members";
 import { getFilters, getFiltersBasic } from "@/lib/firebase-helpers/filters";
+import { filterLookup } from "@/lib/firebase-helpers/general";
 
 export async function getStaticProps() {
   const { members, focuses, industries, regions, cursor } = await getMembers({
@@ -21,13 +22,13 @@ export async function getStaticProps() {
       fetchedMembersCursor: cursor,
       fetchedFocuses: await getFilters(
         FirebaseTablesEnum.FOCUSES,
-        true,
+        false,
         members.map((member) => member.id),
         focuses,
       ),
       fetchedIndustries: await getFilters(
         FirebaseTablesEnum.INDUSTRIES,
-        true,
+        false,
         members.map((member) => member.id),
         industries,
       ),
@@ -66,40 +67,30 @@ export default function HomePage({
   fetchedTotalMemberCount,
   pageTitle,
 }) {
-  const initialState = {
-    members: fetchedMembers.map(transformMemberData),
-    membersCursor: fetchedMembersCursor,
-    focuses: fetchedFocuses.filter((focus) => focus.count > 0),
-    industries: fetchedIndustries.filter((industry) => industry.count > 0),
-    experiences: fetchedExperiences,
-    regions: fetchedRegions.filter((region) => region.count > 0),
-  };
   const [members, setMembers] = useState<DirectoryMember[]>(
-    initialState.members,
+    fetchedMembers.map(transformMemberData),
   );
-  const [membersCursor, setMembersCursor] = useState<string>(
-    initialState.membersCursor,
+  const [membersIdSet, setMembersIdSet] = useState<Set<string>>(
+    new Set(members.map((member) => member.id)),
   );
+  const [membersCursor, setMembersCursor] =
+    useState<string>(fetchedMembersCursor);
   const [activeFilters, setActiveFilters] = useState<PickerFilter[]>([]);
   const [filtersList, setFiltersList] = useState<PickerFilter[]>(
-    initialState.focuses.slice(0, 6),
+    fetchedFocuses.slice(0, 6),
   );
-  const [focuses, setFocuses] = useState<PickerFilter[]>(initialState.focuses);
-  const [industries, setIndustries] = useState<PickerFilter[]>(
-    initialState.industries,
-  );
-  const [experiences, setExperiences] = useState<PickerFilter[]>(
-    initialState.experiences,
-  );
-  const [regions, setRegions] = useState<PickerFilter[]>(initialState.regions);
-  const [membersCount, setMembersCount] = useState<number>(
-    initialState.members.length,
-  );
+  const [focuses, setFocuses] = useState<PickerFilter[]>(fetchedFocuses);
+  const [industries, setIndustries] =
+    useState<PickerFilter[]>(fetchedIndustries);
+  const [experiences, setExperiences] =
+    useState<PickerFilter[]>(fetchedExperiences);
+  const [regions, setRegions] = useState<PickerFilter[]>(fetchedRegions);
+  const [membersCount, setMembersCount] = useState<number>(members.length);
   const [viewAll, setViewAll] = useState<boolean>(true);
   const [loadingMoreMembers, setLoadingMoreMembers] = useState(false);
+  const [loadingFilteredMembers, setLoadingFilteredMembers] = useState(false);
 
-  // TODO: Refactor filter logic to allow for all filters to be selected,
-  // and update number of all members to reflect all approved members
+  // TODO: Refactor filter logic to allow for all filters to be selected
   useEffect(() => {
     const activeFilters = focuses
       .concat(industries)
@@ -203,8 +194,45 @@ export default function HomePage({
     );
   };
 
-  const handleFilter = (id?: string) => {
+  const handleFetchedMembers = async (members) => {
+    let newMembers = {};
+    for (const member of members) {
+      const memberData = {
+        ...member,
+        focus: filterLookup(focuses, member.focus),
+        industry: filterLookup(industries, member.industry),
+        experience: member.experience[0] ? member.region[0] : null,
+        // TODO: Receive ID list instead and filter lookup
+        // experience: filterLookup(experiences, member.yearsExperience),
+        region: member.region[0] ? member.region[0] : null,
+        // TODO: Receive ID list instead and filter lookup
+        // region: filterLookup(regions, member.region),
+      };
+      newMembers[member.id] = memberData;
+    }
+    return Object.values(newMembers).map(transformMemberData);
+  };
+
+  const handleFilter = async (id?: string) => {
     let filter = filtersList.filter((foc) => id === foc?.id)[0];
+    const membersToLoad = filter.members.filter(
+      (memberId) => !membersIdSet.has(memberId),
+    );
+    if (membersToLoad.length > 0) {
+      setLoadingFilteredMembers(true);
+      const response = await fetch(
+        `/api/members?memberIds=${membersToLoad}&withoutFilters=true`,
+      );
+      const data = await response.json();
+      const transformedMembers = await handleFetchedMembers(data.members);
+      setMembers((prevMembers) => [...prevMembers, ...transformedMembers]);
+      setMembersIdSet((prevMembersIdSet) => {
+        const newMembersIdSet = new Set(prevMembersIdSet);
+        membersToLoad.forEach((memberId) => newMembersIdSet.add(memberId));
+        return newMembersIdSet;
+      });
+      setLoadingFilteredMembers(false);
+    }
     setListItemActive(filtersList, setFiltersList, id);
     setListItemActive(focuses, setFocuses, id);
     setListItemActive(industries, setIndustries, id);
@@ -231,11 +259,26 @@ export default function HomePage({
   const loadMoreMembers = async () => {
     setLoadingMoreMembers(true);
     try {
-      const response = await fetch(`/api/members?cursor=${membersCursor}`);
+      // TODO: handle the case where there are no more members to load
+      const response = await fetch(
+        `/api/members?cursor=${membersCursor}&withoutFilters=true`,
+      );
+
       const data = await response.json();
-      const transformedMembers = data.members.map(transformMemberData);
+      console.log("data", data);
+      // TODO: handle the case where there are no new members from the cursor
+      const membersNotInList = data.members.filter(
+        (member) => !membersIdSet.has(member.id),
+      );
+      const transformedMembers = await handleFetchedMembers(membersNotInList);
+      // const transformedMembers = membersNotInList.map(transformMemberData);
       setMembers((prevMembers) => [...prevMembers, ...transformedMembers]);
       setMembersCursor(data.cursor);
+      setMembersIdSet((prevMembersIdSet) => {
+        const newMembersIdSet = new Set(prevMembersIdSet);
+        membersNotInList.forEach((member) => newMembersIdSet.add(member.id));
+        return newMembersIdSet;
+      });
     } catch (error) {
       console.error("Error loading more members:", error);
     } finally {
@@ -280,6 +323,7 @@ export default function HomePage({
           members={members}
           loadMoreMembers={loadMoreMembers}
           isLoadingMoreMembers={loadingMoreMembers}
+          isLoadingFilteredMembers={loadingFilteredMembers}
         />
       )}
     </>

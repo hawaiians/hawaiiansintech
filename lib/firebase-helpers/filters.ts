@@ -292,6 +292,8 @@ function hasApprovedMembers(
   return false;
 }
 
+// TODO: Remove hasApprovedMembers since all filters should only have approved 
+//  members
 export async function getFilters(
   filterType: FirebaseTablesEnum,
   limitByMembers?: boolean,
@@ -318,8 +320,8 @@ export async function getFilters(
           typeof role.fields["name"] === "string" ? role.fields["name"] : null,
         id: typeof role.id === "string" ? role.id : null,
         filterType: filterType,
-        members: Array.isArray(role.fields["members"]) ? member_ids : null,
-        count: Array.isArray(role.fields["members"]) ? member_ids.length : 0,
+        members: member_ids,
+        count: member_ids.length,
         hasApprovedMembers: limitByMembers
           ? hasApprovedMembers(approvedMemberIds, member_ids)
           : true,

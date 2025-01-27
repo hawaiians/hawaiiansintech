@@ -30,6 +30,7 @@ import {
   addDoc,
   collection,
   doc,
+  documentId,
   getCountFromServer,
   getDoc,
   getDocs,
@@ -54,6 +55,8 @@ interface GetMembersOptions {
   industries?: DocumentData[];
   focuses?: DocumentData[];
   experience?: DocumentData[];
+  memberIds?: string[];
+  includeFilters?: boolean;
 }
 
 interface PaginatedResponse {
@@ -71,6 +74,8 @@ export async function getMembers({
   industries,
   focuses,
   experience,
+  memberIds,
+  includeFilters = true,
 }: GetMembersOptions = {}): Promise<{
   members: MemberPublic[];
   regions: DocumentData[];
@@ -79,6 +84,8 @@ export async function getMembers({
   experience: DocumentData[];
   cursor?: string;
 }> {
+  console.log("memberIds:", memberIds);
+  console.log("includeFilters:", includeFilters);
   let isAdmin = false;
   let userEmail = "";
   let userId = "";
@@ -106,29 +113,36 @@ export async function getMembers({
       memberConverter,
       !isAdmin,
       isAdmin,
+      memberIds,
       userId,
     );
   }
 
-  const focusesData =
-    focuses ||
-    (await getFirebaseTable(
-      FirebaseTablesEnum.FOCUSES,
-      isAdmin || userId !== "" ? false : true,
-    ));
+  let focusesData = [];
+  let industriesData = [];
+  let regionsData = [];
+  let experienceData = [];
+  if (includeFilters) {
+    focusesData =
+      focuses ||
+      (await getFirebaseTable(
+        FirebaseTablesEnum.FOCUSES,
+        isAdmin || userId !== "" ? false : true,
+      ));
 
-  const industriesData =
-    industries ||
-    (await getFirebaseTable(
-      FirebaseTablesEnum.INDUSTRIES,
-      isAdmin || userId !== "" ? false : true,
-    ));
+    industriesData =
+      industries ||
+      (await getFirebaseTable(
+        FirebaseTablesEnum.INDUSTRIES,
+        isAdmin || userId !== "" ? false : true,
+      ));
 
-  // Note: Regions do not have statuses so no need to filter by approved
-  const regionsData =
-    regions || (await getFirebaseTable(FirebaseTablesEnum.REGIONS));
-  const experienceData =
-    experience || (await getFirebaseTable(FirebaseTablesEnum.EXPERIENCE));
+    // Note: Regions do not have statuses so no need to filter by approved
+    regionsData =
+      regions || (await getFirebaseTable(FirebaseTablesEnum.REGIONS));
+    experienceData =
+      experience || (await getFirebaseTable(FirebaseTablesEnum.EXPERIENCE));
+  }
 
   return {
     members: membersArray
@@ -147,14 +161,23 @@ export async function getMembers({
           ...rest
         } = member;
 
-        let memberObject = {
-          ...rest,
-          // TODO: Allow for users to have multiple regions
-          region: filterLookup(regionsData, regions, true),
-          experience: filterLookup(experienceData, experience, true),
-          industry: filterLookup(industriesData, industries),
-          focus: filterLookup(focusesData, focuses),
-        };
+        let memberObject = { ...rest };
+        memberObject["focus"] = includeFilters
+          ? filterLookup(focusesData, focuses)
+          : focuses.map((focus) => focus.id);
+        memberObject["industry"] = includeFilters
+          ? filterLookup(industriesData, industries)
+          : industries.map((industry) => industry.id);
+        memberObject["region"] = includeFilters
+          ? filterLookup(regionsData, regions, true)
+          : regions.map((region) => region?.name);
+        // TODO: Pass region ID instead
+        // : regions.map((region) => region.id);
+        memberObject["experience"] = includeFilters
+          ? filterLookup(experienceData, experience, true)
+          : [experience?.name];
+        // TODO: Pass experience ID instead
+        // : [experience.id];
 
         if (isAdmin || userId === member.id) {
           memberObject = {
@@ -497,13 +520,18 @@ export async function getMembersTable(
   converter: FirestoreDataConverter<any>,
   approved: boolean = false,
   isAdmin: boolean = false,
+  memberIds?: string[],
   userId?: string,
 ): Promise<any[]> {
   const documentsCollection = collection(db, table).withConverter(converter);
-  let q = query(documentsCollection);
-  if (approved === true) {
-    q = query(documentsCollection, where("status", "==", StatusEnum.APPROVED));
+  let queryConditions = [];
+  if (approved) {
+    queryConditions.push(where("status", "==", StatusEnum.APPROVED));
   }
+  if (memberIds?.length) {
+    queryConditions.push(where(documentId(), "in", memberIds));
+  }
+  const q = query(documentsCollection, ...queryConditions);
   const documentsSnapshot = await getDocs(q);
   return documentsSnapshot.docs.map((doc) => {
     if (approved || doc.id === userId || isAdmin) {
