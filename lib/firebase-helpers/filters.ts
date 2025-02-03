@@ -292,7 +292,7 @@ function hasApprovedMembers(
   return false;
 }
 
-// TODO: Remove hasApprovedMembers since all filters should only have approved 
+// TODO: Remove hasApprovedMembers since all filters should only have approved
 //  members
 export async function getFilters(
   filterType: FirebaseTablesEnum,

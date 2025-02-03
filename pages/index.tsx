@@ -32,12 +32,19 @@ export async function getStaticProps() {
         members.map((member) => member.id),
         industries,
       ),
-      fetchedExperiences: await getFiltersBasic(members, "experience"),
-      fetchedRegions: await getFiltersBasic(
-        members,
-        FirebaseTablesEnum.REGIONS,
-        regions,
+      fetchedExperiences: await getFilters(
+        FirebaseTablesEnum.EXPERIENCE,
+        false,
+        members.map((member) => member.id),
       ),
+      fetchedRegions: (
+        await getFilters(
+          FirebaseTablesEnum.REGIONS,
+          false,
+          members.map((member) => member.id),
+          regions,
+        )
+      ).filter((region) => region.count > 0),
       fetchedTotalMemberCount: await getNumberOfMembers(),
       pageTitle: "Hawaiians in Tech",
     },
@@ -53,8 +60,12 @@ const transformMemberData = (member: any) => ({
   industry: member.industry
     ? member.industry.map((item) => ({ ...item, active: false }))
     : [],
-  experienceFilter: [],
-  regionFilter: [],
+  experienceFilter: member.experience
+    ? member.experience.map((item) => ({ ...item, active: false }))
+    : [],
+  regionFilter: member.regions
+    ? member.regions.map((item) => ({ ...item, active: false }))
+    : [],
 });
 
 export default function HomePage({
@@ -89,7 +100,6 @@ export default function HomePage({
   const [viewAll, setViewAll] = useState<boolean>(true);
   const [loadingMoreMembers, setLoadingMoreMembers] = useState(false);
   const [loadingFilteredMembers, setLoadingFilteredMembers] = useState(false);
-
   // TODO: Refactor filter logic to allow for all filters to be selected
   useEffect(() => {
     const activeFilters = focuses
@@ -109,36 +119,14 @@ export default function HomePage({
           ...ind,
           active: activeFilters.map((item) => item.id).includes(ind.id),
         })),
-        experienceFilter: mem.yearsExperience
-          ? [
-              {
-                id: experiences.find(
-                  (item) => item.name === mem.yearsExperience,
-                ).id,
-                name: mem.yearsExperience,
-                active: activeFilters
-                  .map((item) => item.id)
-                  .includes(
-                    experiences.find(
-                      (item) => item.name === mem.yearsExperience,
-                    ).id,
-                  ),
-              },
-            ]
-          : [],
-        regionFilter: mem.region
-          ? [
-              {
-                id: regions.find((item) => item.name === mem.region).id,
-                name: mem.region,
-                active: activeFilters
-                  .map((item) => item.id)
-                  .includes(
-                    regions.find((item) => item.name === mem.region).id,
-                  ),
-              },
-            ]
-          : [],
+        experienceFilter: mem.experienceFilter?.map((exp) => ({
+          ...exp,
+          active: activeFilters.map((item) => item.id).includes(exp.id),
+        })),
+        regionFilter: mem.regionFilter?.map((reg) => ({
+          ...reg,
+          active: activeFilters.map((item) => item.id).includes(reg.id),
+        })),
       }))
       // sort by number of filters set
       .sort((a, b) => {
@@ -201,12 +189,8 @@ export default function HomePage({
         ...member,
         focus: filterLookup(focuses, member.focus),
         industry: filterLookup(industries, member.industry),
-        experience: member.experience[0] ? member.region[0] : null,
-        // TODO: Receive ID list instead and filter lookup
-        // experience: filterLookup(experiences, member.yearsExperience),
-        region: member.region[0] ? member.region[0] : null,
-        // TODO: Receive ID list instead and filter lookup
-        // region: filterLookup(regions, member.region),
+        experience: filterLookup(experiences, member.experience),
+        regions: filterLookup(regions, member.regions),
       };
       newMembers[member.id] = memberData;
     }

@@ -84,8 +84,6 @@ export async function getMembers({
   experience: DocumentData[];
   cursor?: string;
 }> {
-  console.log("memberIds:", memberIds);
-  console.log("includeFilters:", includeFilters);
   let isAdmin = false;
   let userEmail = "";
   let userId = "";
@@ -168,16 +166,12 @@ export async function getMembers({
         memberObject["industry"] = includeFilters
           ? filterLookup(industriesData, industries)
           : industries.map((industry) => industry.id);
-        memberObject["region"] = includeFilters
-          ? filterLookup(regionsData, regions, true)
-          : regions.map((region) => region?.name);
-        // TODO: Pass region ID instead
-        // : regions.map((region) => region.id);
+        memberObject["regions"] = includeFilters
+          ? filterLookup(regionsData, regions)
+          : regions.map((region) => region?.id);
         memberObject["experience"] = includeFilters
-          ? filterLookup(experienceData, experience, true)
-          : [experience?.name];
-        // TODO: Pass experience ID instead
-        // : [experience.id];
+          ? filterLookup(experienceData, experience ? [experience] : [])
+          : [experience?.id];
 
         if (isAdmin || userId === member.id) {
           memberObject = {
@@ -190,7 +184,6 @@ export async function getMembers({
             unsubscribed: unsubscribed,
           };
         }
-
         return memberObject;
       })
       .filter((value) => value !== null)
