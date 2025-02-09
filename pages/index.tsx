@@ -199,9 +199,8 @@ export default function HomePage({
 
   const handleFilter = async (id?: string) => {
     let filter = filtersList.filter((foc) => id === foc?.id)[0];
-    const membersToLoad = filter.members.filter(
-      (memberId) => !membersIdSet.has(memberId),
-    );
+    const membersToLoad =
+      filter?.members?.filter((memberId) => !membersIdSet.has(memberId)) ?? [];
     if (membersToLoad.length > 0) {
       setLoadingFilteredMembers(true);
       const batchSize = 10;
