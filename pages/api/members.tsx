@@ -58,6 +58,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     industries: data.industries,
     regions: data.regions,
     cursor: data.cursor,
+    hasMore: data.hasMore,
   });
 }
 

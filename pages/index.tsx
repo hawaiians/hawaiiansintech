@@ -99,8 +99,8 @@ export default function HomePage({
   const [membersCount, setMembersCount] = useState<number>(members.length);
   const [viewAll, setViewAll] = useState<boolean>(true);
   const [loadingMoreMembers, setLoadingMoreMembers] = useState(false);
+  const [canLoadMoreMembers, setCanLoadMoreMembers] = useState(true);
   const [loadingFilteredMembers, setLoadingFilteredMembers] = useState(false);
-  // TODO: Refactor filter logic to allow for all filters to be selected
   useEffect(() => {
     const activeFilters = focuses
       .concat(industries)
@@ -249,23 +249,23 @@ export default function HomePage({
   };
 
   const loadMoreMembers = async () => {
+    if (!canLoadMoreMembers) return;
     setLoadingMoreMembers(true);
     try {
-      // TODO: handle the case where there are no more members to load
-      const response = await fetch(
-        `/api/members?cursor=${membersCursor}&withoutFilters=true`,
-      );
-
-      const data = await response.json();
-      console.log("data", data);
-      // TODO: handle the case where there are no new members from the cursor
-      const membersNotInList = data.members.filter(
-        (member) => !membersIdSet.has(member.id),
-      );
+      let membersNotInList = null;
+      while (!membersNotInList) {
+        const response = await fetch(
+          `/api/members?cursor=${membersCursor}&withoutFilters=true`,
+        );
+        const data = await response.json();
+        membersNotInList = data.members.filter(
+          (member) => !membersIdSet.has(member.id),
+        );
+        setMembersCursor(data.cursor);
+        setCanLoadMoreMembers(data.hasMore);
+      }
       const transformedMembers = await handleFetchedMembers(membersNotInList);
-      // const transformedMembers = membersNotInList.map(transformMemberData);
       setMembers((prevMembers) => [...prevMembers, ...transformedMembers]);
-      setMembersCursor(data.cursor);
       setMembersIdSet((prevMembersIdSet) => {
         const newMembersIdSet = new Set(prevMembersIdSet);
         membersNotInList.forEach((member) => newMembersIdSet.add(member.id));

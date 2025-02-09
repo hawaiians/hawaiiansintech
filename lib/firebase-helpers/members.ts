@@ -83,6 +83,7 @@ export async function getMembers({
   focuses: DocumentData[];
   experience: DocumentData[];
   cursor?: string;
+  hasMore?: boolean;
 }> {
   let isAdmin = false;
   let userEmail = "";
@@ -193,6 +194,7 @@ export async function getMembers({
     regions: regionsData,
     experience: experienceData,
     cursor: paginated ? membersPaginated.cursor : undefined,
+    hasMore: paginated ? membersPaginated.hasMore : undefined,
   };
 }
 
