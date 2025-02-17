@@ -14,10 +14,36 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { MenuIcon } from "lucide-react";
+import { MobileNav } from "@/components/MobileNav";
+import navigationData from "@/public/navigation.json";
+
+interface NavProps {
+  backLinkTo?: string;
+  children?: React.ReactNode;
+  variant?: "primary" | "minimized";
+}
+
+interface NavigationItem {
+  title: string;
+  href: string;
+  description?: string;
+  image?: string;
+  external?: boolean;
+  featured?: boolean;
+  variant?: string;
+}
+
+interface NavigationSection {
+  label: string;
+  variant?: string;
+  layout?: string;
+  items: NavigationItem[];
+}
+
+export interface NavigationData {
+  items: NavigationSection[];
+}
 
 export enum NavAppearance {
   ToShow = "to-show",
@@ -25,19 +51,15 @@ export enum NavAppearance {
   ToFade = "to-fade",
 }
 
-export const generateNavUrl = (path, navAppearance: NavAppearance) =>
-  `${path}?nav=${navAppearance}`;
-
 const navLogoVariants = {
   floatLeft: { x: -40 },
   default: { x: 0 },
   fadeDefault: { x: 0, opacity: 0 },
 };
 
-interface NavProps {
-  backLinkTo?: string;
-  children?: React.ReactNode;
-  variant?: "primary" | "minimized";
+export function generateNavUrl(href: string, appearance?: NavAppearance) {
+  if (!appearance) return href;
+  return `${href}?nav=${appearance}`;
 }
 
 export default function Nav({
@@ -47,32 +69,6 @@ export default function Nav({
 }: NavProps) {
   const router = useRouter();
   const { nav } = router.query;
-  const [lastUpdatedChangelog, setLastUpdatedChangelog] = useState<string>("");
-
-  useEffect(() => {
-    fetch("/changelog.json")
-      .then((res) => res.json())
-      .then((data) => {
-        const lastUpdated = data[0].date;
-        const formattedLastUpdated = new Date(lastUpdated).toLocaleDateString(
-          "en-US",
-          {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          },
-        );
-        setLastUpdatedChangelog(formattedLastUpdated);
-      })
-      .catch((err) => {
-        console.warn("Didn't set last updated", err);
-      });
-
-    // Clear query param after page load
-    if (typeof window !== "undefined" && nav) {
-      window?.history?.replaceState(null, "", location.href.split("?")[0]);
-    }
-  }, []);
 
   const renderLogo = () => {
     let logo = <Logo />;
@@ -107,165 +103,81 @@ export default function Nav({
   };
 
   const renderNavItems = () => {
-    if (variant !== "primary") return null;
+    if (variant !== "primary" || !navigationData) return null;
 
     const navigationItems = (
       <NavigationMenuList>
-        <NavigationMenuItem>
-          <NavigationMenuTrigger>About</NavigationMenuTrigger>
-          <NavigationMenuContent>
-            <ul className="grid gap-1.5 p-3 md:w-[400px]">
-              <ListItem
-                href={generateNavUrl(`/about`, NavAppearance.ToMin)}
-                title="About Us"
-              >
-                A directory and community of Native Hawaiians in the technology
-                industry
-              </ListItem>
-              <ListItem
-                href={generateNavUrl(`/changelog`, NavAppearance.ToMin)}
-                title="Changelog"
-              >
-                What we&rsquo;ve been up to{" "}
-                {lastUpdatedChangelog && (
-                  <span className="">· updated {lastUpdatedChangelog}</span>
+        {navigationData.items.map((section) => (
+          <NavigationMenuItem key={section.label}>
+            <NavigationMenuTrigger
+              variant={section.variant as "default" | "accent"}
+            >
+              {section.label}
+            </NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul
+                className={cn(
+                  "grid gap-1.5 p-3",
+                  "md:w-[400px]",
+                  section.layout === "3-column" &&
+                    "lg:w-[780px] lg:grid-cols-[1fr_1fr_1fr]",
                 )}
-              </ListItem>
-            </ul>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <NavigationMenuTrigger>Events</NavigationMenuTrigger>
-          <NavigationMenuContent>
-            <ul className="grid gap-1.5 p-3 md:w-[400px]">
-              <ListItem
-                href="https://lu.ma/jcb5e4y2"
-                target="_blank"
-                title="Pasifika at the Park"
-                image={
-                  <Image
-                    src="/images/pasifika-at-the-park-10.jpg"
-                    alt="Pasifika at the Park"
-                    width={36}
-                    height={36}
-                  />
-                }
               >
-                Bay Area · March 8, 2025
-              </ListItem>
-              <ListItem
-                href="https://lu.ma/ofzvwvaj"
-                target="_blank"
-                title="Pasifika in Tech: Bay Area Happy Hour"
-                image={
-                  <Image
-                    src="/images/pasifika-in-tech.png"
-                    alt="Pasifika at the Park"
-                    width={36}
-                    height={36}
-                  />
-                }
-              >
-                Bay Area · May 29, 2024
-              </ListItem>
-              <ListItem
-                href={generateNavUrl(`/hackathon`, NavAppearance.ToMin)}
-                title="Hawaiians in Tech & Purple Maiʻa Hackathon"
-                image={
-                  <Image
-                    src="/images/hackathon-03.png"
-                    alt="Hawaiians in Tech & Purple Maiʻa Hackathon"
-                    width={36}
-                    height={36}
-                  />
-                }
-              >
-                Hawai&lsquo;i · July 29 – 31, 2022
-              </ListItem>
-            </ul>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
-        <NavigationMenuItem>
-          <NavigationMenuTrigger variant="accent">
-            Community
-          </NavigationMenuTrigger>
-          <NavigationMenuContent>
-            <ul className="grid gap-1.5 p-3 md:w-[400px] lg:w-[720px] lg:grid-cols-[.75fr_1fr_1fr]">
-              <li className="row-span-2">
-                <NavigationMenuLink asChild>
-                  <a
-                    className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/25 to-muted/50 p-3 no-underline outline-none hover:from-muted/60 hover:to-muted/60 focus:shadow-md"
-                    href={generateNavUrl(`/join/01-you`, NavAppearance.ToMin)}
-                  >
-                    <h6 className="mb-1 font-medium">Join Directory</h6>
-                    <p className="text-sm leading-tight text-muted-foreground">
-                      We simply ask that you are{" "}
-                      <strong className="font-medium text-secondary-foreground">
-                        Native Hawaiian
-                      </strong>{" "}
-                      and work in the{" "}
-                      <strong className="font-medium text-secondary-foreground">
-                        field / industry of technology
-                      </strong>{" "}
-                      to join the list.
-                    </p>
-                  </a>
-                </NavigationMenuLink>
-              </li>
-              <ListItem
-                href={generateNavUrl(`/edit`, NavAppearance.ToMin)}
-                title="Update Profile"
-                variant="accent"
-              >
-                Manage your profile on the directory
-              </ListItem>
-              <ListItem href="/discord" title="Discord" target="_blank">
-                Our community mostly congregates on our Discord server
-              </ListItem>
-              <ListItem
-                href="https://github.com/hawaiians/hawaiiansintech"
-                title="Github"
-                target="_blank"
-              >
-                Contributions are welcome on our projects, including this
-                website
-              </ListItem>
-              <ListItem
-                href="https://www.linkedin.com/company/hawaiians-in-technology/"
-                title="LinkedIn"
-                target="_blank"
-              >
-                Join our community on the professional network
-              </ListItem>
-            </ul>
-          </NavigationMenuContent>
-        </NavigationMenuItem>
+                {section.items.map((item) =>
+                  item.featured ? (
+                    <li key={item.title} className="row-span-2">
+                      <NavigationMenuLink asChild>
+                        <a
+                          className="flex h-full w-full select-none flex-col justify-end rounded-md bg-gradient-to-b from-muted/25 to-muted/50 p-3 no-underline outline-none hover:from-muted/60 hover:to-muted/60 focus:shadow-md"
+                          href={generateNavUrl(item.href, NavAppearance.ToMin)}
+                        >
+                          <h6 className="mb-1 font-medium">{item.title}</h6>
+                          <p className="text-sm leading-tight text-muted-foreground">
+                            {item.description}
+                          </p>
+                        </a>
+                      </NavigationMenuLink>
+                    </li>
+                  ) : (
+                    <ListItem
+                      key={item.title}
+                      href={
+                        item.external
+                          ? item.href
+                          : generateNavUrl(item.href, NavAppearance.ToMin)
+                      }
+                      title={item.title}
+                      variant={item.variant}
+                      target={item.external ? "_blank" : undefined}
+                      image={
+                        item.image && (
+                          <Image
+                            src={item.image}
+                            alt={item.title}
+                            width={36}
+                            height={36}
+                          />
+                        )
+                      }
+                    >
+                      {item.description}
+                    </ListItem>
+                  ),
+                )}
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+        ))}
       </NavigationMenuList>
     );
 
     return (
       <div className="flex grow items-center justify-end sm:justify-start">
-        {/* Desktop Navigation */}
         <div className="hidden sm:block">
           <NavigationMenu>{navigationItems}</NavigationMenu>
         </div>
-
-        {/* Mobile Navigation */}
         <div className="sm:hidden">
-          <Sheet>
-            <SheetTrigger asChild>
-              <button className="rounded-md p-2 hover:bg-muted/20">
-                <MenuIcon className="size-6" />
-              </button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[300px] sm:w-[400px]">
-              <div className="mt-6 flex flex-col space-y-4">
-                <NavigationMenu orientation="vertical">
-                  {navigationItems}
-                </NavigationMenu>
-              </div>
-            </SheetContent>
-          </Sheet>
+          <MobileNav navigation={navigationData} />
         </div>
       </div>
     );
@@ -294,12 +206,11 @@ const ListItem = React.forwardRef<
   React.ComponentPropsWithoutRef<"a"> & {
     variant?: "default" | "accent";
     image?: React.ReactNode;
+    // target?: React.HTMLAttributeAnchorTarget;
   }
 >(({ className, title, variant, children, image, ...props }, ref) => {
-  const isExternal = React.useMemo(
-    () => props.target === "_blank",
-    [props.target],
-  );
+  const isExternal = props.target === "_blank";
+
   return (
     <li>
       <NavigationMenuLink asChild>
@@ -312,6 +223,7 @@ const ListItem = React.forwardRef<
             "max-w-[calc(100vw-2rem)] sm:max-w-none",
             className,
           )}
+          target={props.target}
           {...props}
         >
           {image && (
