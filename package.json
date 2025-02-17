@@ -39,7 +39,7 @@
     "firebase": "^10.5.0",
     "firebase-admin": "^11.7.0",
     "formik": "^2.2.9",
-    "framer-motion": "^6.2.4",
+    "framer-motion": "^12.4.3",
     "fuzzysort": "^1.1.4",
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.21",

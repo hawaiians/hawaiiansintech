@@ -14,9 +14,9 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 import { MobileNav } from "@/components/MobileNav";
 import navigationData from "@/public/navigation.json";
+import { ArrowUpRight } from "lucide-react";
 
 interface NavProps {
   backLinkTo?: string;
@@ -184,7 +184,7 @@ export default function Nav({
   };
 
   return (
-    <header className="sticky top-0 z-50 flex w-full items-center justify-between gap-4 bg-background/80 p-4 backdrop-blur-sm sm:gap-8 sm:pl-8">
+    <header className="flex w-full items-center justify-between gap-4 p-4 backdrop-blur-sm sm:gap-8 sm:pl-8">
       <nav
         className={cn(
           "flex w-full items-center gap-4",
@@ -233,7 +233,7 @@ const ListItem = React.forwardRef<
             <div className="text-sm font-medium leading-none">
               {title}{" "}
               {isExternal && (
-                <ArrowTopRightIcon className="relative -top-0.5 inline size-3.5 text-secondary-foreground opacity-50 transition-opacity group-hover:opacity-100" />
+                <ArrowUpRight className="relative -top-0.5 inline size-3.5 text-secondary-foreground opacity-50 transition-opacity group-hover:opacity-100" />
               )}
             </div>
             <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
