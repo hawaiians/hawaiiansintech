@@ -1,4 +1,5 @@
 import * as React from "react";
+import Image from "next/image";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -6,7 +7,6 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { Icon, IconAsset, IconColor } from "@/components/icon/icon";
 import Logo from "@/components/Logo";
@@ -15,6 +15,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
+import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 
 export enum NavAppearance {
   ToShow = "to-show",
@@ -90,19 +91,81 @@ export default function Nav({
     return (
       <NavigationMenu>
         <NavigationMenuList>
-          <Link
-            href={generateNavUrl(`/about`, NavAppearance.ToMin)}
-            legacyBehavior
-            passHref
-          >
-            <NavigationMenuLink
-              className={cn(navigationMenuTriggerStyle(), "text-foreground")}
-            >
-              About
-            </NavigationMenuLink>
-          </Link>
           <NavigationMenuItem>
-            <NavigationMenuTrigger>Community</NavigationMenuTrigger>
+            <NavigationMenuTrigger>About</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid gap-1.5 p-3 md:w-[400px]">
+                <ListItem
+                  href={generateNavUrl(`/about`, NavAppearance.ToMin)}
+                  title="About Us"
+                >
+                  A directory and community of Native Hawaiians in the
+                  technology industry
+                </ListItem>
+                <ListItem
+                  href={generateNavUrl(`/changelog`, NavAppearance.ToMin)}
+                  title="Changelog"
+                >
+                  What we&rsquo;ve been up to
+                </ListItem>
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <NavigationMenuTrigger>Events</NavigationMenuTrigger>
+            <NavigationMenuContent>
+              <ul className="grid gap-1.5 p-3 md:w-[400px]">
+                <ListItem
+                  href="https://lu.ma/jcb5e4y2"
+                  target="_blank"
+                  title="Pasifika at the Park"
+                  image={
+                    <Image
+                      src="/images/pasifika-at-the-park-10.jpg"
+                      alt="Pasifika at the Park"
+                      width={36}
+                      height={36}
+                    />
+                  }
+                >
+                  Bay Area · March 8, 2025
+                </ListItem>
+                <ListItem
+                  href="https://lu.ma/ofzvwvaj"
+                  target="_blank"
+                  title="Pasifika in Tech: Bay Area Happy Hour"
+                  image={
+                    <Image
+                      src="/images/pasifika-in-tech.png"
+                      alt="Pasifika at the Park"
+                      width={36}
+                      height={36}
+                    />
+                  }
+                >
+                  Bay Area · May 29, 2024
+                </ListItem>
+                <ListItem
+                  href={generateNavUrl(`/hackathon`, NavAppearance.ToMin)}
+                  title="Hawaiians in Tech & Purple Maiʻa Hackathon"
+                  image={
+                    <Image
+                      src="/images/hackathon-03.png"
+                      alt="Hawaiians in Tech & Purple Maiʻa Hackathon"
+                      width={36}
+                      height={36}
+                    />
+                  }
+                >
+                  Hawai&lsquo;i · July 29 – 31, 2022
+                </ListItem>
+              </ul>
+            </NavigationMenuContent>
+          </NavigationMenuItem>
+          <NavigationMenuItem>
+            <NavigationMenuTrigger variant="accent">
+              Community
+            </NavigationMenuTrigger>
             <NavigationMenuContent>
               <ul className="grid gap-1.5 p-3 md:w-[400px] lg:w-[720px] lg:grid-cols-[.75fr_1fr_1fr]">
                 <li className="row-span-2">
@@ -154,19 +217,6 @@ export default function Nav({
               </ul>
             </NavigationMenuContent>
           </NavigationMenuItem>
-          <NavigationMenuItem>
-            <NavigationMenuTrigger>Events</NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <ul className="grid gap-1.5 p-3 md:w-[320px]">
-                <ListItem
-                  href={generateNavUrl(`/hackathon`, NavAppearance.ToMin)}
-                  title="Hackathon 2022"
-                >
-                  An event co-hosted with Purple Maiʻa
-                </ListItem>
-              </ul>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
         </NavigationMenuList>
       </NavigationMenu>
     );
@@ -192,25 +242,42 @@ export default function Nav({
 
 const ListItem = React.forwardRef<
   React.ElementRef<"a">,
-  React.ComponentPropsWithoutRef<"a"> & { variant?: "default" | "accent" }
->(({ className, title, variant, children, ...props }, ref) => {
+  React.ComponentPropsWithoutRef<"a"> & {
+    variant?: "default" | "accent";
+    image?: React.ReactNode;
+  }
+>(({ className, title, variant, children, image, ...props }, ref) => {
+  const isExternal = React.useMemo(
+    () => props.target === "_blank",
+    [props.target],
+  );
   return (
     <li>
       <NavigationMenuLink asChild>
         <a
           ref={ref}
           className={cn(
-            "block select-none space-y-1 rounded-md p-2 leading-none no-underline outline-none transition-colors hover:bg-muted/20 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
+            "group flex select-none items-start gap-3 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-muted/20 hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
             variant === "accent" &&
               "border border-brown-600/20 hover:bg-brown-600/5",
             className,
           )}
           {...props}
         >
-          <div className="text-sm font-medium leading-none">{title}</div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-            {children}
-          </p>
+          {image && (
+            <div className="flex-shrink-0 overflow-hidden rounded">{image}</div>
+          )}
+          <div className="space-y-1">
+            <div className="text-sm font-medium leading-none">
+              {title}{" "}
+              {isExternal && (
+                <ArrowTopRightIcon className="relative -top-0.5 inline size-3.5 text-secondary-foreground opacity-50 transition-opacity group-hover:opacity-100" />
+              )}
+            </div>
+            <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+              {children}
+            </p>
+          </div>
         </a>
       </NavigationMenuLink>
     </li>
