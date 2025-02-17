@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ArrowTopRightIcon } from "@radix-ui/react-icons";
 
 export enum NavAppearance {
@@ -45,8 +45,27 @@ export default function Nav({
 }: NavProps) {
   const router = useRouter();
   const { nav } = router.query;
+  const [lastUpdatedChangelog, setLastUpdatedChangelog] = useState<string>("");
 
   useEffect(() => {
+    fetch("/changelog.json")
+      .then((res) => res.json())
+      .then((data) => {
+        const lastUpdated = data[0].date;
+        const formattedLastUpdated = new Date(lastUpdated).toLocaleDateString(
+          "en-US",
+          {
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+          },
+        );
+        setLastUpdatedChangelog(formattedLastUpdated);
+      })
+      .catch((err) => {
+        console.warn("Didn't set last updated", err);
+      });
+
     // Clear query param after page load
     if (typeof window !== "undefined" && nav) {
       window?.history?.replaceState(null, "", location.href.split("?")[0]);
@@ -106,7 +125,10 @@ export default function Nav({
                   href={generateNavUrl(`/changelog`, NavAppearance.ToMin)}
                   title="Changelog"
                 >
-                  What we&rsquo;ve been up to
+                  What we&rsquo;ve been up to{" "}
+                  {lastUpdatedChangelog && (
+                    <span className="">· updated {lastUpdatedChangelog}</span>
+                  )}
                 </ListItem>
               </ul>
             </NavigationMenuContent>
