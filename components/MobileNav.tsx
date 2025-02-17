@@ -55,7 +55,7 @@ export function MobileNav({ navigation }: MobileNavProps) {
       </PopoverTrigger>
       <PopoverContent
         className={cn(
-          "w-[calc(100vw-2rem)] max-w-none overflow-hidden rounded-xl border-none p-2 sm:w-[400px]",
+          "w-[calc(100vw-2rem)] max-w-80 overflow-hidden rounded-xl border-none p-2",
         )}
         align="end"
         side="top"
