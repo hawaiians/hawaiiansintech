@@ -12,6 +12,7 @@ export interface TabsProps {
     selected?: boolean;
   }>;
   size?: TabsSize;
+  className?: string;
 }
 
 /**
@@ -20,9 +21,15 @@ export interface TabsProps {
 export default function Tabs_old({
   items,
   size = TabsSize.Default,
+  className,
 }: TabsProps) {
   return (
-    <div className="flex items-center gap-1 rounded-full bg-tan-500/50 p-1">
+    <div
+      className={cn(
+        "flex items-center gap-0.5 rounded-full bg-tan-500/50 p-1 md:gap-1",
+        className,
+      )}
+    >
       {items.map((item, i) => (
         <button
           key={`pill-${i}`}
@@ -37,7 +44,8 @@ export default function Tabs_old({
             transition-all
             hover:bg-tan-400/70`,
             item.selected && "bg-white text-stone-900 hover:bg-white",
-            size === TabsSize.Large && "px-4 text-base",
+            size === TabsSize.Large &&
+              "px-3 py-0.5 text-sm md:px-4 md:py-1 md:text-base",
           )}
           onClick={items[i].onClick}
         >
