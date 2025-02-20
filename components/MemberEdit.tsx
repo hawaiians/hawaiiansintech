@@ -68,7 +68,9 @@ export const MemberEdit: FC<{
   const [title, setTitle] = useState<string>(member.title);
   const [link, setLink] = useState<string>(member.link);
   const [location, setLocation] = useState<string>(member.location);
-  const [region, setRegion] = useState<string>(member.region);
+  const [region, setRegion] = useState<string>(
+    member.regions ? member.regions[0].name : "",
+  );
   const [companySize, setCompanySize] = useState<string>(member.companySize);
   const [yearsOfExperience, setYearsOfExperience] = useState<string>(
     member.yearsExperience,
@@ -470,7 +472,8 @@ export const MemberEdit: FC<{
             <div className="flex w-full items-center">
               <h2
                 className={`grow text-sm font-semibold ${
-                  region !== member.region && "text-brown-600"
+                  region !== (member.regions ? member.regions[0].name : null) &&
+                  "text-brown-600"
                 }`}
               >
                 Region
@@ -491,13 +494,18 @@ export const MemberEdit: FC<{
               </Popover> */}
             </div>
             <Select
-              defaultValue={getRegionIdFromName(member.region)}
+              defaultValue={getRegionIdFromName(
+                member.regions ? member.regions[0].name : null,
+              )}
               onValueChange={(e) => {
                 setRegion(e);
               }}
             >
               <SelectTrigger
-                className={region !== member.region && "text-brown-600"}
+                className={
+                  region !== (member.regions ? member.regions[0].name : null) &&
+                  "text-brown-600"
+                }
               >
                 <SelectValue placeholder="Region" />
               </SelectTrigger>

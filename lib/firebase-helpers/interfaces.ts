@@ -14,6 +14,7 @@ export interface MemberPublic {
   location?: string;
   name?: string;
   region?: string;
+  regions?: { name: string; id: string }[];
   status?: StatusEnum;
   title?: string;
   unsubscribed?: boolean;

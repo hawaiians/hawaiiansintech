@@ -2,6 +2,7 @@ import {
   DocumentData,
   DocumentReference,
   addDoc,
+  arrayRemove,
   arrayUnion,
   collection,
   getDoc,
@@ -166,18 +167,26 @@ export const addLabelRef = async (
   return docRef;
 };
 
-export const addMemberToLabels = async (memberRef: DocumentReference) => {
+type LabelOperation = "add" | "remove";
+
+const updateMemberLabels = async (
+  memberRef: DocumentReference,
+  operation: LabelOperation,
+) => {
   const memberSnapshot = await getDoc(memberRef);
   const memberData = memberSnapshot.data();
   const industries = memberData[FirebaseMemberFieldsEnum.INDUSTRIES];
   const focuses = memberData[FirebaseMemberFieldsEnum.FOCUSES];
   const regions = memberData[FirebaseMemberFieldsEnum.REGIONS];
   const experience = [memberData[FirebaseMemberFieldsEnum.EXPERIENCE]];
+
+  const updateOperation = operation === "add" ? arrayUnion : arrayRemove;
+
   for (const label of [industries, focuses, regions, experience]) {
     if (label) {
       for (const ref of label) {
         await updateDoc(ref, {
-          members: arrayUnion(memberRef),
+          members: updateOperation(memberRef),
           last_modified: serverTimestamp(),
           last_modified_by: "admin edit",
         });
@@ -186,24 +195,12 @@ export const addMemberToLabels = async (memberRef: DocumentReference) => {
   }
 };
 
+export const addMemberToLabels = async (memberRef: DocumentReference) => {
+  await updateMemberLabels(memberRef, "add");
+};
+
 export const deleteMemberFromLabels = async (memberRef: DocumentReference) => {
-  const memberSnapshot = await getDoc(memberRef);
-  const memberData = memberSnapshot.data();
-  const industries = memberData[FirebaseMemberFieldsEnum.INDUSTRIES];
-  const focuses = memberData[FirebaseMemberFieldsEnum.FOCUSES];
-  const regions = memberData[FirebaseMemberFieldsEnum.REGIONS];
-  const experience = [memberData[FirebaseMemberFieldsEnum.EXPERIENCE]];
-  for (const label of [industries, focuses, regions, experience]) {
-    if (label) {
-      for (const ref of label) {
-        await updateDoc(ref, {
-          members: arrayUnion(memberRef),
-          last_modified: serverTimestamp(),
-          last_modified_by: "admin edit",
-        });
-      }
-    }
-  }
+  await updateMemberLabels(memberRef, "remove");
 };
 
 export function filterLookup(

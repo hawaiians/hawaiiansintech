@@ -267,7 +267,6 @@ Directory.Card = Card;
 
 function Card({ member, regions, user }: CardProps) {
   const [showModal, setShowModal] = useState<ReactNode | false>(false);
-
   const handleDelete = async () => {
     alert("NOT ACTUALLY DELETING!!! RETURNING EARLY");
     return;
@@ -373,7 +372,7 @@ function Card({ member, regions, user }: CardProps) {
                 <section>
                   <h4 className="font-medium">Region</h4>
                   <p className="break-words font-light text-secondary-foreground">
-                    {member.region}
+                    {member.regions ? member.regions[0].name : ""}
                   </p>
                 </section>
                 <section>

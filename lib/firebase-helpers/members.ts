@@ -271,6 +271,7 @@ export const updateMember = async (
     emailAbbr,
     yearsExperience,
     region,
+    regions,
     companySize,
     focus,
     industry,
@@ -442,8 +443,6 @@ export const addMemberToFirebase = async (
   return new Promise(async (resolve, reject) => {
     try {
       const docRef = await addMember(member);
-      // await addMemberToLabels(focuses, docRef);
-      // await addMemberToLabels(industries, docRef);
       resolve(docRef);
     } catch (error) {
       console.error("Error adding member:", error);
