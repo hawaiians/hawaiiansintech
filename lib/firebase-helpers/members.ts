@@ -174,6 +174,10 @@ export async function getMembers({
           ? filterLookup(experienceData, experience ? [experience] : [])
           : [experience?.id];
 
+        // TODO: migrate to regions, adding region for backward compatibility
+        //  on admin page
+        memberObject["region"] = filterLookup(regionsData, regions, true);
+
         if (isAdmin || userId === member.id) {
           memberObject = {
             ...memberObject,
@@ -271,7 +275,6 @@ export const updateMember = async (
     emailAbbr,
     yearsExperience,
     region,
-    regions,
     companySize,
     focus,
     industry,

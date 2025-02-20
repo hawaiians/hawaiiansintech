@@ -372,7 +372,7 @@ function Card({ member, regions, user }: CardProps) {
                 <section>
                   <h4 className="font-medium">Region</h4>
                   <p className="break-words font-light text-secondary-foreground">
-                    {member.regions ? member.regions[0].name : ""}
+                    {member.region}
                   </p>
                 </section>
                 <section>

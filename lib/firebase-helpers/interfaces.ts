@@ -14,7 +14,8 @@ export interface MemberPublic {
   location?: string;
   name?: string;
   region?: string;
-  regions?: { name: string; id: string }[];
+  // TODO: migrate to regions
+  // regions?: { name: string; id: string }[];
   status?: StatusEnum;
   title?: string;
   unsubscribed?: boolean;
