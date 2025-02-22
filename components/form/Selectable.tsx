@@ -79,21 +79,22 @@ export default function Selectable({
         hover:after:border-tan-500/50
       `,
         selected &&
-          `border-brown-700/50
+          `sm:after:border-6
+          border-brown-700/50
           bg-brown-600
           after:border-4
           after:border-brown-700
           after:bg-white
           hover:border-brown-700
           hover:after:border-brown-800
-          sm:after:border-6
           `,
         centered && "items-center text-center after:self-center",
         fullWidth && "w-full",
         disabled &&
           "cursor-not-allowed opacity-50 ring-0 hover:border-transparent",
         variant === SelectableVariant.Blank && "before:hidden after:hidden",
-        size === SelectableSize.Large && "px-3 py-2",
+        size === SelectableSize.Large &&
+          "px-2 py-1 text-sm md:px-3 md:py-2 md:text-base",
       )}
       style={gridSpan ? { gridColumn: `span ${gridSpan}` } : {}}
       disabled={disabled}
