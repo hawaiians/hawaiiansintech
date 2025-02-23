@@ -176,9 +176,9 @@ export async function getMembers({
           experienceData,
           experience ? [experience] : [],
         );
-        memberObject["experience"] = experienceFiltered
-          ? experienceFiltered[0]
-          : null;
+        memberObject["experience"] = includeFilters
+          ? filterLookup(experienceData, experience ? [experience] : [])
+          : [experience?.id];
 
         // TODO: migrate to regions and experience, adding for backward
         //  compatibility on admin page

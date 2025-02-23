@@ -244,7 +244,7 @@ export const MemberEdit: FC<{
         pathname: router.pathname,
         query: { memberId: member.id, updated: "success" },
       });
-      // router.reload();
+      router.reload();
     }
     setSaveInProgress(false);
     setShowSuccess(true);
