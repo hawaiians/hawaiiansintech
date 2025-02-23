@@ -17,9 +17,9 @@ export default function BigPill({ children, onClick }: BigPillProps) {
         border-4
         border-transparent
         bg-stone-700
-        py-1
-        pl-4
-        pr-3
+        pl-3
+        pr-2
+        text-sm
         font-medium
         tracking-tight
         text-white
@@ -31,6 +31,10 @@ export default function BigPill({ children, onClick }: BigPillProps) {
         after:content-['×']
         hover:border-stone-800
         hover:after:text-white/70
+        md:py-1
+        md:pl-4
+        md:pr-3
+        md:text-base
       `)}
       onClick={onClick}
     >

@@ -54,8 +54,8 @@ export default function FilterPicker({
 
   return (
     <>
-      <div className="relative mt-16 w-full">
-        <ul className={`mb-4 flex min-h-[44px] w-full flex-wrap gap-2`}>
+      <div className="relative mt-16 grid w-full">
+        <ul className="mb-4 flex min-h-[44px] w-full flex-wrap gap-2 px-4 lg:px-8">
           {activeFilters.map((focus, i) => (
             <li key={`focus-filter-${i}`}>
               <BigPill onClick={() => onFilterClick(focus.id)}>
@@ -64,46 +64,54 @@ export default function FilterPicker({
             </li>
           ))}
         </ul>
-        <div className="mb-4 flex items-center">
-          <Tabs
-            size={TabsSize.Large}
-            items={[
-              {
-                label: "Focus",
-                selected: focusActive,
-                onClick: () => activateFilter(setFocusActive, "focus"),
-              },
-              {
-                label: "Industry",
-                selected: industryActive,
-                onClick: () => activateFilter(setIndustryActive, "industry"),
-              },
-              {
-                label: "Experience",
-                selected: experienceActive,
-                onClick: () =>
-                  activateFilter(setExperienceActive, "experience"),
-              },
-              {
-                label: "Location",
-                selected: regionActive,
-                onClick: () => activateFilter(setRegionActive, "region"),
-              },
-            ]}
-          />
-          <h4
-            className={cn(
-              `grow text-right text-sm text-stone-600 sm:text-lg`,
-              filterIsSelected && "text-brown-600",
-            )}
-          >{`${
-            filterIsSelected
-              ? `Selected (${selectedMemberCount})`
-              : `All (${totalMemberCount})`
-          }`}</h4>
+        <div
+          className={cn(
+            "relative w-full overflow-scroll",
+            "after:fixed after:inset-y-0 after:right-0 after:z-10 after:w-4 after:bg-gradient-to-l after:from-background after:to-transparent",
+          )}
+        >
+          <div className="flex items-center gap-4 px-4 py-4 lg:px-8">
+            <Tabs
+              className="shrink-0"
+              size={TabsSize.Large}
+              items={[
+                {
+                  label: "Focus",
+                  selected: focusActive,
+                  onClick: () => activateFilter(setFocusActive, "focus"),
+                },
+                {
+                  label: "Industry",
+                  selected: industryActive,
+                  onClick: () => activateFilter(setIndustryActive, "industry"),
+                },
+                {
+                  label: "Experience",
+                  selected: experienceActive,
+                  onClick: () =>
+                    activateFilter(setExperienceActive, "experience"),
+                },
+                {
+                  label: "Location",
+                  selected: regionActive,
+                  onClick: () => activateFilter(setRegionActive, "region"),
+                },
+              ]}
+            />
+            <h4
+              className={cn(
+                `shrink-0 grow text-right text-sm text-stone-600 sm:text-lg`,
+                filterIsSelected && "text-brown-600",
+              )}
+            >{`${
+              filterIsSelected
+                ? `Selected (${selectedMemberCount})`
+                : `All (${totalMemberCount})`
+            }`}</h4>
+          </div>
         </div>
 
-        <ul className="flex flex-wrap gap-2 transition-all">
+        <ul className="flex flex-wrap gap-2 px-4 lg:px-8">
           {filtersList
             .sort((a, b) =>
               experienceActive

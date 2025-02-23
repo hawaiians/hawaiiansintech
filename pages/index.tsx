@@ -286,14 +286,8 @@ export default function HomePage({
         <title>{pageTitle}</title>
       </Head>
       <Nav />
-      <div
-        className={`
-          px-4
-          pt-[26vh]
-          lg:px-8
-        `}
-      >
-        <Title text="Hawaiians*in&nbsp;Technology" />
+      <div className="pt-[26vh]">
+        <Title text="Hawaiians*in&nbsp;Technology" className="px-4 lg:px-8" />
         {focuses && (
           <FilterPicker
             filtersList={filtersList}
