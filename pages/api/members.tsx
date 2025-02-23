@@ -132,13 +132,15 @@ async function putHandler(req: NextApiRequest, res: NextApiResponse) {
   const memberRef = await getMemberRef(memberNew.id);
   if (
     memberOld.status !== StatusEnum.APPROVED &&
-    memberNew.status === StatusEnum.APPROVED
+    memberNew.status === StatusEnum.APPROVED &&
+    isAdmin
   ) {
     // Add member to label references if approved
     addMemberToLabels(memberRef);
   } else if (
     memberOld.status === StatusEnum.APPROVED &&
-    memberNew.status !== StatusEnum.APPROVED
+    memberNew.status !== StatusEnum.APPROVED &&
+    isAdmin
   ) {
     // Remove member from label references if unapproved
     deleteMemberFromLabels(memberRef);
