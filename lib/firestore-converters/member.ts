@@ -26,12 +26,13 @@ export class Member {
     public regions: DocumentReference[],
     public title: string,
     public yearsExperience: YearsOfExperienceEnum,
+    public experience?: DocumentReference,
     public id?: string,
     public lastModified?: Timestamp,
     public lastModifiedBy?: DocumentReference | string,
     public requests?: string,
     public status?: StatusEnum,
-    public unsubscribed?: boolean
+    public unsubscribed?: boolean,
   ) {}
 
   toString() {
@@ -58,6 +59,7 @@ export const memberConverter: FirestoreDataConverter<Member> = {
       regions: user.regions,
       title: user.title,
       years_experience: user.yearsExperience,
+      experience: user.experience || null,
       last_modified: user.lastModified || serverTimestamp(),
       last_modified_by:
         user.lastModifiedBy || FirebaseDefaultValuesEnum.LAST_MODIFIED_BY,
@@ -75,14 +77,14 @@ export const memberConverter: FirestoreDataConverter<Member> = {
         data.company_size,
         "company_size",
         name,
-        "string"
+        "string",
       ),
       checkType<DocumentReference[]>(data.focuses, "focuses", name, "object"),
       checkType<DocumentReference[]>(
         data.industries,
         "industries",
         name,
-        "object"
+        "object",
       ),
       checkType<string>(data.link, "link", name, "string"),
       checkType<string>(data.location, "location", name, "string"),
@@ -94,7 +96,13 @@ export const memberConverter: FirestoreDataConverter<Member> = {
         data.years_experience,
         "years_experience",
         name,
-        "string"
+        "string",
+      ),
+      checkType<DocumentReference>(
+        data.experience,
+        "experience",
+        name,
+        "object",
       ),
       snapshot.id,
       checkType<Timestamp>(data.last_modified, "last_modified", name, "object"),
@@ -102,7 +110,7 @@ export const memberConverter: FirestoreDataConverter<Member> = {
       checkType<string>(data.requests, "requests", name, "string"),
       checkType<StatusEnum>(data.status, "status", name, "string") ||
         StatusEnum.PENDING,
-      checkType<boolean>(data.unsubscribed, "unsubscribed", name, "boolean")
+      checkType<boolean>(data.unsubscribed, "unsubscribed", name, "boolean"),
     );
   },
 };

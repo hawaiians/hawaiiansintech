@@ -18,6 +18,9 @@ export interface MemberPublic {
   title?: string;
   unsubscribed?: boolean;
   yearsExperience?: string;
+  // TODO: migrate to experience and regions
+  experience?: { name: string; id: string }[];
+  regions?: { name: string; id: string }[];
 }
 
 export interface MemberPublicEditing extends MemberPublic {

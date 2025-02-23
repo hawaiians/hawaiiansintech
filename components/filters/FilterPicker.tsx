@@ -4,6 +4,7 @@ import { useState } from "react";
 import BigPill from "../BigPill";
 import Selectable, { SelectableSize } from "../form/Selectable";
 import Tabs, { TabsSize } from "../Tabs";
+import { YearsOfExperienceEnum } from "@/lib/enums";
 
 export interface PickerFilter extends Filter {
   active?: boolean;
@@ -15,6 +16,7 @@ interface FilterPickerProps {
   onFilterClick: (id?: string, filterType?: string) => any;
   onViewAll: () => any;
   onFilterSelect: (filterSelect?: string, enable?: boolean) => any;
+  totalMemberCount: number;
   selectedMemberCount?: number;
   viewAll?: boolean;
 }
@@ -24,6 +26,7 @@ export default function FilterPicker({
   activeFilters,
   onFilterClick,
   onFilterSelect,
+  totalMemberCount,
   selectedMemberCount,
   onViewAll,
   viewAll,
@@ -33,6 +36,7 @@ export default function FilterPicker({
   const [regionActive, setRegionActive] = useState<boolean>();
   const [experienceActive, setExperienceActive] = useState<boolean>();
   const filterIsSelected = activeFilters.length !== 0;
+  const experienceOrder = Object.values(YearsOfExperienceEnum) as string[];
 
   function activateFilter(setFilter: Function, filtertype: string) {
     const filterSetList = [
@@ -102,14 +106,19 @@ export default function FilterPicker({
             >{`${
               filterIsSelected
                 ? `Selected (${selectedMemberCount})`
-                : `All (${selectedMemberCount})`
+                : `All (${totalMemberCount})`
             }`}</h4>
           </div>
         </div>
 
         <ul className="flex flex-wrap gap-2 px-4 lg:px-8">
           {filtersList
-            .sort((a, b) => b.count - a.count)
+            .sort((a, b) =>
+              experienceActive
+                ? experienceOrder.indexOf(a.name) -
+                  experienceOrder.indexOf(b.name)
+                : b.count - a.count,
+            ) // sort experience filter explicitly, otherwise sort by count
             .map((filter, i) => (
               <li key={`focus-filter-${filter.id}`}>
                 <Selectable

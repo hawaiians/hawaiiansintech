@@ -1,5 +1,8 @@
 import { MemberPublic } from "@/lib/firebase-helpers/interfaces";
 import { cn } from "@/lib/utils";
+import { useEffect, useCallback } from "react";
+import debounce from "lodash/debounce";
+import LoadingSpinner, { LoadingSpinnerVariant } from "./LoadingSpinner";
 
 export interface DirectoryMember extends MemberPublic {
   focus: { active?: boolean; id: string; name: string }[];
@@ -10,9 +13,57 @@ export interface DirectoryMember extends MemberPublic {
 
 interface MemberDirectoryProps {
   members?: DirectoryMember[];
+  loadMoreMembers?: () => void;
+  isLoadingMoreMembers?: boolean;
+  isLoadingFilteredMembers?: boolean;
 }
 
-export default function MemberDirectory({ members }: MemberDirectoryProps) {
+export default function MemberDirectory({
+  members,
+  loadMoreMembers,
+  isLoadingMoreMembers,
+  isLoadingFilteredMembers,
+}: MemberDirectoryProps) {
+  const handleScroll = useCallback(
+    debounce(() => {
+      const scrollPosition = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      const rowHeight = 140;
+      const nearBottom =
+        scrollPosition + windowHeight >= documentHeight - rowHeight;
+
+      if (nearBottom && !isLoadingMoreMembers) {
+        loadMoreMembers();
+      }
+    }, 100),
+    [isLoadingMoreMembers, loadMoreMembers],
+  );
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
+
+  const loadingDiv = (
+    <div
+      className={cn(`
+    flex
+    min-h-[140px]
+    w-full
+    items-center
+    justify-center
+  `)}
+    >
+      <div className="flex aspect-square w-1/4 items-center justify-center">
+        <LoadingSpinner
+          className="h-full w-full"
+          variant={LoadingSpinnerVariant.Invert}
+        />
+      </div>
+    </div>
+  );
+
   const isFiltered =
     members.filter(
       (mem) =>
@@ -38,6 +89,7 @@ export default function MemberDirectory({ members }: MemberDirectoryProps) {
         lg:grid-cols-4
       `}
     >
+      {isLoadingFilteredMembers && loadingDiv}
       {members.map((member, i) => {
         const isSelected =
           member.focus
@@ -228,6 +280,7 @@ export default function MemberDirectory({ members }: MemberDirectoryProps) {
           </a>
         );
       })}
+      {isLoadingMoreMembers && loadingDiv}
     </section>
   );
 }

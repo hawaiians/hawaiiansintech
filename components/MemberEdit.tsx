@@ -50,12 +50,22 @@ import ErrorMessage, {
 export const MemberEdit: FC<{
   member: MemberPublic;
   regions?: DocumentData[];
+  experience?: DocumentData[];
   onClose?: () => void;
   onDelete?: () => void;
   onSave?: () => void;
   user?: User;
   adminView?: boolean;
-}> = ({ member, regions, onClose, onDelete, onSave, user, adminView }) => {
+}> = ({
+  member,
+  regions,
+  experience,
+  onClose,
+  onDelete,
+  onSave,
+  user,
+  adminView,
+}) => {
   const router = useRouter();
   const { query } = router;
   const [email, setEmail] = useState<MemberEmail>(null);
@@ -68,11 +78,7 @@ export const MemberEdit: FC<{
   const [title, setTitle] = useState<string>(member.title);
   const [link, setLink] = useState<string>(member.link);
   const [location, setLocation] = useState<string>(member.location);
-  const [region, setRegion] = useState<string>(member.region);
   const [companySize, setCompanySize] = useState<string>(member.companySize);
-  const [yearsOfExperience, setYearsOfExperience] = useState<string>(
-    member.yearsExperience,
-  );
   const [status, setStatus] = useState<StatusEnum>(member.status);
   const [unsubscribed, setUnsubscribed] = useState<boolean>(
     member.unsubscribed,
@@ -86,6 +92,21 @@ export const MemberEdit: FC<{
   >(member.industry);
   const [suggestedIndustry, setSuggestedIndustry] = useState<string>(undefined);
   const [error, setError] = useState<ErrorMessageProps>(undefined);
+
+  const getIdFromName = (collection: DocumentData[], name: string): string => {
+    const item = collection.find((r) => r.fields.name === name);
+    return item ? item.id : null;
+  };
+
+  const initialRegion = getIdFromName(regions, member.region);
+  const [region, setRegion] = useState<string>(initialRegion);
+  const initialYearsExperience = getIdFromName(
+    experience,
+    member.yearsExperience,
+  );
+  const [yearsExperience, setYearsExperience] = useState<string>(
+    initialYearsExperience,
+  );
 
   useEffect(() => {
     let timeout: NodeJS.Timeout;
@@ -102,11 +123,6 @@ export const MemberEdit: FC<{
       clearTimeout(timeout);
     };
   }, [query.updated, error]);
-
-  const getRegionIdFromName = (name: string): string => {
-    const region = regions.find((r) => r.fields.name === name);
-    return !region ? null : region.id;
-  };
 
   const fetchEmailById = async () => {
     const response = await fetch(`/api/emails?id=${member.id}`, {
@@ -206,13 +222,11 @@ export const MemberEdit: FC<{
       link: link,
       location: location,
       name: name,
-      region: !regions.find((r) => r.id === region)
-        ? getRegionIdFromName(region)
-        : region,
+      region: region,
       status: status,
       title: title,
       unsubscribed: unsubscribed,
-      yearsExperience: yearsOfExperience,
+      yearsExperience: yearsExperience,
     };
 
     const updateResult = await updateMember(updatedMember);
@@ -470,7 +484,7 @@ export const MemberEdit: FC<{
             <div className="flex w-full items-center">
               <h2
                 className={`grow text-sm font-semibold ${
-                  region !== member.region && "text-brown-600"
+                  region !== initialRegion && "text-brown-600"
                 }`}
               >
                 Region
@@ -491,13 +505,13 @@ export const MemberEdit: FC<{
               </Popover> */}
             </div>
             <Select
-              defaultValue={getRegionIdFromName(member.region)}
+              defaultValue={initialRegion}
               onValueChange={(e) => {
                 setRegion(e);
               }}
             >
               <SelectTrigger
-                className={region !== member.region && "text-brown-600"}
+                className={region !== initialRegion && "text-brown-600"}
               >
                 <SelectValue placeholder="Region" />
               </SelectTrigger>
@@ -518,29 +532,31 @@ export const MemberEdit: FC<{
           <div className="flex flex-col items-start gap-1">
             <h2
               className={`text-sm font-semibold ${
-                yearsOfExperience !== member.yearsExperience && "text-brown-600"
+                yearsExperience !== initialYearsExperience && "text-brown-600"
               }`}
             >
               Years of Experience
             </h2>
             <Select
-              defaultValue={member.yearsExperience}
+              defaultValue={initialYearsExperience}
               onValueChange={(e) => {
-                setYearsOfExperience(e);
+                setYearsExperience(e);
               }}
             >
               <SelectTrigger
                 className={
-                  yearsOfExperience !== member.yearsExperience &&
-                  "text-brown-600"
+                  yearsExperience !== initialYearsExperience && "text-brown-600"
                 }
               >
                 <SelectValue placeholder="Company Size" />
               </SelectTrigger>
               <SelectContent className="max-h-72">
-                {Object.values(YearsOfExperienceEnum).map((year, i) => (
-                  <SelectItem value={year} key={`years-exerience-${year}`}>
-                    {year}
+                {[...experience].map((exp) => (
+                  <SelectItem
+                    value={exp.id}
+                    key={`experience-${exp.fields.name}`}
+                  >
+                    {exp.fields.name}
                   </SelectItem>
                 ))}
               </SelectContent>

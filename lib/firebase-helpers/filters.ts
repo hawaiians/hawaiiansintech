@@ -2,6 +2,7 @@ import {
   DocumentData,
   DocumentReference,
   addDoc,
+  arrayRemove,
   arrayUnion,
   collection,
   getDoc,
@@ -30,21 +31,19 @@ export const fieldNameToTable = {
   [FirebaseMemberFieldsEnum.INDUSTRIES]: FirebaseTablesEnum.INDUSTRIES,
   [FirebaseMemberFieldsEnum.FOCUSES]: FirebaseTablesEnum.FOCUSES,
   [FirebaseMemberFieldsEnum.REGIONS]: FirebaseTablesEnum.REGIONS,
+  [FirebaseMemberFieldsEnum.EXPERIENCE]: FirebaseTablesEnum.EXPERIENCE,
 };
 
 export const addNewLabel = async (
-  id: string,
   newFitler: string,
   filterName: string,
   currentUser: string,
   docRef: admin.firestore.DocumentReference,
 ) => {
-  const memberRefPublic = await getMemberRef(id);
   const newLabelRef = await addLabelRef(
     newFitler,
     fieldNameToTable[filterName],
   );
-  await addMemberToLabels([newLabelRef], memberRefPublic);
   const writeResult = await docRef.update({
     [filterName]: admin.firestore.FieldValue.arrayUnion(
       ...[admin.firestore().doc(newLabelRef.path)],
@@ -68,23 +67,32 @@ export const updateAdminFilterReferences = async (
   const adminReferencesToDelete = referencesToDelete.map((ref) =>
     admin.firestore().doc(ref.path),
   );
-  if (adminReferencesToDelete.length !== 0) {
+  const metadata = {
+    last_modified: admin.firestore.FieldValue.serverTimestamp(),
+    last_modified_by: currentUser || "admin edit",
+  };
+  if (filterName === FirebaseMemberFieldsEnum.EXPERIENCE) {
     await docRef.update({
-      [filterName]: admin.firestore.FieldValue.arrayRemove(
-        ...adminReferencesToDelete,
-      ),
-      last_modified: admin.firestore.FieldValue.serverTimestamp(),
-      last_modified_by: currentUser || "admin edit",
+      [filterName]: adminReferencesToAdd[0],
+      ...metadata,
     });
-  }
-  if (adminReferencesToAdd.length !== 0) {
-    await docRef.update({
-      [filterName]: admin.firestore.FieldValue.arrayUnion(
-        ...adminReferencesToAdd,
-      ),
-      last_modified: admin.firestore.FieldValue.serverTimestamp(),
-      last_modified_by: currentUser || "admin edit",
-    });
+  } else {
+    if (adminReferencesToDelete.length !== 0) {
+      await docRef.update({
+        [filterName]: admin.firestore.FieldValue.arrayRemove(
+          ...adminReferencesToDelete,
+        ),
+        ...metadata,
+      });
+    }
+    if (adminReferencesToAdd.length !== 0) {
+      await docRef.update({
+        [filterName]: admin.firestore.FieldValue.arrayUnion(
+          ...adminReferencesToAdd,
+        ),
+        ...metadata,
+      });
+    }
   }
 };
 
@@ -124,6 +132,7 @@ export const updateFilterReferences = async (
   newReferenceIds: string[],
   filterName: string,
   currentUser: string,
+  updateFilters: boolean,
 ): Promise<[DocumentReference[], DocumentReference[]]> => {
   const newReferences: DocumentReference[] = await getReferences(
     newReferenceIds,
@@ -140,8 +149,10 @@ export const updateFilterReferences = async (
     (ref) => !oldReferences.includes(ref),
   );
   const memberRefPublic = await getMemberRef(id);
-  await deleteReferences(memberRefPublic, referencesToDelete);
-  await addMemberToReferences(memberRefPublic, referencesToAdd, currentUser);
+  if (updateFilters) {
+    await deleteReferences(memberRefPublic, referencesToDelete);
+    await addMemberToReferences(memberRefPublic, referencesToAdd, currentUser);
+  }
   return [referencesToAdd, referencesToDelete];
 };
 
@@ -169,24 +180,53 @@ export const addLabelRef = async (
   return docRef;
 };
 
-export const addMemberToLabels = async (
-  labelReferences: DocumentReference[],
+type LabelOperation = "add" | "remove";
+
+const updateMemberLabels = async (
   memberRef: DocumentReference,
+  operation: LabelOperation,
 ) => {
-  for (const labelRef of labelReferences) {
-    await updateDoc(labelRef, {
-      members: arrayUnion(memberRef),
-      last_modified: serverTimestamp(),
-    });
+  const memberSnapshot = await getDoc(memberRef);
+  const memberData = memberSnapshot.data();
+  const industries = memberData[FirebaseMemberFieldsEnum.INDUSTRIES];
+  const focuses = memberData[FirebaseMemberFieldsEnum.FOCUSES];
+  const regions = memberData[FirebaseMemberFieldsEnum.REGIONS];
+  const experience = [memberData[FirebaseMemberFieldsEnum.EXPERIENCE]];
+
+  const updateOperation = operation === "add" ? arrayUnion : arrayRemove;
+
+  for (const label of [industries, focuses, regions, experience]) {
+    if (label) {
+      for (const ref of label) {
+        await updateDoc(ref, {
+          members: updateOperation(memberRef),
+          last_modified: serverTimestamp(),
+          last_modified_by: "admin edit",
+        });
+      }
+    }
   }
+};
+
+export const addMemberToLabels = async (memberRef: DocumentReference) => {
+  await updateMemberLabels(memberRef, "add");
+};
+
+export const deleteMemberFromLabels = async (memberRef: DocumentReference) => {
+  await updateMemberLabels(memberRef, "remove");
 };
 
 export function filterLookup(
   items: DocumentData[],
   memberData?: DocumentReference[],
-  isRegionLookup: boolean = false,
+  returnFirstName: boolean = false,
 ): FilterData[] | string | null {
-  if (memberData && Array.isArray(memberData) && memberData.length !== 0) {
+  if (
+    memberData &&
+    Array.isArray(memberData) &&
+    memberData.length !== 0 &&
+    items.length !== 0
+  ) {
     const results = memberData.map((item) => {
       return (
         items
@@ -205,9 +245,7 @@ export function filterLookup(
           })[0] || null
       );
     });
-    // TODO: Allow for users to have multiple regions, temporarily returning
-    //  the first region's name
-    return isRegionLookup ? results[0].name : results;
+    return returnFirstName ? results[0].name : results;
   }
   return null;
 }
@@ -269,6 +307,8 @@ function hasApprovedMembers(
   return false;
 }
 
+// TODO: Remove hasApprovedMembers since all filters should only have approved
+//  members
 export async function getFilters(
   filterType: FirebaseTablesEnum,
   limitByMembers?: boolean,
@@ -295,8 +335,8 @@ export async function getFilters(
           typeof role.fields["name"] === "string" ? role.fields["name"] : null,
         id: typeof role.id === "string" ? role.id : null,
         filterType: filterType,
-        members: Array.isArray(role.fields["members"]) ? member_ids : null,
-        count: Array.isArray(role.fields["members"]) ? member_ids.length : 0,
+        members: member_ids,
+        count: member_ids.length,
         hasApprovedMembers: limitByMembers
           ? hasApprovedMembers(approvedMemberIds, member_ids)
           : true,

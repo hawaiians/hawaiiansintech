@@ -33,6 +33,7 @@ export enum FirebaseTablesEnum {
   ADMINS = "admins",
   FOCUSES = "focuses",
   INDUSTRIES = "industries",
+  EXPERIENCE = "experience",
   MEMBERS = "members",
   REGIONS = "regions",
   SECURE_MEMBER_DATA = "secureMemberData",
@@ -70,4 +71,5 @@ export enum FirebaseMemberFieldsEnum {
   TITLE = "title",
   UNSUBSCRIBED = "unsubscribed",
   YEARS_EXPERIENCE = "years_experience",
+  EXPERIENCE = "experience",
 }
