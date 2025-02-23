@@ -19,6 +19,7 @@ import serverSideOnly, { getFirebaseTable } from "./general";
 import { memberConverter } from "../firestore-converters/member";
 import {
   DocumentData,
+  FilterData,
   MemberPublic,
   // regionLookup
 } from "@/lib/firebase-helpers/interfaces";
@@ -136,7 +137,8 @@ export async function getMembers({
         isAdmin || userId !== "" ? false : true,
       ));
 
-    // Note: Regions do not have statuses so no need to filter by approved
+    // Note: Regions and Years of Experience do not have statuses so no need to
+    //  filter by approved
     regionsData =
       regions || (await getFirebaseTable(FirebaseTablesEnum.REGIONS));
     experienceData =
@@ -170,12 +172,19 @@ export async function getMembers({
         memberObject["regions"] = includeFilters
           ? filterLookup(regionsData, regions)
           : regions.map((region) => region?.id);
-        memberObject["experience"] = includeFilters
-          ? filterLookup(experienceData, experience ? [experience] : [])
-          : [experience?.id];
+        const experienceFiltered = filterLookup(
+          experienceData,
+          experience ? [experience] : [],
+        );
+        memberObject["experience"] = experienceFiltered
+          ? experienceFiltered[0]
+          : null;
 
-        // TODO: migrate to regions, adding region for backward compatibility
-        //  on admin page
+        // TODO: migrate to regions and experience, adding for backward
+        //  compatibility on admin page
+        memberObject["yearsExperience"] = experienceFiltered
+          ? (experienceFiltered[0] as FilterData).name
+          : (memberObject["yearsExperience"] as string);
         memberObject["region"] = filterLookup(regionsData, regions, true);
 
         if (isAdmin || userId === member.id) {
@@ -218,25 +227,35 @@ export const updateMember = async (
     throw new Error(`Member with uid ${memberData.id} does not exist`);
   }
 
-  const data = doc.data();
+  let data = doc.data();
+  // Need to convert to array since filterLookup expects an array
+  data["experience"] = data["experience"] ? [data["experience"]] : [];
+
+  const memberIsApproved = data["status"] === StatusEnum.APPROVED;
+  const updateFilters =
+    memberIsApproved ||
+    (currentUserIsAdmin && memberData.status === StatusEnum.APPROVED);
 
   // Handle filter references
   const fields = [
     FirebaseMemberFieldsEnum.FOCUSES.toString(),
     FirebaseMemberFieldsEnum.INDUSTRIES.toString(),
     FirebaseMemberFieldsEnum.REGIONS.toString(),
+    FirebaseMemberFieldsEnum.EXPERIENCE.toString(),
   ];
   const fieldSingular = {
     // TODO: Update fields to plural in MemberPublic
     [FirebaseMemberFieldsEnum.FOCUSES.toString()]: "focus",
     [FirebaseMemberFieldsEnum.INDUSTRIES.toString()]: "industry",
     [FirebaseMemberFieldsEnum.REGIONS.toString()]: "region",
+    [FirebaseMemberFieldsEnum.EXPERIENCE.toString()]: "yearsExperience",
   };
   for (const field of fields) {
     const oldReferenceIds = data[field] ? data[field].map((ref) => ref.id) : [];
     const newReferenceIds =
       // TODO: Update region to regions
-      field === FirebaseMemberFieldsEnum.REGIONS.toString() &&
+      (field === FirebaseMemberFieldsEnum.REGIONS.toString() ||
+        field === FirebaseMemberFieldsEnum.EXPERIENCE.toString()) &&
       memberData[fieldSingular[field]]
         ? [memberData[fieldSingular[field]]]
         : memberData[fieldSingular[field]]
@@ -248,6 +267,7 @@ export const updateMember = async (
       newReferenceIds,
       field,
       currentUser,
+      updateFilters,
     );
     updateAdminFilterReferences(
       referencesToAdd,
@@ -281,6 +301,9 @@ export const updateMember = async (
     lastModified,
     focusSuggested,
     industrySuggested,
+    id,
+    experience,
+    regions,
     ...droppedMemberData
   } = memberData;
 
@@ -295,7 +318,6 @@ export const updateMember = async (
     last_modified: admin.firestore.FieldValue.serverTimestamp(),
     last_modified_by: currentUser || "admin edit",
     masked_email: emailAbbr,
-    years_experience: yearsExperience,
   });
 
   console.log(

@@ -14,12 +14,13 @@ export interface MemberPublic {
   location?: string;
   name?: string;
   region?: string;
-  // TODO: migrate to regions
-  // regions?: { name: string; id: string }[];
   status?: StatusEnum;
   title?: string;
   unsubscribed?: boolean;
   yearsExperience?: string;
+  // TODO: migrate to experience and regions
+  experience?: { name: string; id: string }[];
+  regions?: { name: string; id: string }[];
 }
 
 export interface MemberPublicEditing extends MemberPublic {

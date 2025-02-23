@@ -31,6 +31,7 @@ export const fieldNameToTable = {
   [FirebaseMemberFieldsEnum.INDUSTRIES]: FirebaseTablesEnum.INDUSTRIES,
   [FirebaseMemberFieldsEnum.FOCUSES]: FirebaseTablesEnum.FOCUSES,
   [FirebaseMemberFieldsEnum.REGIONS]: FirebaseTablesEnum.REGIONS,
+  [FirebaseMemberFieldsEnum.EXPERIENCE]: FirebaseTablesEnum.EXPERIENCE,
 };
 
 export const addNewLabel = async (
@@ -66,23 +67,32 @@ export const updateAdminFilterReferences = async (
   const adminReferencesToDelete = referencesToDelete.map((ref) =>
     admin.firestore().doc(ref.path),
   );
-  if (adminReferencesToDelete.length !== 0) {
+  const metadata = {
+    last_modified: admin.firestore.FieldValue.serverTimestamp(),
+    last_modified_by: currentUser || "admin edit",
+  };
+  if (filterName === FirebaseMemberFieldsEnum.EXPERIENCE) {
     await docRef.update({
-      [filterName]: admin.firestore.FieldValue.arrayRemove(
-        ...adminReferencesToDelete,
-      ),
-      last_modified: admin.firestore.FieldValue.serverTimestamp(),
-      last_modified_by: currentUser || "admin edit",
+      [filterName]: adminReferencesToAdd[0],
+      ...metadata,
     });
-  }
-  if (adminReferencesToAdd.length !== 0) {
-    await docRef.update({
-      [filterName]: admin.firestore.FieldValue.arrayUnion(
-        ...adminReferencesToAdd,
-      ),
-      last_modified: admin.firestore.FieldValue.serverTimestamp(),
-      last_modified_by: currentUser || "admin edit",
-    });
+  } else {
+    if (adminReferencesToDelete.length !== 0) {
+      await docRef.update({
+        [filterName]: admin.firestore.FieldValue.arrayRemove(
+          ...adminReferencesToDelete,
+        ),
+        ...metadata,
+      });
+    }
+    if (adminReferencesToAdd.length !== 0) {
+      await docRef.update({
+        [filterName]: admin.firestore.FieldValue.arrayUnion(
+          ...adminReferencesToAdd,
+        ),
+        ...metadata,
+      });
+    }
   }
 };
 
@@ -122,6 +132,7 @@ export const updateFilterReferences = async (
   newReferenceIds: string[],
   filterName: string,
   currentUser: string,
+  updateFilters: boolean,
 ): Promise<[DocumentReference[], DocumentReference[]]> => {
   const newReferences: DocumentReference[] = await getReferences(
     newReferenceIds,
@@ -138,8 +149,10 @@ export const updateFilterReferences = async (
     (ref) => !oldReferences.includes(ref),
   );
   const memberRefPublic = await getMemberRef(id);
-  await deleteReferences(memberRefPublic, referencesToDelete);
-  await addMemberToReferences(memberRefPublic, referencesToAdd, currentUser);
+  if (updateFilters) {
+    await deleteReferences(memberRefPublic, referencesToDelete);
+    await addMemberToReferences(memberRefPublic, referencesToAdd, currentUser);
+  }
   return [referencesToAdd, referencesToDelete];
 };
 
@@ -208,7 +221,12 @@ export function filterLookup(
   memberData?: DocumentReference[],
   returnFirstName: boolean = false,
 ): FilterData[] | string | null {
-  if (memberData && Array.isArray(memberData) && memberData.length !== 0) {
+  if (
+    memberData &&
+    Array.isArray(memberData) &&
+    memberData.length !== 0 &&
+    items.length !== 0
+  ) {
     const results = memberData.map((item) => {
       return (
         items

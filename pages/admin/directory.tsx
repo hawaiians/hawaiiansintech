@@ -62,9 +62,11 @@ export default function DirectoryPage(props) {
   const auth = getAuth();
   const [members, setMembers] = useState<MemberPublic[]>([]);
   const [regions, setRegions] = useState<DocumentData[]>([]);
+  const [experience, setExperience] = useState<DocumentData[]>([]);
   const [user, loading, error] = useAuthState(auth);
   const [isAdmin, isAdminLoading] = useIsAdmin(user, loading);
   const router = useRouter();
+  const experienceOrder = Object.values(YearsOfExperienceEnum) as string[];
 
   useEffect(() => {
     if (!isAdminLoading && !isAdmin) router.push(`/admin`);
@@ -82,7 +84,15 @@ export default function DirectoryPage(props) {
     if (data) {
       setMembers(data.members);
       setRegions(
-        data.regions.sort((a, b) => a.fields.name.localeCompare(b.fields.name)),
+        data.regions?.sort((a, b) =>
+          a.fields.name.localeCompare(b.fields.name),
+        ),
+      );
+      setExperience(
+        data.experience?.sort(
+          (a, b) =>
+            experienceOrder.indexOf(a.name) - experienceOrder.indexOf(b.name),
+        ), // sort experience filter explicitly
       );
     }
   };
@@ -116,7 +126,12 @@ export default function DirectoryPage(props) {
           )}
           {isAdmin && (
             <div className="mx-auto">
-              <Directory members={members} regions={regions} user={user} />
+              <Directory
+                members={members}
+                regions={regions}
+                experience={experience}
+                user={user}
+              />
             </div>
           )}
         </Admin.Body>
@@ -128,6 +143,7 @@ export default function DirectoryPage(props) {
 interface MemberDirectoryProps {
   members?: MemberPublic[];
   regions?: DocumentData[];
+  experience?: DocumentData[];
   user?: User;
 }
 
@@ -147,7 +163,12 @@ enum DirectoryFilter {
   Archived = "Archived",
 }
 
-const Directory: MemberDirectoryType = ({ members, regions, user }) => {
+const Directory: MemberDirectoryType = ({
+  members,
+  regions,
+  experience,
+  user,
+}) => {
   const [tabVisible, setTabVisible] = useState<DirectoryFilter>(
     DirectoryFilter.All,
   );
@@ -243,6 +264,7 @@ const Directory: MemberDirectoryType = ({ members, regions, user }) => {
                 member={m}
                 key={`member-card-${m.id}`}
                 regions={regions}
+                experience={experience}
                 user={user}
               />
             ))}
@@ -260,12 +282,13 @@ const Directory: MemberDirectoryType = ({ members, regions, user }) => {
 interface CardProps {
   member: MemberPublic;
   regions?: DocumentData[];
+  experience?: DocumentData[];
   user?: User;
 }
 
 Directory.Card = Card;
 
-function Card({ member, regions, user }: CardProps) {
+function Card({ member, regions, experience, user }: CardProps) {
   const [showModal, setShowModal] = useState<ReactNode | false>(false);
   const handleDelete = async () => {
     alert("NOT ACTUALLY DELETING!!! RETURNING EARLY");
@@ -444,6 +467,7 @@ function Card({ member, regions, user }: CardProps) {
             onClose={() => setShowModal(false)}
             onDelete={handleDelete}
             regions={regions}
+            experience={experience}
             user={user}
             adminView={true}
           />
