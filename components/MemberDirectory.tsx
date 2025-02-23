@@ -29,15 +29,11 @@ export default function MemberDirectory({
       const scrollPosition = window.scrollY;
       const windowHeight = window.innerHeight;
       const documentHeight = document.documentElement.scrollHeight;
-      const rowHeight = 140; // min-h-[140px]
+      const rowHeight = 140;
       const nearBottom =
         scrollPosition + windowHeight >= documentHeight - rowHeight;
 
-      console.log("nearBottom:", nearBottom);
-
-      // if (nearBottom && !loadingMoreMembers && loadMoreMembers) {
       if (nearBottom && !isLoadingMoreMembers) {
-        console.log("Loading more members...");
         loadMoreMembers();
       }
     }, 100),
