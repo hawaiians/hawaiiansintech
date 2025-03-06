@@ -13,6 +13,7 @@ export default function BigPill({ children, onClick }: BigPillProps) {
         items-center
         gap-2
         overflow-hidden
+        whitespace-nowrap
         rounded-full
         border-4
         border-transparent
