@@ -75,7 +75,8 @@ export default function MemberDirectory({
     ).length > 0;
   return (
     <section
-      className={`
+      className={cn(
+        `
         mt-8
         grid
         grid-flow-row
@@ -83,13 +84,15 @@ export default function MemberDirectory({
         gap-4
         px-4
         pb-4
+        transition-opacity
         sm:auto-rows-fr
         sm:grid-cols-2
         md:grid-cols-3
         lg:grid-cols-4
-      `}
+      `,
+        isLoadingFilteredMembers && "opacity-50",
+      )}
     >
-      {isLoadingFilteredMembers && loadingDiv}
       {members.map((member, i) => {
         const isSelected =
           member.focus
