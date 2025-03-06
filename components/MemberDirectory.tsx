@@ -45,25 +45,6 @@ export default function MemberDirectory({
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
-  const loadingDiv = (
-    <div
-      className={cn(`
-    flex
-    min-h-[140px]
-    w-full
-    items-center
-    justify-center
-  `)}
-    >
-      <div className="flex aspect-square w-1/4 items-center justify-center">
-        <LoadingSpinner
-          className="h-full w-full"
-          variant={LoadingSpinnerVariant.Invert}
-        />
-      </div>
-    </div>
-  );
-
   const isFiltered =
     members.filter(
       (mem) =>
@@ -77,13 +58,14 @@ export default function MemberDirectory({
     <section
       className={cn(
         `
+        relative
         mt-8
         grid
         grid-flow-row
         grid-cols-1
         gap-4
         px-4
-        pb-4
+        pb-16
         transition-opacity
         sm:auto-rows-fr
         sm:grid-cols-2
@@ -283,7 +265,14 @@ export default function MemberDirectory({
           </a>
         );
       })}
-      {isLoadingMoreMembers && loadingDiv}
+      <div
+        className={cn(
+          "absolute inset-x-0 bottom-4 flex translate-y-4 items-center justify-center opacity-0 transition-all duration-100",
+          isLoadingMoreMembers && "translate-y-0 opacity-100",
+        )}
+      >
+        <LoadingSpinner variant={LoadingSpinnerVariant.Invert} />
+      </div>
     </section>
   );
 }

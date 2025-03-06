@@ -295,6 +295,7 @@ export default function HomePage({
             onFilterClick={handleFilter}
             onFilterSelect={filterSelect}
             totalMemberCount={fetchedTotalMemberCount}
+            isLoading={loadingFilteredMembers}
             onViewAll={() => {
               setFiltersList(focuses);
               setViewAll(false);
