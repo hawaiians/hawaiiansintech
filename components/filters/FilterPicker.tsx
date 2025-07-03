@@ -5,6 +5,9 @@ import BigPill from "../BigPill";
 import Selectable, { SelectableSize } from "../form/Selectable";
 import Tabs, { TabsSize } from "../Tabs";
 import { YearsOfExperienceEnum } from "@/lib/enums";
+import { LoadingSpinnerVariant } from "../LoadingSpinner";
+import LoadingSpinner from "../LoadingSpinner";
+import { AnimatePresence, motion, LayoutGroup } from "framer-motion";
 
 export interface PickerFilter extends Filter {
   active?: boolean;
@@ -16,6 +19,7 @@ interface FilterPickerProps {
   onFilterClick: (id?: string, filterType?: string) => any;
   onViewAll: () => any;
   onFilterSelect: (filterSelect?: string, enable?: boolean) => any;
+  isLoading?: boolean;
   totalMemberCount: number;
   selectedMemberCount?: number;
   viewAll?: boolean;
@@ -26,6 +30,7 @@ export default function FilterPicker({
   activeFilters,
   onFilterClick,
   onFilterSelect,
+  isLoading,
   totalMemberCount,
   selectedMemberCount,
   onViewAll,
@@ -55,14 +60,26 @@ export default function FilterPicker({
   return (
     <>
       <div className="relative mt-16 grid w-full">
-        <ul className="mb-4 flex min-h-[44px] w-full flex-wrap gap-2 px-4 lg:px-8">
-          {activeFilters.map((focus, i) => (
-            <li key={`focus-filter-${i}`}>
-              <BigPill onClick={() => onFilterClick(focus.id)}>
-                {focus.name}
-              </BigPill>
+        <ul className="relative mb-4 flex min-h-[44px] flex-wrap items-center gap-2 px-4 lg:px-8">
+          <LayoutGroup>
+            {activeFilters.map((focus) => (
+              <motion.li
+                key={`focus-filter-${focus.id}`}
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <BigPill onClick={() => onFilterClick(focus.id)}>
+                  {focus.name}
+                </BigPill>
+              </motion.li>
+            ))}
+          </LayoutGroup>
+          {isLoading && (
+            <li className={cn("flex items-center")}>
+              <LoadingSpinner variant={LoadingSpinnerVariant.Invert} />
             </li>
-          ))}
+          )}
         </ul>
         <div
           className={cn(
