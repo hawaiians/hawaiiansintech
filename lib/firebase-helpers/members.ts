@@ -68,7 +68,7 @@ interface PaginatedResponse {
 
 export async function getMembers({
   token,
-  limit = 10,
+  limit = 25,
   cursor,
   paginated = false,
   regions,
