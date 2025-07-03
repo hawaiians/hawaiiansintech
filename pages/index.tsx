@@ -203,7 +203,7 @@ export default function HomePage({
       filter?.members?.filter((memberId) => !membersIdSet.has(memberId)) ?? [];
     if (membersToLoad.length > 0) {
       setLoadingFilteredMembers(true);
-      const batchSize = 25; // TODO: include batchSize in API call
+      const batchSize = 25; // TODO: align batchSize with limit var in getMembers
       let allTransformedMembers = [];
       for (let i = 0; i < membersToLoad.length; i += batchSize) {
         const batch = membersToLoad.slice(i, i + batchSize);
