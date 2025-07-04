@@ -8,7 +8,6 @@ import {
 } from "@/lib/enums";
 import {
   addLabelRef,
-  addMemberToLabels,
   filterLookup,
   updateFilterReferences,
 } from "@/lib/firebase-helpers/filters";
@@ -20,20 +19,27 @@ import serverSideOnly, { getFirebaseTable } from "./general";
 import { memberConverter } from "../firestore-converters/member";
 import {
   DocumentData,
+  FilterData,
   MemberPublic,
-  // regionLookup,
+  // regionLookup
 } from "@/lib/firebase-helpers/interfaces";
 import { verifyAdminToken, verifyEmailAuthToken } from "@/lib/api-helpers/auth";
 import {
   DocumentReference,
   FirestoreDataConverter,
+  QueryDocumentSnapshot,
   addDoc,
   collection,
   doc,
+  documentId,
+  getCountFromServer,
   getDoc,
   getDocs,
+  limit,
+  orderBy,
   query,
   serverTimestamp,
+  startAfter,
   updateDoc,
   where,
 } from "firebase/firestore";
@@ -41,11 +47,44 @@ import { useEmailCloaker } from "@/helpers";
 import { addSecureEmail, getIdByEmail } from "./emails";
 import { db } from "@/lib/firebase";
 
-export async function getMembers(token?: string): Promise<{
+interface GetMembersOptions {
+  token?: string;
+  limit?: number;
+  cursor?: string;
+  paginated?: boolean;
+  regions?: DocumentData[];
+  industries?: DocumentData[];
+  focuses?: DocumentData[];
+  experience?: DocumentData[];
+  memberIds?: string[];
+  includeFilters?: boolean;
+}
+
+interface PaginatedResponse {
+  items: any[];
+  hasMore: boolean;
+  cursor: string;
+}
+
+export async function getMembers({
+  token,
+  limit = 25,
+  cursor,
+  paginated = false,
+  regions,
+  industries,
+  focuses,
+  experience,
+  memberIds,
+  includeFilters = true,
+}: GetMembersOptions = {}): Promise<{
   members: MemberPublic[];
   regions: DocumentData[];
   industries: DocumentData[];
   focuses: DocumentData[];
+  experience: DocumentData[];
+  cursor?: string;
+  hasMore?: boolean;
 }> {
   let isAdmin = false;
   let userEmail = "";
@@ -59,28 +98,55 @@ export async function getMembers(token?: string): Promise<{
     userId = await getIdByEmail(userEmail);
   }
 
-  const members = await getMembersTable(
-    FirebaseTablesEnum.MEMBERS,
-    memberConverter,
-    !isAdmin,
-    isAdmin,
-    userId,
-  );
+  let membersArray = [];
+  let membersPaginated = null;
+  if (paginated) {
+    membersPaginated = await getMembersTablePaged(
+      memberConverter,
+      limit,
+      cursor,
+    );
+    membersArray = membersPaginated.items;
+  } else {
+    membersArray = await getMembersTable(
+      FirebaseTablesEnum.MEMBERS,
+      memberConverter,
+      !isAdmin,
+      isAdmin,
+      memberIds,
+      userId,
+    );
+  }
 
-  const focusesData = await getFirebaseTable(
-    FirebaseTablesEnum.FOCUSES,
-    isAdmin || userId !== "" ? false : true,
-  );
-  const industriesData = await getFirebaseTable(
-    FirebaseTablesEnum.INDUSTRIES,
-    isAdmin || userId !== "" ? false : true,
-  );
+  let focusesData = [];
+  let industriesData = [];
+  let regionsData = [];
+  let experienceData = [];
+  if (includeFilters) {
+    focusesData =
+      focuses ||
+      (await getFirebaseTable(
+        FirebaseTablesEnum.FOCUSES,
+        isAdmin || userId !== "" ? false : true,
+      ));
 
-  // Note: Regions do not have statuses so no need to filter by approved
-  const regionsData = await getFirebaseTable(FirebaseTablesEnum.REGIONS);
+    industriesData =
+      industries ||
+      (await getFirebaseTable(
+        FirebaseTablesEnum.INDUSTRIES,
+        isAdmin || userId !== "" ? false : true,
+      ));
+
+    // Note: Regions and Years of Experience do not have statuses so no need to
+    //  filter by approved
+    regionsData =
+      regions || (await getFirebaseTable(FirebaseTablesEnum.REGIONS));
+    experienceData =
+      experience || (await getFirebaseTable(FirebaseTablesEnum.EXPERIENCE));
+  }
 
   return {
-    members: members
+    members: membersArray
       .map((member) => {
         const {
           regions,
@@ -92,15 +158,34 @@ export async function getMembers(token?: string): Promise<{
           emailAbbr,
           requests,
           unsubscribed,
+          experience,
           ...rest
         } = member;
 
-        let memberObject = {
-          ...rest,
-          region: filterLookup(regionsData, regions, true),
-          industry: filterLookup(industriesData, industries),
-          focus: filterLookup(focusesData, focuses),
-        };
+        let memberObject = { ...rest };
+        memberObject["focus"] = includeFilters
+          ? filterLookup(focusesData, focuses)
+          : focuses.map((focus) => focus.id);
+        memberObject["industry"] = includeFilters
+          ? filterLookup(industriesData, industries)
+          : industries.map((industry) => industry.id);
+        memberObject["regions"] = includeFilters
+          ? filterLookup(regionsData, regions)
+          : regions.map((region) => region?.id);
+        const experienceFiltered = filterLookup(
+          experienceData,
+          experience ? [experience] : [],
+        );
+        memberObject["experience"] = includeFilters
+          ? filterLookup(experienceData, experience ? [experience] : [])
+          : [experience?.id];
+
+        // TODO: migrate to regions and experience, adding for backward
+        //  compatibility on admin page
+        memberObject["yearsExperience"] = experienceFiltered
+          ? (experienceFiltered[0] as FilterData).name
+          : (memberObject["yearsExperience"] as string);
+        memberObject["region"] = filterLookup(regionsData, regions, true);
 
         if (isAdmin || userId === member.id) {
           memberObject = {
@@ -113,7 +198,6 @@ export async function getMembers(token?: string): Promise<{
             unsubscribed: unsubscribed,
           };
         }
-
         return memberObject;
       })
       .filter((value) => value !== null)
@@ -121,6 +205,9 @@ export async function getMembers(token?: string): Promise<{
     focuses: focusesData,
     industries: industriesData,
     regions: regionsData,
+    experience: experienceData,
+    cursor: paginated ? membersPaginated.cursor : undefined,
+    hasMore: paginated ? membersPaginated.hasMore : undefined,
   };
 }
 
@@ -140,25 +227,35 @@ export const updateMember = async (
     throw new Error(`Member with uid ${memberData.id} does not exist`);
   }
 
-  const data = doc.data();
+  let data = doc.data();
+  // Need to convert to array since filterLookup expects an array
+  data["experience"] = data["experience"] ? [data["experience"]] : [];
+
+  const memberIsApproved = data["status"] === StatusEnum.APPROVED;
+  const updateFilters =
+    memberIsApproved ||
+    (currentUserIsAdmin && memberData.status === StatusEnum.APPROVED);
 
   // Handle filter references
   const fields = [
     FirebaseMemberFieldsEnum.FOCUSES.toString(),
     FirebaseMemberFieldsEnum.INDUSTRIES.toString(),
     FirebaseMemberFieldsEnum.REGIONS.toString(),
+    FirebaseMemberFieldsEnum.EXPERIENCE.toString(),
   ];
   const fieldSingular = {
     // TODO: Update fields to plural in MemberPublic
     [FirebaseMemberFieldsEnum.FOCUSES.toString()]: "focus",
     [FirebaseMemberFieldsEnum.INDUSTRIES.toString()]: "industry",
     [FirebaseMemberFieldsEnum.REGIONS.toString()]: "region",
+    [FirebaseMemberFieldsEnum.EXPERIENCE.toString()]: "yearsExperience",
   };
   for (const field of fields) {
     const oldReferenceIds = data[field] ? data[field].map((ref) => ref.id) : [];
     const newReferenceIds =
       // TODO: Update region to regions
-      field === FirebaseMemberFieldsEnum.REGIONS.toString() &&
+      (field === FirebaseMemberFieldsEnum.REGIONS.toString() ||
+        field === FirebaseMemberFieldsEnum.EXPERIENCE.toString()) &&
       memberData[fieldSingular[field]]
         ? [memberData[fieldSingular[field]]]
         : memberData[fieldSingular[field]]
@@ -170,6 +267,7 @@ export const updateMember = async (
       newReferenceIds,
       field,
       currentUser,
+      updateFilters,
     );
     updateAdminFilterReferences(
       referencesToAdd,
@@ -188,13 +286,7 @@ export const updateMember = async (
   for (const field of suggested) {
     const suggestedField = memberData[fieldSingular[field] + "Suggested"];
     if (suggestedField) {
-      await addNewLabel(
-        memberData.id,
-        suggestedField,
-        field,
-        currentUser,
-        docRef,
-      );
+      await addNewLabel(suggestedField, field, currentUser, docRef);
     }
   }
 
@@ -209,6 +301,9 @@ export const updateMember = async (
     lastModified,
     focusSuggested,
     industrySuggested,
+    id,
+    experience,
+    regions,
     ...droppedMemberData
   } = memberData;
 
@@ -223,7 +318,6 @@ export const updateMember = async (
     last_modified: admin.firestore.FieldValue.serverTimestamp(),
     last_modified_by: currentUser || "admin edit",
     masked_email: emailAbbr,
-    years_experience: yearsExperience,
   });
 
   console.log(
@@ -243,6 +337,7 @@ export interface CreateMemberFields {
   focusSuggested?: string;
   title?: string;
   yearsExperience?: string;
+  experience?: string;
   industriesSelected?: string | string[];
   industrySuggested?: string;
   companySize?: string;
@@ -257,6 +352,20 @@ const idToRef = async (
   const collectionRef = collection(db, collectionName);
   const docRef = doc(collectionRef, labelId);
   return docRef;
+};
+
+const nameToRef = async (
+  labelName: string,
+  collectionName: string,
+): Promise<DocumentReference> => {
+  const collectionRef = collection(db, collectionName);
+  const querySnapshot = await getDocs(
+    query(collectionRef, where("name", "==", labelName)),
+  );
+  if (querySnapshot.empty) {
+    throw new Error(`No ${collectionName} found with name ${labelName}`);
+  }
+  return querySnapshot.docs[0].ref;
 };
 
 const idsToRefs = async (
@@ -299,6 +408,30 @@ const addMember = async (
   }
 };
 
+async function handleLabelRefs(
+  selectedIds: string[] | string,
+  suggested: string,
+  collectionName: "focuses" | "industries",
+): Promise<DocumentReference[]> {
+  let refs: DocumentReference[] = [];
+
+  if (typeof selectedIds === "string") {
+    selectedIds = [selectedIds];
+  }
+
+  if (selectedIds) {
+    const selectedRefs = await idsToRefs(selectedIds, collectionName);
+    refs = [...refs, ...selectedRefs];
+  }
+
+  if (suggested) {
+    const suggestedRef = await addLabelRef(suggested, collectionName);
+    refs = [...refs, suggestedRef];
+  }
+
+  return refs;
+}
+
 export const addMemberToFirebase = async (
   fields: CreateMemberFields,
 ): Promise<DocumentReference> => {
@@ -316,44 +449,25 @@ export const addMemberToFirebase = async (
     unsubscribed: fields.unsubscribed,
   };
 
-  // Handle focuses
-  let focuses: DocumentReference[] = [];
-  if (fields.focusesSelected) {
-    const selectedFocusesRefs = await idsToRefs(
-      fields.focusesSelected,
-      "focuses",
-    );
-    focuses = [...focuses, ...selectedFocusesRefs];
-  }
-  if (fields.focusSuggested) {
-    const focusRef = await addLabelRef(fields.focusSuggested, "focuses");
-    focuses = [...focuses, focusRef];
-  }
-  if (focuses) member.focuses = focuses;
+  const focuses = await handleLabelRefs(
+    fields.focusesSelected,
+    fields.focusSuggested,
+    "focuses",
+  );
+  if (focuses.length > 0) member.focuses = focuses;
 
-  // Handle industries
-  let industries: DocumentReference[] = [];
-  if (fields.industriesSelected) {
-    const selectedIndustriesRefs = await idsToRefs(
-      fields.industriesSelected,
-      "industries",
-    );
-    industries = [...industries, ...selectedIndustriesRefs];
-  }
-  if (fields.industrySuggested) {
-    const industryRef = await addLabelRef(
-      fields.industrySuggested,
-      "industries",
-    );
-    industries = [...industries, industryRef];
-  }
-  if (industries) member.industries = industries;
+  const industries = await handleLabelRefs(
+    fields.industriesSelected,
+    fields.industrySuggested,
+    "industries",
+  );
+  if (industries.length > 0) member.industries = industries;
+
+  member["experience"] = await nameToRef(fields.yearsExperience, "experience");
 
   return new Promise(async (resolve, reject) => {
     try {
       const docRef = await addMember(member);
-      await addMemberToLabels(focuses, docRef);
-      await addMemberToLabels(industries, docRef);
       resolve(docRef);
     } catch (error) {
       console.error("Error adding member:", error);
@@ -367,6 +481,7 @@ interface referencesToDelete {
   focuses: DocumentReference[];
   industries: DocumentReference[];
   regions: DocumentReference[];
+  experience: DocumentReference;
   secureMemberData: DocumentReference;
 }
 
@@ -386,6 +501,7 @@ export async function getAllMemberReferencesToDelete(
     focuses: data.focuses,
     industries: data.industries,
     regions: data.regions,
+    experience: data.experience,
     secureMemberData: doc(db, FirebaseTablesEnum.SECURE_MEMBER_DATA, uid),
   };
   return returnData;
@@ -423,27 +539,67 @@ export async function getMembersTable(
   converter: FirestoreDataConverter<any>,
   approved: boolean = false,
   isAdmin: boolean = false,
+  memberIds?: string[],
   userId?: string,
 ): Promise<any[]> {
   const documentsCollection = collection(db, table).withConverter(converter);
-  let q = query(documentsCollection);
-  if (approved === true) {
-    q = query(documentsCollection, where("status", "==", StatusEnum.APPROVED));
+  let queryConditions = [];
+  if (approved) {
+    queryConditions.push(where("status", "==", StatusEnum.APPROVED));
   }
+  if (memberIds?.length) {
+    queryConditions.push(where(documentId(), "in", memberIds));
+  }
+  const q = query(documentsCollection, ...queryConditions);
   const documentsSnapshot = await getDocs(q);
   return documentsSnapshot.docs.map((doc) => {
     if (approved || doc.id === userId || isAdmin) {
       return doc.data();
     }
-    const { lastModified, lastModifiedBy, requests, unsubscribed, ...data } =
-      doc.data();
-    return data;
   });
+}
+
+export async function getNumberOfMembers(): Promise<number> {
+  const membersCollection = query(
+    collection(db, FirebaseTablesEnum.MEMBERS),
+    where("status", "==", StatusEnum.APPROVED),
+  );
+  const snapshot = await getCountFromServer(membersCollection);
+  return snapshot.data().count;
+}
+
+async function getMembersTablePaged(
+  converter: FirestoreDataConverter<any>,
+  pageSize: number = 10,
+  cursor?: string,
+): Promise<PaginatedResponse> {
+  let membersQuery = query(
+    collection(db, FirebaseTablesEnum.MEMBERS).withConverter(converter),
+    where("status", "==", StatusEnum.APPROVED),
+  );
+  if (cursor && cursor.trim() !== "") {
+    const cursorDoc = await getDoc(doc(db, FirebaseTablesEnum.MEMBERS, cursor));
+    if (!cursorDoc.exists()) {
+      throw new Error("Invalid cursor");
+    }
+    membersQuery = query(membersQuery, startAfter(cursorDoc));
+  }
+  membersQuery = query(membersQuery, limit(pageSize + 1));
+  const snapshot = await getDocs(membersQuery);
+  const members = snapshot.docs
+    .slice(0, pageSize)
+    .map((doc) => ({ ...doc.data(), id: doc.id }));
+  return {
+    items: members,
+    hasMore: snapshot.docs.length > pageSize,
+    cursor: members.length > 0 ? members[members.length - 1].id : null,
+  };
 }
 
 export default serverSideOnly({
   getMembers,
   updateMember,
+  handleLabelRefs,
   addMemberToFirebase,
   getAllMemberReferencesToDelete,
   deleteReferences,

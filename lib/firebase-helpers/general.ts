@@ -11,6 +11,7 @@ import {
 import { FirebaseTablesEnum, StatusEnum } from "../enums";
 import { db } from "../firebase";
 import { DocumentData } from "./interfaces";
+import { PickerFilter } from "@/components/filters/FilterPicker";
 
 export default function serverSideOnly(moduleObject) {
   if (typeof window !== "undefined") {
@@ -58,4 +59,28 @@ export async function getFirebaseTable(
     fields: doc.data(),
   }));
   return documentsData;
+}
+
+export function filterLookup(
+  items: PickerFilter[],
+  memberData?: string[],
+  returnFirstName: boolean = false,
+) {
+  if (memberData && Array.isArray(memberData) && memberData.length !== 0) {
+    const results = memberData.map((item) => {
+      return (
+        items
+          .filter((thisItem) => item === thisItem.id)
+          .map((item) => {
+            return {
+              name: item.name || null,
+              id: item.id || null,
+              status: "approved",
+            };
+          })[0] || null
+      );
+    });
+    return returnFirstName ? results[0].name : results;
+  }
+  return null;
 }

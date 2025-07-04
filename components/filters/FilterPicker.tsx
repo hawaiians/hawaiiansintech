@@ -4,6 +4,10 @@ import { useState } from "react";
 import BigPill from "../BigPill";
 import Selectable, { SelectableSize } from "../form/Selectable";
 import Tabs, { TabsSize } from "../Tabs";
+import { YearsOfExperienceEnum } from "@/lib/enums";
+import { LoadingSpinnerVariant } from "../LoadingSpinner";
+import LoadingSpinner from "../LoadingSpinner";
+import { AnimatePresence, motion, LayoutGroup } from "framer-motion";
 
 export interface PickerFilter extends Filter {
   active?: boolean;
@@ -15,6 +19,8 @@ interface FilterPickerProps {
   onFilterClick: (id?: string, filterType?: string) => any;
   onViewAll: () => any;
   onFilterSelect: (filterSelect?: string, enable?: boolean) => any;
+  isLoading?: boolean;
+  totalMemberCount: number;
   selectedMemberCount?: number;
   viewAll?: boolean;
 }
@@ -24,6 +30,8 @@ export default function FilterPicker({
   activeFilters,
   onFilterClick,
   onFilterSelect,
+  isLoading,
+  totalMemberCount,
   selectedMemberCount,
   onViewAll,
   viewAll,
@@ -33,6 +41,7 @@ export default function FilterPicker({
   const [regionActive, setRegionActive] = useState<boolean>();
   const [experienceActive, setExperienceActive] = useState<boolean>();
   const filterIsSelected = activeFilters.length !== 0;
+  const experienceOrder = Object.values(YearsOfExperienceEnum) as string[];
 
   function activateFilter(setFilter: Function, filtertype: string) {
     const filterSetList = [
@@ -50,58 +59,83 @@ export default function FilterPicker({
 
   return (
     <>
-      <div className="relative mt-16 w-full">
-        <ul className={`mb-4 flex min-h-[44px] w-full flex-wrap gap-2`}>
-          {activeFilters.map((focus, i) => (
-            <li key={`focus-filter-${i}`}>
-              <BigPill onClick={() => onFilterClick(focus.id)}>
-                {focus.name}
-              </BigPill>
+      <div className="relative mt-16 grid w-full">
+        <ul className="relative mb-4 flex min-h-[44px] flex-wrap items-center gap-2 px-4 lg:px-8">
+          <LayoutGroup>
+            {activeFilters.map((focus) => (
+              <motion.li
+                key={`focus-filter-${focus.id}`}
+                layout
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <BigPill onClick={() => onFilterClick(focus.id)}>
+                  {focus.name}
+                </BigPill>
+              </motion.li>
+            ))}
+          </LayoutGroup>
+          {isLoading && (
+            <li className={cn("flex items-center")}>
+              <LoadingSpinner variant={LoadingSpinnerVariant.Invert} />
             </li>
-          ))}
+          )}
         </ul>
-        <div className="mb-4 flex items-center">
-          <Tabs
-            size={TabsSize.Large}
-            items={[
-              {
-                label: "Focus",
-                selected: focusActive,
-                onClick: () => activateFilter(setFocusActive, "focus"),
-              },
-              {
-                label: "Industry",
-                selected: industryActive,
-                onClick: () => activateFilter(setIndustryActive, "industry"),
-              },
-              {
-                label: "Experience",
-                selected: experienceActive,
-                onClick: () =>
-                  activateFilter(setExperienceActive, "experience"),
-              },
-              {
-                label: "Location",
-                selected: regionActive,
-                onClick: () => activateFilter(setRegionActive, "region"),
-              },
-            ]}
-          />
-          <h4
-            className={cn(
-              `grow text-right text-sm text-stone-600 sm:text-lg`,
-              filterIsSelected && "text-brown-600",
-            )}
-          >{`${
-            filterIsSelected
-              ? `Selected (${selectedMemberCount})`
-              : `All (${selectedMemberCount})`
-          }`}</h4>
+        <div
+          className={cn(
+            "relative w-full overflow-scroll",
+            "after:fixed after:inset-y-0 after:right-0 after:z-10 after:w-4 after:bg-gradient-to-l after:from-background after:to-transparent",
+          )}
+        >
+          <div className="flex items-center gap-4 px-4 py-4 lg:px-8">
+            <Tabs
+              className="shrink-0"
+              size={TabsSize.Large}
+              items={[
+                {
+                  label: "Focus",
+                  selected: focusActive,
+                  onClick: () => activateFilter(setFocusActive, "focus"),
+                },
+                {
+                  label: "Industry",
+                  selected: industryActive,
+                  onClick: () => activateFilter(setIndustryActive, "industry"),
+                },
+                {
+                  label: "Experience",
+                  selected: experienceActive,
+                  onClick: () =>
+                    activateFilter(setExperienceActive, "experience"),
+                },
+                {
+                  label: "Location",
+                  selected: regionActive,
+                  onClick: () => activateFilter(setRegionActive, "region"),
+                },
+              ]}
+            />
+            <h4
+              className={cn(
+                `shrink-0 grow text-right text-sm text-stone-600 sm:text-lg`,
+                filterIsSelected && "text-brown-600",
+              )}
+            >{`${
+              filterIsSelected
+                ? `Selected (${selectedMemberCount})`
+                : `All (${totalMemberCount})`
+            }`}</h4>
+          </div>
         </div>
 
-        <ul className="flex flex-wrap gap-2 transition-all">
+        <ul className="flex flex-wrap gap-2 px-4 lg:px-8">
           {filtersList
-            .sort((a, b) => b.count - a.count)
+            .sort((a, b) =>
+              experienceActive
+                ? experienceOrder.indexOf(a.name) -
+                  experienceOrder.indexOf(b.name)
+                : b.count - a.count,
+            ) // sort experience filter explicitly, otherwise sort by count
             .map((filter, i) => (
               <li key={`focus-filter-${filter.id}`}>
                 <Selectable
