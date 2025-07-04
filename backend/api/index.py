@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 app = FastAPI(
-    docs_url="/api/v1/docs",
+    docs_url="/docs",
     openapi_url="/api/v1/openapi.json",
     prefix="/api/v1",
 )
@@ -42,6 +42,6 @@ async def pydantic_validation_error_handler(request: Request, exc: ValidationErr
     )
 
 
-@app.get("/helloFastApi")
-def hello_fast_api():
-    return {"message": "Hello from FastAPI"}
+# @app.get("/helloFastApi")
+# def hello_fast_api():
+#     return {"message": "Hello from FastAPI"}

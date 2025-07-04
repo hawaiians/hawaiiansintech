@@ -34,3 +34,17 @@ async def list_industries():
     return {
         "industries": await get_filter_docs("industries", "approved", Industry),
     }
+
+
+@router.get("/regions", response_model=dict)
+async def list_regions():
+    return {
+        "regions": await get_filter_docs("regions", "approved", Filter),
+    }
+
+
+@router.get("/experience", response_model=dict)
+async def list_experience():
+    return {
+        "experience": await get_filter_docs("experience", "approved", Filter),
+    }

@@ -3,7 +3,7 @@ from typing import Any, List, Optional
 from pydantic import BaseModel, Field, model_validator
 from google.cloud.firestore_v1.document import DocumentReference
 
-from .enums import CompanySizeEnum, StatusEnum, YearsOfExperienceEnum
+from backend.enums import CompanySizeEnum, StatusEnum, YearsOfExperienceEnum
 
 
 class DocRef(BaseModel):
@@ -71,12 +71,12 @@ class MemberPublic(BaseModel):
     industries: List[DocRef]
     link: str
     location: str
-    masked_email: str
     name: str
     regions: List[DocRef]
     title: str
     years_experience: Optional[YearsOfExperienceEnum]
     id: str
+    masked_email: Optional[str] = None
     last_modified: Optional[datetime] = None
     last_modified_by: Optional[DocRef] = None
     requests: Optional[str] = None
