@@ -1,9 +1,7 @@
 from typing import Optional
-from fastapi import APIRouter, HTTPException
 from backend.firebase_config import db
 from backend.models import MemberPublic
 from fastapi import APIRouter, HTTPException, Query
-from backend.models import MemberPublic
 
 router = APIRouter(prefix="/members", tags=["members"])
 

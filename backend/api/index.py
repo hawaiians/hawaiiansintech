@@ -1,6 +1,5 @@
-from fastapi import FastAPI
 from backend.api import filters, members
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, APIRouter
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
@@ -9,10 +8,14 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 app = FastAPI(
     docs_url="/docs",
     openapi_url="/api/v1/openapi.json",
-    prefix="/api/v1",
 )
-app.include_router(members.router)
-app.include_router(filters.router)
+
+api_v1_router = APIRouter(prefix="/api/v1")
+api_v1_router.include_router(members.router)
+api_v1_router.include_router(filters.router)
+
+# Include the main router in the app
+app.include_router(api_v1_router)
 
 
 @app.exception_handler(RequestValidationError)
