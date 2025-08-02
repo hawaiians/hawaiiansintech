@@ -14,6 +14,7 @@ import LoadingSpinner, {
 } from "@/components/LoadingSpinner";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { ShieldAlert } from "lucide-react";
+import { YearsOfExperienceEnum } from "@/lib/enums";
 export async function getStaticProps() {
   return {
     props: {
@@ -45,6 +46,8 @@ function EditMember() {
   const memberId = router.query.memberId as string;
   const [member, setMember] = useState<MemberPublic>(null);
   const [regions, setRegions] = useState<DocumentData[]>([]);
+  const [experience, setExperience] = useState<DocumentData[]>([]);
+  const experienceOrder = Object.values(YearsOfExperienceEnum) as string[];
 
   const getUser = async () => {
     try {
@@ -66,6 +69,13 @@ function EditMember() {
             }
             setMember(member);
             setRegions(data.regions);
+            setExperience(
+              data.experience?.sort(
+                (a, b) =>
+                  experienceOrder.indexOf(a.name) -
+                  experienceOrder.indexOf(b.name),
+              ), // sort experience filter explicitly
+            );
             setLoading(false);
           })
           .catch((err) => {
@@ -111,6 +121,7 @@ function EditMember() {
           member={member}
           regions={regions}
           user={auth.currentUser}
+          experience={experience}
           adminView={false}
         />
       )}
