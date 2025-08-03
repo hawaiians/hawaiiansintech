@@ -8,7 +8,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { Icon, IconAsset, IconColor } from "@/components/icon/icon";
+
 import Logo from "@/components/Logo";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -17,6 +17,7 @@ import { useRouter } from "next/router";
 import { MobileNav } from "@/components/MobileNav";
 import navigationData from "@/public/navigation.json";
 import { ArrowUpRight } from "lucide-react";
+import { Icon, IconAsset, IconColor } from "./icon/icon";
 
 interface NavProps {
   backLinkTo?: string;
@@ -78,7 +79,7 @@ export default function Nav({
       <>
         <Link href={backLinkTo} shallow={true}>
           <div className="transition-transform hover:scale-105 active:scale-95">
-            <Icon asset={IconAsset.CaretLeft} color={IconColor.Inherit} />
+            <Icon asset={IconAsset.CaretLeft} />
           </div>
         </Link>
         <motion.a
