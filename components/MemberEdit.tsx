@@ -426,7 +426,7 @@ export const MemberEdit: FC<{
                 disabled={email === null || !adminView}
                 value={email?.email || member.emailAbbr}
                 onChange={(e) => {
-                  let newEmail = { ...email };
+                  const newEmail = { ...email };
                   newEmail.email = e.target.value;
                   setEmail(newEmail);
                 }}

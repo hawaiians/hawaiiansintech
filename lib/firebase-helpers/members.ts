@@ -227,7 +227,7 @@ export const updateMember = async (
     throw new Error(`Member with uid ${memberData.id} does not exist`);
   }
 
-  let data = doc.data();
+  const data = doc.data();
   // Need to convert to array since filterLookup expects an array
   data["experience"] = data["experience"] ? [data["experience"]] : [];
 
@@ -435,7 +435,7 @@ async function handleLabelRefs(
 export const addMemberToFirebase = async (
   fields: CreateMemberFields,
 ): Promise<DocumentReference> => {
-  let member = {
+  const member = {
     company_size: fields.companySize,
     email: fields.email,
     focuses: [],
@@ -543,7 +543,7 @@ export async function getMembersTable(
   userId?: string,
 ): Promise<any[]> {
   const documentsCollection = collection(db, table).withConverter(converter);
-  let queryConditions = [];
+  const queryConditions = [];
   if (approved) {
     queryConditions.push(where("status", "==", StatusEnum.APPROVED));
   }

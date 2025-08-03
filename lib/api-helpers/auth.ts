@@ -93,7 +93,7 @@ export async function verifyAdminOrEmailAuthToken(
 }
 
 export async function verifyTurnstileToken(token: string, ip: string) {
-  let formData = new FormData();
+  const formData = new FormData();
   formData.append("secret", process.env.CLOUDFLARE_TURNSTILE_SECRET_KEY);
   formData.append("response", token);
   formData.append("remoteip", typeof ip === "string" ? ip : ip ? ip[0] : "");

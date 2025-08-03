@@ -72,7 +72,7 @@ export default function Nav({
   const { nav } = router.query;
 
   const renderLogo = () => {
-    let logo = <Logo />;
+    const logo = <Logo />;
     if (!backLinkTo) return logo;
 
     return (

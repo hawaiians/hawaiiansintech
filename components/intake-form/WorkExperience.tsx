@@ -65,7 +65,7 @@ export default function WorkExperience({
   }, [error]);
 
   useEffect(() => {
-    let mql = window.matchMedia(
+    const mql = window.matchMedia(
       `(min-width: ${theme.layout.breakPoints.small})`,
     );
     if (mql.matches) {
@@ -94,7 +94,7 @@ export default function WorkExperience({
   ]);
 
   const handleSelect = (focusID: string) => {
-    let newFocusesSelected = [...focusesSelected];
+    const newFocusesSelected = [...focusesSelected];
     const isSelected = focusesSelected?.includes(focusID);
     if (isSelected) {
       const index = focusesSelected?.indexOf(focusID);

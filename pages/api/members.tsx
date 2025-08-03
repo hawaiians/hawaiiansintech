@@ -35,7 +35,7 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     data = await getMembers({ token: token });
   } else {
     console.log({ message: "No authorization header included" });
-    let payload = {};
+    const payload = {};
     if (req.query.cursor) {
       payload["cursor"] = req.query.cursor as string;
       payload["paginated"] = true;

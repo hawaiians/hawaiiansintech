@@ -19,8 +19,8 @@ export default function Dropdown({ links, button }: DropdownProps) {
         <div className="BubbleBox">
           <ul>
             {Object.keys(links).map(function (key) {
-              let twitter = links[key].includes("twitter");
-              let instagram = links[key].includes("instagram");
+              const twitter = links[key].includes("twitter");
+              const instagram = links[key].includes("instagram");
               return (
                 <div className="link-wrapper">
                   <a href={links[key]}>
