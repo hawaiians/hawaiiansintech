@@ -673,7 +673,7 @@ const EmailList: FC<{
                         </>
                       )}
                       {showUnsubLink && (
-                        <span
+                        (<span
                           className={cn(
                             `inline-flex shrink-0 cursor-text select-text text-stone-500`,
                             selected && "text-stone-600",
@@ -689,7 +689,7 @@ const EmailList: FC<{
                               Unsubscribe link not generated yet
                             </span>
                           )}
-                        </span>
+                        </span>)
                         // </div>
                       )}
                     </h5>
