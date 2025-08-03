@@ -25,7 +25,7 @@ export async function sendSensitiveChangesEmail({
       },
       to: ADMIN_EMAILS,
       subject: `Sensitive Changes: ${name}`,
-      html: render(
+      html: await render(
         <SensitiveChangesEmail
           name={name}
           changes={changes}

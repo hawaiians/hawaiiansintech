@@ -14,7 +14,7 @@ const bar = {
   show: {
     opacity: 1,
     transform: "scaleX(1)",
-    transition: { duration: 1, ease: "easeOut" },
+    transition: { duration: 1, ease: "easeOut" as const },
   },
 };
 

@@ -609,7 +609,7 @@ export const MemberEdit: FC<{
             <section>
               <h4 className="text-sm font-semibold">Last Modified</h4>
               <p className="font-light text-secondary-foreground">
-                {member.lastModified}
+                {member.lastModified.toDate().toLocaleDateString()}
               </p>
             </section>
           )}

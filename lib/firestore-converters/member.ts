@@ -5,7 +5,7 @@ import {
   QueryDocumentSnapshot,
   serverTimestamp,
   Timestamp,
-} from "@firebase/firestore";
+} from "firebase/firestore";
 import {
   CompanySizeEnum,
   FirebaseDefaultValuesEnum,
@@ -31,7 +31,7 @@ export class Member {
     public lastModifiedBy?: DocumentReference | string,
     public requests?: string,
     public status?: StatusEnum,
-    public unsubscribed?: boolean
+    public unsubscribed?: boolean,
   ) {}
 
   toString() {
@@ -75,14 +75,14 @@ export const memberConverter: FirestoreDataConverter<Member> = {
         data.company_size,
         "company_size",
         name,
-        "string"
+        "string",
       ),
       checkType<DocumentReference[]>(data.focuses, "focuses", name, "object"),
       checkType<DocumentReference[]>(
         data.industries,
         "industries",
         name,
-        "object"
+        "object",
       ),
       checkType<string>(data.link, "link", name, "string"),
       checkType<string>(data.location, "location", name, "string"),
@@ -94,7 +94,7 @@ export const memberConverter: FirestoreDataConverter<Member> = {
         data.years_experience,
         "years_experience",
         name,
-        "string"
+        "string",
       ),
       snapshot.id,
       checkType<Timestamp>(data.last_modified, "last_modified", name, "object"),
@@ -102,7 +102,7 @@ export const memberConverter: FirestoreDataConverter<Member> = {
       checkType<string>(data.requests, "requests", name, "string"),
       checkType<StatusEnum>(data.status, "status", name, "string") ||
         StatusEnum.PENDING,
-      checkType<boolean>(data.unsubscribed, "unsubscribed", name, "boolean")
+      checkType<boolean>(data.unsubscribed, "unsubscribed", name, "boolean"),
     );
   },
 };

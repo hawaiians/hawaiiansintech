@@ -38,7 +38,7 @@ export async function sendConfirmationEmails({
       },
       to: email,
       subject: "Welcome to Hawaiians in Tech",
-      html: render(
+      html: await render(
         <WelcomeEmail
           email={email}
           name={name}
@@ -55,7 +55,7 @@ export async function sendConfirmationEmails({
       },
       to: ADMIN_EMAILS,
       subject: `Member Submission: ${name}`,
-      html: render(
+      html: await render(
         <PendingMemberEmail
           email={email}
           name={name}
@@ -87,7 +87,7 @@ export async function sendLoginPromptEmail({
       },
       to: emailAddress,
       subject: "Login to Hawaiians in Tech",
-      html: render(
+      html: await render(
         <LoginPromptEmail
           emailAddress={emailAddress}
           promptLink={promptLink}

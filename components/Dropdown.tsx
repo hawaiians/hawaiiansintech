@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, ReactElement } from "react";
 import theme from "styles/theme";
 
 interface DropdownProps {
   links: Object;
-  button: JSX.Element;
+  button: ReactElement;
 }
 
 export default function Dropdown({ links, button }: DropdownProps) {

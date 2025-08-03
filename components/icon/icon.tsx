@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactElement } from "react";
 
 export enum IconColor {
   Brand = "var(--color-brand)",
@@ -34,7 +34,7 @@ export function Icon({
   color = IconColor.Black,
   size = IconSize.Default,
 }: IconProps) {
-  const getAsset = (): JSX.Element => {
+  const getAsset = (): ReactElement => {
     switch (asset) {
       case IconAsset.CaretLeft:
         return (

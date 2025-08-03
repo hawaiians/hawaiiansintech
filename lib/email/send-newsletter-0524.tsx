@@ -24,7 +24,7 @@ export async function sendNewsletter0524({
       },
       to: email,
       subject: `🌺 Huuui! Hawaiian in Tech May Newsletter`,
-      html: render(<Newsletter0524 unsubscribeUrl={unsubscribeUrl} />),
+      html: await render(<Newsletter0524 unsubscribeUrl={unsubscribeUrl} />),
     });
   } catch (error) {
     console.error(`Error sending confirmation email to ${email}`, error);
