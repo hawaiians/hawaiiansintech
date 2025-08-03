@@ -1,5 +1,8 @@
 import { MemberPublic } from "@/lib/firebase-helpers/interfaces";
 import { cn } from "@/lib/utils";
+import { useEffect, useCallback } from "react";
+import debounce from "lodash/debounce";
+import LoadingSpinner, { LoadingSpinnerVariant } from "./LoadingSpinner";
 
 export interface DirectoryMember extends MemberPublic {
   focus: { active?: boolean; id: string; name: string }[];
@@ -10,9 +13,38 @@ export interface DirectoryMember extends MemberPublic {
 
 interface MemberDirectoryProps {
   members?: DirectoryMember[];
+  loadMoreMembers?: () => void;
+  isLoadingMoreMembers?: boolean;
+  isLoadingFilteredMembers?: boolean;
 }
 
-export default function MemberDirectory({ members }: MemberDirectoryProps) {
+export default function MemberDirectory({
+  members,
+  loadMoreMembers,
+  isLoadingMoreMembers,
+  isLoadingFilteredMembers,
+}: MemberDirectoryProps) {
+  const handleScroll = useCallback(
+    debounce(() => {
+      const scrollPosition = window.scrollY;
+      const windowHeight = window.innerHeight;
+      const documentHeight = document.documentElement.scrollHeight;
+      const rowHeight = 140;
+      const nearBottom =
+        scrollPosition + windowHeight >= documentHeight - rowHeight;
+
+      if (nearBottom && !isLoadingMoreMembers) {
+        loadMoreMembers();
+      }
+    }, 100),
+    [isLoadingMoreMembers, loadMoreMembers],
+  );
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [handleScroll]);
+
   const isFiltered =
     members.filter(
       (mem) =>
@@ -24,19 +56,24 @@ export default function MemberDirectory({ members }: MemberDirectoryProps) {
     ).length > 0;
   return (
     <section
-      className={`
+      className={cn(
+        `
+        relative
         mt-8
         grid
         grid-flow-row
         grid-cols-1
         gap-4
         px-4
-        pb-4
+        pb-16
+        transition-opacity
         sm:auto-rows-fr
         sm:grid-cols-2
         md:grid-cols-3
         lg:grid-cols-4
-      `}
+      `,
+        isLoadingFilteredMembers && "opacity-50",
+      )}
     >
       {members.map((member, i) => {
         const isSelected =
@@ -228,6 +265,14 @@ export default function MemberDirectory({ members }: MemberDirectoryProps) {
           </a>
         );
       })}
+      <div
+        className={cn(
+          "absolute inset-x-0 bottom-4 flex translate-y-4 items-center justify-center opacity-0 transition-all duration-100",
+          isLoadingMoreMembers && "translate-y-0 opacity-100",
+        )}
+      >
+        <LoadingSpinner variant={LoadingSpinnerVariant.Invert} />
+      </div>
     </section>
   );
 }

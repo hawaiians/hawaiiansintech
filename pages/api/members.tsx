@@ -11,6 +11,7 @@ import { checkMethods, checkBodyParams } from "@/lib/api-helpers/format";
 import { MemberPublic } from "@/lib/firebase-helpers/interfaces";
 import {
   addMemberToFirebase,
+  getMemberRef,
   getMembers,
   updateMember,
 } from "@/lib/firebase-helpers/members";
@@ -18,6 +19,11 @@ import { emailExists } from "@/lib/firebase-helpers/emails";
 import { DocumentReference } from "firebase/firestore";
 import { sendConfirmationEmails } from "@/lib/email";
 import { sendSensitiveChangesEmail } from "@/lib/email/send-sensitive-change-email";
+import {
+  addMemberToLabels,
+  deleteMemberFromLabels,
+} from "@/lib/firebase-helpers/filters";
+import { StatusEnum } from "@/lib/enums";
 
 async function getHandler(req: NextApiRequest, res: NextApiResponse) {
   checkMethods(req.method, ["GET"]);
@@ -26,10 +32,23 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
 
   if (authHeader) {
     const token = authHeader.split(" ")[1];
-    data = await getMembers(token);
+    data = await getMembers({ token: token });
   } else {
     console.log({ message: "No authorization header included" });
-    data = await getMembers();
+    let payload = {};
+    if (req.query.cursor) {
+      payload["cursor"] = req.query.cursor as string;
+      payload["paginated"] = true;
+    }
+    if (req.query.memberIds) {
+      payload["memberIds"] = (req.query.memberIds as string)
+        .split(",")
+        .filter(Boolean);
+    }
+    if (req.query.withoutFilters) {
+      payload["includeFilters"] = false;
+    }
+    data = await getMembers(payload);
   }
 
   return res.status(200).json({
@@ -38,6 +57,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     focuses: data.focuses,
     industries: data.industries,
     regions: data.regions,
+    experience: data.experience,
+    cursor: data.cursor,
+    hasMore: data.hasMore,
   });
 }
 
@@ -105,6 +127,23 @@ async function putHandler(req: NextApiRequest, res: NextApiResponse) {
       recordID: memberNew.id,
       changes: JSON.stringify(sensitiveChanges),
     });
+  }
+
+  const memberRef = await getMemberRef(memberNew.id);
+  if (
+    memberOld.status !== StatusEnum.APPROVED &&
+    memberNew.status === StatusEnum.APPROVED &&
+    isAdmin
+  ) {
+    // Add member to label references if approved
+    addMemberToLabels(memberRef);
+  } else if (
+    memberOld.status === StatusEnum.APPROVED &&
+    memberNew.status !== StatusEnum.APPROVED &&
+    isAdmin
+  ) {
+    // Remove member from label references if unapproved
+    deleteMemberFromLabels(memberRef);
   }
 
   return res.status(200).json({
