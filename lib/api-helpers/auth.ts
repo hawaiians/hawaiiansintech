@@ -1,6 +1,6 @@
 import * as admin from "firebase-admin";
 import { initializeAdmin } from "../firebase-helpers/initializeAdmin";
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiRequest } from "next";
 import {
   CloudflareVerificationError,
   MissingHeaderError,

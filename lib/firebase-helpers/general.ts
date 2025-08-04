@@ -10,7 +10,7 @@ import {
 } from "firebase/firestore";
 import { FirebaseTablesEnum, StatusEnum } from "../enums";
 import { db } from "../firebase";
-import { DocumentData } from "./interfaces";
+import { FirestoreDocumentData } from "./interfaces";
 import { PickerFilter } from "@/components/filters/FilterPicker";
 
 export default function serverSideOnly(moduleObject) {
@@ -47,7 +47,7 @@ export async function deleteDocument(docRef: DocumentReference) {
 export async function getFirebaseTable(
   table: FirebaseTablesEnum,
   approved: boolean = false,
-): Promise<DocumentData[]> {
+): Promise<FirestoreDocumentData[]> {
   const documentsCollection = collection(db, table);
   let q = query(documentsCollection);
   if (approved === true) {

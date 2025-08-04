@@ -27,9 +27,27 @@ const ALL_STORED_FIELDS = [
   "Id",
 ];
 
-export const clearAllStoredFields = (prefix: string) => {
+export const useClearAllStoredFields = (): ClearStoredFieldsFunction => {
   const { removeItem } = useStorage();
-  ALL_STORED_FIELDS.map((item) => removeItem(`${prefix}${item}`));
+
+  return (prefix: string, fields?: string[]) => {
+    const fieldsToClear = fields || ALL_STORED_FIELDS;
+
+    // Validate prefix
+    if (!prefix || typeof prefix !== "string") {
+      console.warn("useClearAllStoredFields: Invalid prefix provided", prefix);
+      return;
+    }
+
+    // Clear fields with error handling
+    fieldsToClear.forEach((item) => {
+      try {
+        removeItem(`${prefix}${item}`);
+      } catch (error) {
+        console.error(`Failed to remove storage item ${prefix}${item}:`, error);
+      }
+    });
+  };
 };
 
 interface useInvalidProps {
@@ -39,25 +57,34 @@ interface useInvalidProps {
 export const useInvalid = ({ currentPage }: useInvalidProps) => {
   const { getItem } = useStorage();
   const router = useRouter();
-  let invalid =
-    !getItem("jfName") || !getItem("jfLocation") || !getItem("jfWebsite");
-  switch (currentPage) {
-    case `02-work`:
-      return useEffect(() => {
-        if (invalid) router.push({ pathname: "01-you", query: { r: "02" } });
-      }, []);
-    case `03-company`:
-      invalid =
-        invalid ||
-        !getItem("jfYearsExperience") ||
-        ([...JSON.parse(getItem("jfFocuses") || "[]")].length < 1 &&
-          !getItem("jfFocusSuggested")) ||
-        (!getItem("jfTitle") && !getItem("jfDeferTitle"));
-      return useEffect(() => {
-        if (invalid) router.push({ pathname: "01-you", query: { r: "03" } });
-      }, []);
-    case `04-contact`:
-      return useEffect(() => {
+
+  useEffect(() => {
+    // Base validation for all pages
+    let invalid =
+      !getItem("jfName") || !getItem("jfLocation") || !getItem("jfWebsite");
+
+    // Additional validation based on current page
+    switch (currentPage) {
+      case "02-work":
+        if (invalid) {
+          router.push({ pathname: "01-you", query: { r: "02" } });
+        }
+        break;
+
+      case "03-company":
+        invalid =
+          invalid ||
+          !getItem("jfYearsExperience") ||
+          ([...JSON.parse(getItem("jfFocuses") || "[]")].length < 1 &&
+            !getItem("jfFocusSuggested")) ||
+          (!getItem("jfTitle") && !getItem("jfDeferTitle"));
+
+        if (invalid) {
+          router.push({ pathname: "01-you", query: { r: "03" } });
+        }
+        break;
+
+      case "04-contact":
         invalid =
           invalid ||
           !getItem("jfYearsExperience") ||
@@ -68,9 +95,19 @@ export const useInvalid = ({ currentPage }: useInvalidProps) => {
             !getItem("jfDeferIndustry") &&
             !getItem("jfIndustrySuggested")) ||
           (!getItem("jfCompanySize") && getItem("jfCompanySize") !== "N/A");
-        if (invalid) router.push({ pathname: "01-you", query: { r: "04" } });
-      }, []);
-  }
+
+        if (invalid) {
+          router.push({ pathname: "01-you", query: { r: "04" } });
+        }
+        break;
+    }
+  }, [currentPage, getItem, router]);
 };
 
 export const MAX_FOCUS_COUNT = 3;
+
+// Type for the clear function returned by useClearAllStoredFields
+export type ClearStoredFieldsFunction = (
+  prefix: string,
+  fields?: string[],
+) => void;

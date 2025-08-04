@@ -7,7 +7,7 @@ import Tabs, { TabsSize } from "../Tabs";
 import { YearsOfExperienceEnum } from "@/lib/enums";
 import { LoadingSpinnerVariant } from "../LoadingSpinner";
 import LoadingSpinner from "../LoadingSpinner";
-import { AnimatePresence, motion, LayoutGroup } from "framer-motion";
+import { motion, LayoutGroup } from "framer-motion";
 
 export interface PickerFilter extends Filter {
   active?: boolean;
@@ -16,9 +16,9 @@ export interface PickerFilter extends Filter {
 interface FilterPickerProps {
   filtersList: PickerFilter[];
   activeFilters: PickerFilter[];
-  onFilterClick: (id?: string, filterType?: string) => any;
-  onViewAll: () => any;
-  onFilterSelect: (filterSelect?: string, enable?: boolean) => any;
+  onFilterClick: (id?: string, filterType?: string) => void;
+  onViewAll: () => void;
+  onFilterSelect: (filterSelect?: string, enable?: boolean) => void;
   isLoading?: boolean;
   totalMemberCount: number;
   selectedMemberCount?: number;
@@ -43,7 +43,10 @@ export default function FilterPicker({
   const filterIsSelected = activeFilters.length !== 0;
   const experienceOrder = Object.values(YearsOfExperienceEnum) as string[];
 
-  function activateFilter(setFilter: Function, filtertype: string) {
+  function activateFilter(
+    setFilter: (value: boolean) => void,
+    filtertype: string,
+  ) {
     const filterSetList = [
       setFocusActive,
       setIndustryActive,
@@ -136,7 +139,7 @@ export default function FilterPicker({
                   experienceOrder.indexOf(b.name)
                 : b.count - a.count,
             ) // sort experience filter explicitly, otherwise sort by count
-            .map((filter, i) => (
+            .map((filter) => (
               <li key={`focus-filter-${filter.id}`}>
                 <Selectable
                   headline={filter.name}

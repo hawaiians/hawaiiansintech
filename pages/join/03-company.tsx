@@ -24,8 +24,6 @@ import { useEffect, useState } from "react";
 import theme from "styles/theme";
 import { scrollToTop } from "../../helpers";
 
-const NEXT_PAGE = "04-contact";
-
 export async function getStaticProps() {
   const industries = (await getFilters(FirebaseTablesEnum.INDUSTRIES)) ?? [];
   return {
@@ -50,7 +48,7 @@ export default function JoinStep3({ industries, pageTitle }) {
   const [deferIndustry, setDeferIndustry] = useState<"true">();
   const [industriesSelected, setIndustriesSelected] = useState<string[]>([]);
   const [showSuggestButton, setShowSuggestButton] = useState(true);
-  const [error, setError] = useState<ErrorMessageProps>(null);
+  const [error] = useState<ErrorMessageProps>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [columnCount, setColumnCount] = useState<2 | 3>(3);
 
@@ -195,7 +193,7 @@ export default function JoinStep3({ industries, pageTitle }) {
                   headline={industry.name}
                   disabled={isDisabled || deferIndustry === "true"}
                   selected={isSelected && !deferIndustry}
-                  onClick={(e) => handleSelect(industry.id)}
+                  onClick={() => handleSelect(industry.id)}
                   key={`ind-${i}`}
                 />
               );

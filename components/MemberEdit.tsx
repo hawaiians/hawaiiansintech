@@ -25,18 +25,13 @@ import LoadingSpinner, {
   LoadingSpinnerVariant,
 } from "@/components/LoadingSpinner";
 import {
-  DocumentData,
+  FirestoreDocumentData,
   MemberEmail,
   MemberPublic,
 } from "@/lib/firebase-helpers/interfaces";
-import {
-  CompanySizeEnum,
-  FirebaseTablesEnum,
-  StatusEnum,
-  YearsOfExperienceEnum,
-} from "@/lib/enums";
+import { CompanySizeEnum, FirebaseTablesEnum, StatusEnum } from "@/lib/enums";
 import { User } from "firebase/auth";
-import { convertStringSnake, scrollToTop, useEmailCloaker } from "helpers";
+import { convertStringSnake, scrollToTop, cloakEmail } from "helpers";
 import { Check, ExternalLink, EyeOff, Info, Trash } from "lucide-react";
 import Link from "next/link";
 import { ADMIN_EMAILS } from "@/lib/email/utils";
@@ -49,23 +44,14 @@ import ErrorMessage, {
 
 export const MemberEdit: FC<{
   member: MemberPublic;
-  regions?: DocumentData[];
-  experience?: DocumentData[];
+  regions?: FirestoreDocumentData[];
+  experience?: FirestoreDocumentData[];
   onClose?: () => void;
   onDelete?: () => void;
   onSave?: () => void;
   user?: User;
   adminView?: boolean;
-}> = ({
-  member,
-  regions,
-  experience,
-  onClose,
-  onDelete,
-  onSave,
-  user,
-  adminView,
-}) => {
+}> = ({ member, regions, experience, onDelete, onSave, user, adminView }) => {
   const router = useRouter();
   const { query } = router;
   const [email, setEmail] = useState<MemberEmail>(null);
@@ -93,7 +79,10 @@ export const MemberEdit: FC<{
   const [suggestedIndustry, setSuggestedIndustry] = useState<string>(undefined);
   const [error, setError] = useState<ErrorMessageProps>(undefined);
 
-  const getIdFromName = (collection: DocumentData[], name: string): string => {
+  const getIdFromName = (
+    collection: FirestoreDocumentData[],
+    name: string,
+  ): string => {
     const item = collection.find((r) => r.fields.name === name);
     return item ? item.id : null;
   };
@@ -109,7 +98,7 @@ export const MemberEdit: FC<{
   );
 
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
+    let timeout;
     if (query.updated === "success") {
       setShowSuccess(() => {
         timeout = setTimeout(() => {
@@ -214,7 +203,7 @@ export const MemberEdit: FC<{
     const updatedMember: MemberPublic = {
       ...member,
       companySize: companySize,
-      emailAbbr: emailChanged ? useEmailCloaker(email.email) : member.emailAbbr,
+      emailAbbr: emailChanged ? cloakEmail(email.email) : member.emailAbbr,
       focus: focuses,
       focusSuggested: suggestedFocus,
       industry: industries,
@@ -517,13 +506,17 @@ export const MemberEdit: FC<{
               </SelectTrigger>
               <SelectContent className="max-h-72">
                 {[...regions]
-                  .sort((a, b) => a.fields.name.localeCompare(b.fields.name))
+                  .sort((a, b) =>
+                    (a.fields.name as string).localeCompare(
+                      b.fields.name as string,
+                    ),
+                  )
                   .map((region) => (
                     <SelectItem
                       value={region.id}
                       key={`region-${region.fields.name}`}
                     >
-                      {region.fields.name}
+                      {region.fields.name as string}
                     </SelectItem>
                   ))}
               </SelectContent>
@@ -556,7 +549,7 @@ export const MemberEdit: FC<{
                     value={exp.id}
                     key={`experience-${exp.fields.name}`}
                   >
-                    {exp.fields.name}
+                    {exp.fields.name as string}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -584,7 +577,7 @@ export const MemberEdit: FC<{
                 <SelectValue placeholder="Company Size" />
               </SelectTrigger>
               <SelectContent className="max-h-72">
-                {Object.values(CompanySizeEnum).map((size, i) => (
+                {Object.values(CompanySizeEnum).map((size) => (
                   <SelectItem value={size} key={`company-size-${size}`}>
                     {size}
                   </SelectItem>

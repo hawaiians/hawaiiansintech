@@ -18,30 +18,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-import { deleteDocument } from "@/lib/firebase-helpers/general";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  DocumentData,
-  MemberEmail,
-  MemberPublic,
-  RegionPublic,
-} from "@/lib/firebase-helpers/interfaces";
-import {
-  CompanySizeEnum,
-  FirebaseTablesEnum,
-  StatusEnum,
-  YearsOfExperienceEnum,
-} from "@/lib/enums";
+import { DocumentData, MemberPublic } from "@/lib/firebase-helpers/interfaces";
+import { StatusEnum, YearsOfExperienceEnum } from "@/lib/enums";
 import { useIsAdmin } from "@/lib/hooks";
 import { getAuth, User } from "firebase/auth";
-import { convertStringSnake, useEmailCloaker } from "helpers";
+import { convertStringSnake } from "helpers";
 import { cn } from "@/lib/utils";
-import { ExternalLink, Trash } from "lucide-react";
 import moment from "moment";
 import Head from "next/head";
-import Link from "next/link";
 import { useRouter } from "next/router";
-import { FC, ReactNode, useEffect, useState } from "react";
+import { FC, useEffect, useState, useCallback } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { signInWithGoogle, signOutWithGoogle } from "../../lib/firebase";
 import { MemberEdit } from "@/components/MemberEdit";
@@ -63,7 +50,7 @@ export default function DirectoryPage(props) {
   const [members, setMembers] = useState<MemberPublic[]>([]);
   const [regions, setRegions] = useState<DocumentData[]>([]);
   const [experience, setExperience] = useState<DocumentData[]>([]);
-  const [user, loading, error] = useAuthState(auth);
+  const [user, loading] = useAuthState(auth);
   const [isAdmin, isAdminLoading] = useIsAdmin(user, loading);
   const router = useRouter();
   const experienceOrder = Object.values(YearsOfExperienceEnum) as string[];
@@ -72,7 +59,7 @@ export default function DirectoryPage(props) {
     if (!isAdminLoading && !isAdmin) router.push(`/admin`);
   }, [isAdmin, isAdminLoading, router]);
 
-  const fetchMembers = async () => {
+  const fetchMembers = useCallback(async () => {
     const response = await fetch("/api/members", {
       method: "GET",
       headers: {
@@ -95,7 +82,7 @@ export default function DirectoryPage(props) {
         ), // sort experience filter explicitly
       );
     }
-  };
+  }, [user, experienceOrder]);
 
   useEffect(() => {
     if (isAdmin) {
@@ -289,7 +276,7 @@ interface CardProps {
 Directory.Card = Card;
 
 function Card({ member, regions, experience, user }: CardProps) {
-  const [showModal, setShowModal] = useState<ReactNode | false>(false);
+  const [, setShowModal] = useState<boolean>(false);
   const handleDelete = async () => {
     alert("NOT ACTUALLY DELETING!!! RETURNING EARLY");
     return;

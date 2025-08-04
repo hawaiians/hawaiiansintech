@@ -1,5 +1,6 @@
 import { toKebab } from "../../helpers";
 import { cn } from "@/lib/utils";
+import React from "react";
 
 export enum SelectableVariant {
   Checkbox = "checkbox",
@@ -17,8 +18,8 @@ interface SelectableProps {
   gridSpan?: number;
   fullWidth?: boolean;
   headline: string;
-  onClear?: (e: React.MouseEvent) => any;
-  onClick?: (e: React.MouseEvent) => any;
+  onClear?: (e: React.MouseEvent) => void;
+  onClick?: (e: React.MouseEvent) => void;
   count?: string | number;
   selected?: boolean;
   size?: SelectableSize;
