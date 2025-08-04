@@ -11,11 +11,7 @@ interface LabelProps {
 
 const asideTransition = {
   hidden: { opacity: 0, transform: "translateY(25%)" },
-  show: {
-    opacity: 1,
-    transform: "translateY(0%)",
-    transition: { duration: 0.5, ease: "anticipate", delay: 0.125 },
-  },
+  show: { opacity: 1, transform: "translateY(0%)" },
 };
 
 export default function Label({
@@ -31,6 +27,7 @@ export default function Label({
           variants={asideTransition}
           initial="hidden"
           animate="show"
+          transition={{ duration: 0.5, ease: "easeOut", delay: 0.125 }}
         >
           <Tag label={tagged} />
         </motion.aside>
