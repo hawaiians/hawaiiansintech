@@ -18,7 +18,6 @@ specifiers:
   '@react-email/components': ^0.0.16
   '@react-email/img': 0.0.7
   '@react-email/tailwind': 0.0.15
-  '@sendgrid/mail': ^7.6.0
   '@types/react': ^17.0.38
   autoprefixer: ^10.4.14
   babel-plugin-inline-react-svg: ^1.1.1
@@ -75,7 +74,6 @@ dependencies:
   '@react-email/components': 0.0.16_3f276cb0607a702db3a0c189622ff8d1
   '@react-email/img': 0.0.7_react@18.3.1
   '@react-email/tailwind': 0.0.15
-  '@sendgrid/mail': 7.7.0
   autoprefixer: 10.4.20_postcss@8.5.2
   babel-plugin-inline-react-svg: 1.1.2
   class-variance-authority: 0.7.1
@@ -3252,33 +3250,6 @@ packages:
       selderee: 0.11.0
     dev: false
 
-  /@sendgrid/client/7.7.0:
-    resolution: {integrity: sha512-SxH+y8jeAQSnDavrTD0uGDXYIIkFylCo+eDofVmZLQ0f862nnqbC3Vd1ej6b7Le7lboyzQF6F7Fodv02rYspuA==}
-    engines: {node: 6.* || 8.* || >=10.*}
-    dependencies:
-      '@sendgrid/helpers': 7.7.0
-      axios: 0.26.1
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
-  /@sendgrid/helpers/7.7.0:
-    resolution: {integrity: sha512-3AsAxfN3GDBcXoZ/y1mzAAbKzTtUZ5+ZrHOmWQ279AuaFXUNCh9bPnRpN504bgveTqoW+11IzPg3I0WVgDINpw==}
-    engines: {node: '>= 6.0.0'}
-    dependencies:
-      deepmerge: 4.3.1
-    dev: false
-
-  /@sendgrid/mail/7.7.0:
-    resolution: {integrity: sha512-5+nApPE9wINBvHSUxwOxkkQqM/IAAaBYoP9hw7WwgDNQPxraruVqHizeTitVtKGiqWCKm2mnjh4XGN3fvFLqaw==}
-    engines: {node: 6.* || 8.* || >=10.*}
-    dependencies:
-      '@sendgrid/client': 7.7.0
-      '@sendgrid/helpers': 7.7.0
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
   /@socket.io/component-emitter/3.1.2:
     resolution: {integrity: sha512-9BCxFwvbGg/RsZK9tjXd8s4UcwR0MWeFQ1XEKIQVVvAGJyINdrqKMcTRyLoK8Rse1GjzLV9cwjWV1olXRWEXVA==}
     dev: false
@@ -4146,14 +4117,6 @@ packages:
   /axe-core/4.10.2:
     resolution: {integrity: sha512-RE3mdQ7P3FRSe7eqCWoeQ/Z9QXrtniSjp1wUjt5nRC3WIpz5rSCve6o3fsZ2aCpJtrZjSZgjwXAoTO5k4tEI0w==}
     engines: {node: '>=4'}
-    dev: false
-
-  /axios/0.26.1:
-    resolution: {integrity: sha512-fPwcX4EvnSHuInCMItEhAGnaSEXRBjtzh9fOtsE6E1G6p7vl7edEeZe11QHf18+6+9gR5PbKV/sGKNaD8YaMeA==}
-    dependencies:
-      follow-redirects: 1.15.9
-    transitivePeerDependencies:
-      - debug
     dev: false
 
   /axobject-query/4.1.0:
@@ -5437,16 +5400,6 @@ packages:
       '@firebase/vertexai-preview': 0.0.4_890ebd6a27ad51a930243393744fd9b2
     transitivePeerDependencies:
       - '@react-native-async-storage/async-storage'
-    dev: false
-
-  /follow-redirects/1.15.9:
-    resolution: {integrity: sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
     dev: false
 
   /for-each/0.3.5:
