@@ -97,8 +97,8 @@ export const updateAdminFilterReferences = async (
 };
 
 export function getExperienceData(): FilterData[] {
-  let return_list = [];
-  for (let item in YearsOfExperienceEnum) {
+  const return_list = [];
+  for (const item in YearsOfExperienceEnum) {
     return_list.push({
       fields: { name: YearsOfExperienceEnum[item] },
       id: item,
@@ -282,7 +282,7 @@ export async function getFiltersBasic(
     filterType == "experience" ? member.yearsExperience : member.region,
   );
   memFil.forEach((member) => {
-    let expIndex = filterList.findIndex(
+    const expIndex = filterList.findIndex(
       (exp) =>
         exp.name ===
         (filterType == "experience" ? member.yearsExperience : member.region),

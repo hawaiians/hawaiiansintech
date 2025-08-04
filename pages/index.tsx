@@ -183,7 +183,7 @@ export default function HomePage({
   };
 
   const handleFetchedMembers = async (members) => {
-    let newMembers = {};
+    const newMembers = {};
     for (const member of members) {
       const memberData = {
         ...member,
@@ -198,7 +198,7 @@ export default function HomePage({
   };
 
   const handleFilter = async (id?: string) => {
-    let filter = filtersList.filter((foc) => id === foc?.id)[0];
+    const filter = filtersList.filter((foc) => id === foc?.id)[0];
     const membersToLoad =
       filter?.members?.filter((memberId) => !membersIdSet.has(memberId)) ?? [];
     if (membersToLoad.length > 0) {

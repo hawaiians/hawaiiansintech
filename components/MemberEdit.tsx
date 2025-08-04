@@ -426,7 +426,7 @@ export const MemberEdit: FC<{
                 disabled={email === null || !adminView}
                 value={email?.email || member.emailAbbr}
                 onChange={(e) => {
-                  let newEmail = { ...email };
+                  const newEmail = { ...email };
                   newEmail.email = e.target.value;
                   setEmail(newEmail);
                 }}
@@ -625,7 +625,9 @@ export const MemberEdit: FC<{
             <section>
               <h4 className="text-sm font-semibold">Last Modified</h4>
               <p className="font-light text-secondary-foreground">
-                {member.lastModified}
+                {typeof member.lastModified === "string"
+                  ? new Date(member.lastModified).toLocaleDateString()
+                  : member.lastModified.toDate().toLocaleDateString()}
               </p>
             </section>
           )}

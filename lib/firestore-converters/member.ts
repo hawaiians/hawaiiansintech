@@ -5,7 +5,7 @@ import {
   QueryDocumentSnapshot,
   serverTimestamp,
   Timestamp,
-} from "@firebase/firestore";
+} from "firebase/firestore";
 import {
   CompanySizeEnum,
   FirebaseDefaultValuesEnum,

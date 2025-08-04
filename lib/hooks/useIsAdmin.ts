@@ -7,6 +7,12 @@ export default function useIsAdmin(user: User | null, loading: boolean) {
 
   useEffect(() => {
     const fetchIsAdmin = async () => {
+      // Early return if user is null or loading
+      if (!user || loading) {
+        setIsAdminLoading(false);
+        return;
+      }
+
       try {
         const response = await fetch("/api/is-admin", {
           method: "GET",
@@ -24,9 +30,7 @@ export default function useIsAdmin(user: User | null, loading: boolean) {
       }
     };
 
-    if (!loading) {
-      fetchIsAdmin();
-    }
+    fetchIsAdmin();
   }, [loading, user]);
 
   if (user === null) return [false, false];

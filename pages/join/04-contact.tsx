@@ -89,16 +89,16 @@ export default function JoinStep4({ pageTitle }) {
 
   // check localStorage and set pre-defined fields
   useEffect(() => {
-    let storedName = getItem("jfName");
-    let storedLocation = getItem("jfLocation");
-    let storedWebsite = getItem("jfWebsite");
-    let storedFocuses = getItem("jfFocuses");
-    let storedFocusSuggested = getItem("jfFocusSuggested");
-    let storedTitle = getItem("jfTitle");
-    let storedYearsExperience = getItem("jfYearsExperience");
-    let storedIndustries = getItem("jfIndustries");
-    let storedIndustrySuggested = getItem("jfIndustrySuggested");
-    let storedCompanySize = getItem("jfCompanySize");
+    const storedName = getItem("jfName");
+    const storedLocation = getItem("jfLocation");
+    const storedWebsite = getItem("jfWebsite");
+    const storedFocuses = getItem("jfFocuses");
+    const storedFocusSuggested = getItem("jfFocusSuggested");
+    const storedTitle = getItem("jfTitle");
+    const storedYearsExperience = getItem("jfYearsExperience");
+    const storedIndustries = getItem("jfIndustries");
+    const storedIndustrySuggested = getItem("jfIndustrySuggested");
+    const storedCompanySize = getItem("jfCompanySize");
 
     if (storedName) setName(storedName);
     if (storedLocation) setLocation(storedLocation);

@@ -40,9 +40,9 @@ export default function JoinStep1({ pageTitle }) {
   }, [r]);
 
   useEffect(() => {
-    let storedName = getItem("jfName");
-    let storedLocation = getItem("jfLocation");
-    let storedWebsite = getItem("jfWebsite");
+    const storedName = getItem("jfName");
+    const storedLocation = getItem("jfLocation");
+    const storedWebsite = getItem("jfWebsite");
     if (storedName) setName(storedName);
     if (storedLocation) setLocation(storedLocation);
     if (storedWebsite) setWebsite(storedWebsite);

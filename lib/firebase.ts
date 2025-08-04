@@ -1,4 +1,4 @@
-import { getFirestore } from "@firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { getStorage } from "firebase/storage";
@@ -16,7 +16,7 @@ export const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const provider = new GoogleAuthProvider();
 export const auth = getAuth(app);
-export const db = getFirestore();
+export const db = getFirestore(app);
 export const storage = getStorage(app);
 export const signInWithGoogle = () => {
   signInWithPopup(auth, provider)
@@ -26,7 +26,7 @@ export const signInWithGoogle = () => {
       sessionStorage.setItem("email", result.user.email);
       sessionStorage.setItem(
         "emailIsVerified",
-        String(result.user.emailVerified)
+        String(result.user.emailVerified),
       );
       location.reload();
     })

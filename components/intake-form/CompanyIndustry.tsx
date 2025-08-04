@@ -55,7 +55,7 @@ export default function CompanyIndustry({
     industriesSelected.length + (industrySuggested ? 1 : 0);
   const isMaxSelected = totalIndustriesSelected >= MAX_COUNT;
 
-  let technologyInd =
+  const technologyInd =
     industries.find((item) => item.name === TECHNOLOGY_LABEL) || null;
   if (technologyInd) {
     industries = [
@@ -68,7 +68,7 @@ export default function CompanyIndustry({
   }, [error]);
 
   useEffect(() => {
-    let mql = window.matchMedia(
+    const mql = window.matchMedia(
       `(min-width: ${theme.layout.breakPoints.small})`,
     );
     if (mql.matches) {
@@ -85,7 +85,7 @@ export default function CompanyIndustry({
   }, [initial.companySize, initial.industriesSelected]);
 
   const handleSelect = (industry) => {
-    let nextIndustriesSelected = [...industriesSelected];
+    const nextIndustriesSelected = [...industriesSelected];
     const isSelected = industriesSelected.includes(industry);
 
     if (isSelected) {

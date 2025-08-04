@@ -14,7 +14,7 @@ const asideTransition = {
   show: {
     opacity: 1,
     transform: "translateY(0%)",
-    transition: { duration: 0.5, ease: "anticipate", delay: 0.125 },
+    transition: { duration: 0.5, ease: "anticipate" as const, delay: 0.125 },
   },
 };
 
