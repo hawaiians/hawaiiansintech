@@ -1,0 +1,32 @@
+name: Lint and Type Check
+
+on:
+  pull_request:
+    branches:
+      - main
+      - tho-next-v15 # TODO: delete this line once functionality is confirmed
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Install dependencies
+        uses: pnpm/action-setup@v3
+        with:
+          version: 8
+          run_install: true
+
+      - name: Run Lint and Type Check
+        run: pnpm run check
+
+      - name: Check Formatting
+        run: pnpm run format --check
