@@ -1,8 +1,8 @@
-import SendGrid from "@sendgrid/mail";
-import { render } from "@react-email/components";
+import { Resend } from "resend";
 import { ADMIN_EMAILS, REPLY_EMAIL } from "@/lib/email/utils";
 import SensitiveChangesEmail from "@/emails/sensitive-changes-email";
-SendGrid.setApiKey(process.env.SENDGRID_API_KEY);
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export interface SendSensitiveChangesEmailsProps {
   name: string;
@@ -18,20 +18,15 @@ export async function sendSensitiveChangesEmail({
   try {
     if (!changes) throw new Error("No changes provided");
 
-    await SendGrid.send({
-      from: {
-        email: REPLY_EMAIL,
-        name: "Hawaiians in Tech",
-      },
+    await resend.emails.send({
+      from: REPLY_EMAIL,
       to: ADMIN_EMAILS,
       subject: `Sensitive Changes: ${name}`,
-      html: render(
-        <SensitiveChangesEmail
-          name={name}
-          changes={changes}
-          recordID={recordID}
-        />,
-      ),
+      react: SensitiveChangesEmail({
+        name,
+        changes,
+        recordID,
+      }),
     });
   } catch (error) {
     console.error(`Error sending Sensitive Changes email to admin`, error);

@@ -1,5 +1,12 @@
 [
   {
+    "date": "2025-09-03",
+    "title": "Migrated from SendGrid to Resend for email delivery",
+    "slug": "migrated-sendgrid-to-resend",
+    "content": "We've upgraded our email infrastructure from SendGrid to [Resend](https://resend.com), a modern email API built for developers. This change improves our email delivery reliability and provides better React Email integration.\n\n### Key improvements\n* Email delivery via Resend API",
+    "href": ["https://github.com/hawaiians/hawaiiansintech/pull/46"]
+  },
+  {
     "date": "2024-08-02",
     "title": "Updated privacy policy & added terms of use",
     "slug": "updated-privacy-policy-and-terms-of-use",

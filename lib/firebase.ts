@@ -1,4 +1,4 @@
-import { getFirestore } from "@firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { getStorage } from "firebase/storage";
@@ -26,7 +26,7 @@ export const signInWithGoogle = () => {
       sessionStorage.setItem("email", result.user.email);
       sessionStorage.setItem(
         "emailIsVerified",
-        String(result.user.emailVerified)
+        String(result.user.emailVerified),
       );
       location.reload();
     })
