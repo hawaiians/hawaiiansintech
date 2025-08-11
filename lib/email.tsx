@@ -1,18 +1,18 @@
-import SendGrid from "@sendgrid/mail";
+import { Resend } from "resend";
 import WelcomeEmail from "@/emails/welcome-email";
-import { render } from "@react-email/components";
 import { ADMIN_EMAILS, REPLY_EMAIL } from "./email/utils";
 import PendingMemberEmail from "@/emails/pending-member-email";
 import LoginPromptEmail from "@/emails/login-prompt";
-SendGrid.setApiKey(process.env.SENDGRID_API_KEY);
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export interface SendConfirmationEmailProps {
   email: string;
   name: string;
+  recordID: string;
   location: string;
   link: string;
-  recordID: string;
-  title?: string; // title is only non-required freeform field on sign up
+  title?: string;
 }
 
 export async function sendConfirmationEmails({
@@ -31,40 +31,32 @@ export async function sendConfirmationEmails({
     if (!location) throw new Error("No location provided");
     if (!link) throw new Error("No link provided");
 
-    await SendGrid.send({
-      from: {
-        email: REPLY_EMAIL,
-        name: "Hawaiians in Tech",
-      },
-      to: email,
+    // Send welcome email to new member
+    await resend.emails.send({
+      from: REPLY_EMAIL,
+      to: [email],
       subject: "Welcome to Hawaiians in Tech",
-      html: render(
-        <WelcomeEmail
-          email={email}
-          name={name}
-          recordID={recordID}
-          location={location}
-        />,
-      ),
+      react: WelcomeEmail({
+        email,
+        name,
+        recordID,
+        location,
+      }),
     });
 
-    await SendGrid.send({
-      from: {
-        email: REPLY_EMAIL,
-        name: "Hawaiians in Tech",
-      },
+    // Send notification email to admins
+    await resend.emails.send({
+      from: REPLY_EMAIL,
       to: ADMIN_EMAILS,
       subject: `Member Submission: ${name}`,
-      html: render(
-        <PendingMemberEmail
-          email={email}
-          name={name}
-          recordID={recordID}
-          location={location}
-          title={title}
-          link={link}
-        />,
-      ),
+      react: PendingMemberEmail({
+        email,
+        name,
+        recordID,
+        location,
+        title,
+        link,
+      }),
     });
   } catch (error) {
     console.error(`Error sending confirmation email to ${email}`, error);
@@ -80,19 +72,14 @@ export async function sendLoginPromptEmail({
   promptLink: string;
 }) {
   try {
-    await SendGrid.send({
-      from: {
-        email: REPLY_EMAIL,
-        name: "Hawaiians in Tech",
-      },
-      to: emailAddress,
+    await resend.emails.send({
+      from: REPLY_EMAIL,
+      to: [emailAddress],
       subject: "Login to Hawaiians in Tech",
-      html: render(
-        <LoginPromptEmail
-          emailAddress={emailAddress}
-          promptLink={promptLink}
-        />,
-      ),
+      react: LoginPromptEmail({
+        emailAddress,
+        promptLink,
+      }),
     });
   } catch (error) {
     console.error(`Error sending login prompt email to ${emailAddress}`, error);
