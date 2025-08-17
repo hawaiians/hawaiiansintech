@@ -61,6 +61,9 @@ function EditMember() {
         })
           .then((res) => res.json())
           .then((data) => {
+            if (!data || !data.members) {
+              throw new Error(`Invalid API response: ${JSON.stringify(data)}`);
+            }
             const member = data.members.find((m) => m.id === memberId);
             if (!member) {
               throw new Error(
@@ -68,12 +71,12 @@ function EditMember() {
               );
             }
             setMember(member);
-            setRegions(data.regions);
+            setRegions(data.regions || []);
             setExperience(
-              data.experience?.sort(
+              (data.experience || [])?.sort(
                 (a, b) =>
                   experienceOrder.indexOf(a.name) -
-                  experienceOrder.indexOf(b.name),
+                  experienceOrder.indexOf(a.name),
               ), // sort experience filter explicitly
             );
             setLoading(false);

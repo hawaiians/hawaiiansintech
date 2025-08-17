@@ -193,9 +193,10 @@ export async function getMembers({
 
         // TODO: migrate to regions and experience, adding for backward
         //  compatibility on admin page
-        memberObject["yearsExperience"] = experienceFiltered
-          ? (experienceFiltered[0] as FilterData).name
-          : (memberObject["yearsExperience"] as string);
+        memberObject["yearsExperience"] =
+          experienceFiltered && experienceFiltered[0]
+            ? (experienceFiltered[0] as FilterData).name
+            : (memberObject["yearsExperience"] as string);
         memberObject["region"] = filterLookup(regionsData, regions, true);
 
         if (isAdmin || userId === member.id) {
@@ -208,8 +209,8 @@ export async function getMembers({
         }
         return memberObject;
       })
-      .filter((value) => value !== null)
-      .sort((a, b) => a.name.localeCompare(b.name)),
+      .filter((value) => value !== null && value.name)
+      .sort((a, b) => (a.name || "").localeCompare(b.name || "")),
     focuses: focusesData,
     industries: industriesData,
     regions: regionsData,
@@ -546,11 +547,14 @@ export async function getMembersTable(
   }
   const q = query(documentsCollection, ...queryConditions);
   const documentsSnapshot = await getDocs(q);
-  return documentsSnapshot.docs.map((doc) => {
-    if (approved || doc.id === userId || isAdmin) {
-      return doc.data();
-    }
-  });
+  return documentsSnapshot.docs
+    .map((doc) => {
+      if (approved || doc.id === userId || isAdmin) {
+        return doc.data();
+      }
+      return null; // Explicitly return null for filtered out members
+    })
+    .filter((member) => member !== null); // Filter out null values
 }
 
 export async function getNumberOfMembers(): Promise<number> {
