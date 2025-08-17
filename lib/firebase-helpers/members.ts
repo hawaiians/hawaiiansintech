@@ -261,15 +261,28 @@ export const updateMember = async (
   };
   for (const field of fields) {
     const oldReferenceIds = data[field] ? data[field].map((ref) => ref.id) : [];
-    const newReferenceIds =
-      // TODO: Update region to regions
-      (field === FirebaseMemberFieldsEnum.REGIONS.toString() ||
-        field === FirebaseMemberFieldsEnum.EXPERIENCE.toString()) &&
-      memberData[fieldSingular[field]]
-        ? [memberData[fieldSingular[field]]]
-        : memberData[fieldSingular[field]]
-          ? memberData[fieldSingular[field]].map((ref) => ref.id)
-          : [];
+    let newReferenceIds = [];
+    if (
+      field === FirebaseMemberFieldsEnum.REGIONS.toString() ||
+      field === FirebaseMemberFieldsEnum.EXPERIENCE.toString()
+    ) {
+      const fieldValue = memberData[fieldSingular[field]];
+      if (fieldValue) {
+        // Handle both single values and arrays
+        if (Array.isArray(fieldValue)) {
+          newReferenceIds = fieldValue.map((ref) => ref.id);
+        } else if (typeof fieldValue === "object" && fieldValue.id) {
+          newReferenceIds = [fieldValue.id];
+        } else if (typeof fieldValue === "string") {
+          newReferenceIds = [fieldValue];
+        }
+      }
+    } else {
+      const fieldValue = memberData[fieldSingular[field]];
+      if (fieldValue && Array.isArray(fieldValue)) {
+        newReferenceIds = fieldValue.map((ref) => ref.id);
+      }
+    }
     const [referencesToAdd, referencesToDelete] = await updateFilterReferences(
       memberData.id,
       oldReferenceIds,
