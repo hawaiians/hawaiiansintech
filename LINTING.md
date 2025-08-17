@@ -1,19 +1,19 @@
-# Simple Linting Setup
+# ESLint & Prettier Setup
 
-This project includes basic linting to catch common runtime errors before they reach production.
+This project includes a comprehensive linting setup that integrates ESLint, TypeScript, and Prettier seamlessly.
 
-## Available Scripts
+## 🚀 **Available Scripts**
 
-### Basic Commands
+### Core Commands
 
 ```bash
-# Lint your code
+# Lint your code (will show warnings but won't fail)
 pnpm run lint
 
-# Auto-fix linting issues
+# Auto-fix many linting issues
 pnpm run lint:fix
 
-# Type checking
+# Type checking (must pass for production)
 pnpm run type-check
 
 # Format code with Prettier
@@ -23,92 +23,81 @@ pnpm run format
 pnpm run check
 ```
 
-## What the Linting Catches
+### Quick Fixes
 
-### TypeScript Errors
+```bash
+# Fix formatting issues
+pnpm run format
+
+# Fix auto-fixable ESLint issues
+pnpm run lint:fix
+```
+
+## 🔧 **What the Linting Catches**
+
+### ✅ **Critical Issues (Now Fixed)**
 
 - Type mismatches
-- Undefined variables
-- Incorrect function calls
-
-### Runtime Error Prevention
-
 - Undefined variables and functions
-- Incorrect method calls (like the `toDate()` error we fixed)
-- Basic type safety issues
-
-### Code Quality
-
+- Incorrect method calls
 - Unused variables and imports
 - React Hook violations
 - Basic code quality issues
 
-## Common Issues and Fixes
+### ⚠️ **Current Warnings (Code Quality)**
 
-### 1. "toDate is not a function" Error
+- Missing `alt` attributes on images
+- Missing dependencies in `useEffect` hooks
+- Using `<img>` instead of Next.js `<Image />` component
+- `any` types in TypeScript
+- Empty interfaces
 
-This was the original issue that prompted this setup. The error occurs when trying to call `toDate()` on a value that isn't a Firestore Timestamp.
+## 🏗️ **Configuration Files**
 
-**Fix**: Always check the type before calling methods:
+### `.eslintrc.js`
 
-```typescript
-// ❌ This can cause runtime errors
-member.lastModified.toDate();
+- **Next.js Integration**: Uses `next/core-web-vitals` and `next/typescript`
+- **TypeScript Support**: Full TypeScript ESLint integration
+- **Prettier Integration**: No formatting conflicts
+- **React Hooks**: Proper hook dependency checking
 
-// ✅ Safe approach
-typeof member.lastModified === "string"
-  ? new Date(member.lastModified).toLocaleDateString()
-  : member.lastModified.toDate().toLocaleDateString();
-```
+### `.prettierrc`
 
-### 2. Missing Dependencies in useEffect
+- **Tailwind Integration**: `prettier-plugin-tailwindcss`
+- **Import Organization**: `prettier-plugin-organize-imports`
+- **Consistent Formatting**: 2-space tabs, 80 char width
 
-```typescript
-// ❌ Missing dependency
-useEffect(() => {
-  fetchData();
-}, []); // Missing fetchData dependency
+### `tsconfig.json`
 
-// ✅ Correct approach
-useEffect(() => {
-  fetchData();
-}, [fetchData]);
-```
+- **Strict Mode**: Currently disabled for migration (TODO: enable)
+- **Path Aliases**: Clean import paths with `@/` prefix
+- **Next.js Optimized**: Built for Next.js 15
 
-### 3. Unused Variables
+## 🛠️ **Troubleshooting**
 
-```typescript
-// ❌ Unused variable
-const [data, setData] = useState(null);
-const unusedVar = "something";
+### **If you see linting errors:**
 
-// ✅ Remove unused variables or prefix with underscore
-const [data, setData] = useState(null);
-const _unusedVar = "something"; // or remove entirely
-```
+1. **Run auto-fix**: `pnpm run lint:fix`
+2. **Format code**: `pnpm run format`
+3. **Check types**: `pnpm run type-check`
 
-## Configuration
+### **Common Issues:**
 
-The project includes:
+- **Prettier conflicts**: Run `pnpm run format` first
+- **Type errors**: Check `pnpm run type-check`
+- **Hook warnings**: Review `useEffect` dependencies
 
-- `.eslintrc.js` - Basic ESLint configuration
-- `.prettierrc` - Prettier configuration
-- `tsconfig.json` - TypeScript configuration
-
-## Troubleshooting
-
-If you see linting errors:
-
-1. Run `pnpm run lint:fix` to auto-fix many issues
-2. Check the `.eslintrc.js` file for rule configurations
-3. You can temporarily disable rules with `// eslint-disable-next-line`
-
-## Best Practices
+## 🏆 **Best Practices**
 
 1. **Run linting regularly**: Use `pnpm run lint` during development
-2. **Fix issues early**: Don't let linting errors accumulate
+2. **Fix warnings early**: Don't let them accumulate
 3. **Use auto-fix**: Run `pnpm run lint:fix` to automatically fix issues
 4. **Check types**: Run `pnpm run type-check` before major changes
 5. **Format code**: Use `pnpm run format` to maintain consistent formatting
+6. **Commit hooks**: Consider adding pre-commit hooks for automatic formatting
 
-This simple setup will help catch the types of runtime errors you experienced with the `toDate()` issue and other basic problems before they reach production.
+## 📈 **Performance Impact**
+
+- **Build Time**: Minimal impact (ESLint runs in parallel)
+- **Development**: Real-time feedback in your editor
+- **Production**: Zero impact (linting only runs during build/dev)

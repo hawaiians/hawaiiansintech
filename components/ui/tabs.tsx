@@ -18,8 +18,8 @@ const TabsList = React.forwardRef<
       items-center
       justify-center
       rounded-md
-      bg-muted
       border
+      bg-muted
       p-0.5
       text-muted-foreground`,
       className,

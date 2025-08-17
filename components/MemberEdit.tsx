@@ -223,7 +223,9 @@ export const MemberEdit: FC<{
       setSaveInProgress(false);
       return;
     }
-    emailChanged && (await updateSecureEmail(member.id, email.email));
+    if (emailChanged) {
+      await updateSecureEmail(member.id, email.email);
+    }
     if (onSave) {
       onSave();
     }
@@ -256,7 +258,7 @@ export const MemberEdit: FC<{
       case StatusEnum.DECLINED:
         return "alert";
       default:
-        return;
+        return "warn";
     }
   };
 
