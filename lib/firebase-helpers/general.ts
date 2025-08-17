@@ -21,13 +21,27 @@ export default function serverSideOnly(moduleObject) {
 }
 
 export async function getReferences(
-  referenceIds: string[],
+  referenceIds: string[] | undefined | null,
   table: FirebaseTablesEnum,
 ): Promise<DocumentReference[]> {
   const references = [];
+
+  // Safety check: ensure referenceIds is a valid array
+  if (!referenceIds || !Array.isArray(referenceIds)) {
+    console.warn(
+      "getReferences called with invalid referenceIds:",
+      referenceIds,
+    );
+    return references;
+  }
+
   for (const referenceId of referenceIds) {
-    const reference = doc(db, table, referenceId);
-    references.push(reference);
+    if (referenceId && typeof referenceId === "string") {
+      const reference = doc(db, table, referenceId);
+      references.push(reference);
+    } else {
+      console.warn("Invalid referenceId:", referenceId);
+    }
   }
   return references;
 }

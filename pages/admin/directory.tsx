@@ -19,7 +19,10 @@ import {
 } from "@/components/ui/dialog";
 
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DocumentData, MemberPublic } from "@/lib/firebase-helpers/interfaces";
+import {
+  FirestoreDocumentData,
+  MemberPublic,
+} from "@/lib/firebase-helpers/interfaces";
 import { StatusEnum, YearsOfExperienceEnum } from "@/lib/enums";
 import { useIsAdmin } from "@/lib/hooks";
 import { getAuth, User } from "firebase/auth";
@@ -48,8 +51,8 @@ export default function DirectoryPage(props) {
   const { pageTitle } = props;
   const auth = getAuth();
   const [members, setMembers] = useState<MemberPublic[]>([]);
-  const [regions, setRegions] = useState<DocumentData[]>([]);
-  const [experience, setExperience] = useState<DocumentData[]>([]);
+  const [regions, setRegions] = useState<FirestoreDocumentData[]>([]);
+  const [experience, setExperience] = useState<FirestoreDocumentData[]>([]);
   const [user, loading] = useAuthState(auth);
   const [isAdmin, isAdminLoading] = useIsAdmin(user, loading);
   const router = useRouter();
@@ -71,15 +74,30 @@ export default function DirectoryPage(props) {
     if (data) {
       setMembers(data.members);
       setRegions(
-        data.regions?.sort((a, b) =>
-          a.fields.name.localeCompare(b.fields.name),
-        ),
+        (data.regions || [])
+          .filter((item) => item && item.fields && item.fields.name) // Filter out invalid items
+          .sort((a, b) => {
+            const aName = a.fields.name;
+            const bName = b.fields.name;
+            return aName.localeCompare(bName);
+          }),
       );
       setExperience(
-        data.experience?.sort(
-          (a, b) =>
-            experienceOrder.indexOf(a.name) - experienceOrder.indexOf(b.name),
-        ), // sort experience filter explicitly
+        (data.experience || [])
+          .filter((item) => item && item.fields && item.fields.name) // Filter out invalid items
+          .sort((a, b) => {
+            const aName = a.fields.name;
+            const bName = b.fields.name;
+            const aIndex = experienceOrder.indexOf(aName);
+            const bIndex = experienceOrder.indexOf(bName);
+
+            // Handle cases where names are not found in the order array
+            if (aIndex === -1 && bIndex === -1) return 0;
+            if (aIndex === -1) return 1; // Put undefined names at the end
+            if (bIndex === -1) return -1; // Put undefined names at the end
+
+            return aIndex - bIndex;
+          }), // sort experience filter explicitly
       );
     }
   }, [user, experienceOrder]);
@@ -129,8 +147,8 @@ export default function DirectoryPage(props) {
 
 interface MemberDirectoryProps {
   members?: MemberPublic[];
-  regions?: DocumentData[];
-  experience?: DocumentData[];
+  regions?: FirestoreDocumentData[];
+  experience?: FirestoreDocumentData[];
   user?: User;
 }
 
@@ -268,8 +286,8 @@ const Directory: MemberDirectoryType = ({
 
 interface CardProps {
   member: MemberPublic;
-  regions?: DocumentData[];
-  experience?: DocumentData[];
+  regions?: FirestoreDocumentData[];
+  experience?: FirestoreDocumentData[];
   user?: User;
 }
 

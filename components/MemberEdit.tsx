@@ -229,11 +229,15 @@ export const MemberEdit: FC<{
     }
 
     if (!adminView) {
-      router.push({
-        pathname: router.pathname,
-        query: { memberId: member.id, updated: "success" },
-      });
-      router.reload();
+      // Update the URL without navigation to avoid the "same URL" error
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: { memberId: member.id, updated: "success" },
+        },
+        undefined,
+        { shallow: true },
+      );
     }
     setSaveInProgress(false);
     setShowSuccess(true);

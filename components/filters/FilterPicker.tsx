@@ -65,7 +65,7 @@ export default function FilterPicker({
       <div className="relative mt-16 grid w-full">
         <ul className="relative mb-4 flex min-h-[44px] flex-wrap items-center gap-2 px-4 lg:px-8">
           <LayoutGroup>
-            {activeFilters.map((focus) => (
+            {(activeFilters || []).map((focus) => (
               <motion.li
                 key={`focus-filter-${focus.id}`}
                 layout
@@ -73,7 +73,7 @@ export default function FilterPicker({
                 animate={{ opacity: 1, y: 0 }}
               >
                 <BigPill onClick={() => onFilterClick(focus.id)}>
-                  {focus.name}
+                  {focus.name || "Unnamed Filter"}
                 </BigPill>
               </motion.li>
             ))}
@@ -132,17 +132,29 @@ export default function FilterPicker({
         </div>
 
         <ul className="flex flex-wrap gap-2 px-4 lg:px-8">
-          {filtersList
-            .sort((a, b) =>
-              experienceActive
-                ? experienceOrder.indexOf(a.name) -
-                  experienceOrder.indexOf(b.name)
-                : b.count - a.count,
-            ) // sort experience filter explicitly, otherwise sort by count
+          {(filtersList || [])
+            .filter((item) => item && item.id) // Filter out invalid items
+            .sort((a, b) => {
+              if (experienceActive) {
+                const aName = a?.name || "";
+                const bName = b?.name || "";
+                const aIndex = experienceOrder.indexOf(aName);
+                const bIndex = experienceOrder.indexOf(bName);
+
+                // Handle cases where names are not found in the order array
+                if (aIndex === -1 && bIndex === -1) return 0;
+                if (aIndex === -1) return 1; // Put undefined names at the end
+                if (bIndex === -1) return -1; // Put undefined names at the end
+
+                return aIndex - bIndex;
+              } else {
+                return (b.count || 0) - (a.count || 0);
+              }
+            }) // sort experience filter explicitly, otherwise sort by count
             .map((filter) => (
               <li key={`focus-filter-${filter.id}`}>
                 <Selectable
-                  headline={filter.name}
+                  headline={filter.name || "Unnamed Filter"}
                   onClick={() => onFilterClick(filter.id)}
                   // TODO: fix inaccurate count
                   //       - thinking it has something to do with non-approved

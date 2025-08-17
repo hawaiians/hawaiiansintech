@@ -132,17 +132,23 @@ export async function addMemberToReferences(
 
 export const updateFilterReferences = async (
   id: string,
-  oldReferenceIds: string[],
-  newReferenceIds: string[],
+  oldReferenceIds: string[] | undefined | null,
+  newReferenceIds: string[] | undefined | null,
   filterName: string,
   currentUser: string,
   updateFilters: boolean,
 ): Promise<[DocumentReference[], DocumentReference[]]> => {
+  // Safety checks
+  if (!fieldNameToTable[filterName]) {
+    console.warn(`Unknown filter name: ${filterName}`);
+    return [[], []];
+  }
+
   const newReferences: DocumentReference[] = await getReferences(
     newReferenceIds,
     fieldNameToTable[filterName],
   );
-  const oldReferences = await getReferences(
+  const oldReferences: DocumentReference[] = await getReferences(
     oldReferenceIds,
     fieldNameToTable[filterName],
   );
