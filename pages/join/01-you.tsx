@@ -5,9 +5,8 @@ import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
 import Plausible from "@/components/Plausible";
 import { useStorage } from "@/lib/hooks";
-import { clearAllStoredFields } from "@/lib/utils";
+import { useClearAllStoredFields } from "@/lib/utils";
 import Head from "next/head";
-import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
@@ -21,8 +20,9 @@ export async function getStaticProps() {
 
 export default function JoinStep1({ pageTitle }) {
   const router = useRouter();
-  const { r, edit } = router.query;
+  const { r } = router.query;
   const { getItem, setItem } = useStorage();
+  const clearAllStoredFields = useClearAllStoredFields();
   const [name, setName] = useState<string>("");
   const [location, setLocation] = useState<string>("");
   const [website, setWebsite] = useState<string>("");
@@ -47,10 +47,6 @@ export default function JoinStep1({ pageTitle }) {
     if (storedLocation) setLocation(storedLocation);
     if (storedWebsite) setWebsite(storedWebsite);
   }, []);
-
-  const handleToggle = () => {
-    router.push({ pathname: `/edit` });
-  };
 
   const handleSubmit = (values) => {
     setItem("jfName", values.name);

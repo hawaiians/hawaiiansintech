@@ -75,7 +75,7 @@ export default function MemberDirectory({
         isLoadingFilteredMembers && "opacity-50",
       )}
     >
-      {members.map((member, i) => {
+      {members.map((member) => {
         const isSelected =
           member.focus
             .concat(member.industry)

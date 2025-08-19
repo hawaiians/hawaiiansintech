@@ -34,16 +34,16 @@ In your browser, open `localhost:3000`.
 
 ### Code Quality
 
-This project includes linting and type checking to catch errors before runtime:
+This project includes linting that integrates ESLint, TypeScript, and Prettier:
 
 ```bash
-# Lint your code
+# Lint your code (shows warnings but won't fail)
 pnpm run lint
 
-# Auto-fix linting issues
+# Auto-fix many linting issues
 pnpm run lint:fix
 
-# Type checking
+# Type checking (must pass for production)
 pnpm run type-check
 
 # Format code with Prettier

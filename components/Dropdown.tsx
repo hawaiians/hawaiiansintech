@@ -2,7 +2,7 @@ import React, { useState, ReactElement } from "react";
 import theme from "styles/theme";
 
 interface DropdownProps {
-  links: Object;
+  links: Record<string, string>;
   button: ReactElement;
 }
 
@@ -22,7 +22,7 @@ export default function Dropdown({ links, button }: DropdownProps) {
               const twitter = links[key].includes("twitter");
               const instagram = links[key].includes("instagram");
               return (
-                <div className="link-wrapper">
+                <div key={key} className="link-wrapper">
                   <a href={links[key]}>
                     <li>
                       {twitter ? <img src="images/twitter.png" /> : null}

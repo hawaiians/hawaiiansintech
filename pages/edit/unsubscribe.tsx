@@ -28,7 +28,7 @@ function Unsubscribe() {
   const router = useRouter();
   const { uid, unsubKey } = router.query;
   const [loading, setLoading] = useState<boolean>(true);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<string | null>(null);
   useEffect(() => {
     if (uid && unsubKey) {
       fetch("/api/unsubscribe", {

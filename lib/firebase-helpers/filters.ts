@@ -1,5 +1,4 @@
 import {
-  DocumentData,
   DocumentReference,
   addDoc,
   arrayRemove,
@@ -23,7 +22,12 @@ import {
 import { deleteReferences, getMemberRef } from "./members";
 import { getReferences } from "./general";
 import { db } from "../firebase";
-import { Filter, FilterData, MemberPublic } from "./interfaces";
+import {
+  Filter,
+  FilterData,
+  MemberPublic,
+  FirestoreDocumentData,
+} from "./interfaces";
 
 const statusEnumValues = Object.values(StatusEnum);
 
@@ -128,17 +132,23 @@ export async function addMemberToReferences(
 
 export const updateFilterReferences = async (
   id: string,
-  oldReferenceIds: string[],
-  newReferenceIds: string[],
+  oldReferenceIds: string[] | undefined | null,
+  newReferenceIds: string[] | undefined | null,
   filterName: string,
   currentUser: string,
   updateFilters: boolean,
 ): Promise<[DocumentReference[], DocumentReference[]]> => {
+  // Safety checks
+  if (!fieldNameToTable[filterName]) {
+    console.warn(`Unknown filter name: ${filterName}`);
+    return [[], []];
+  }
+
   const newReferences: DocumentReference[] = await getReferences(
     newReferenceIds,
     fieldNameToTable[filterName],
   );
-  const oldReferences = await getReferences(
+  const oldReferences: DocumentReference[] = await getReferences(
     oldReferenceIds,
     fieldNameToTable[filterName],
   );
@@ -217,7 +227,7 @@ export const deleteMemberFromLabels = async (memberRef: DocumentReference) => {
 };
 
 export function filterLookup(
-  items: DocumentData[],
+  items: FirestoreDocumentData[],
   memberData?: DocumentReference[],
   returnFirstName: boolean = false,
 ): FilterData[] | string | null {
@@ -238,8 +248,10 @@ export function filterLookup(
                   ? item.fields["name"]
                   : null,
               id: typeof item.id === "string" ? item.id : null,
-              status: statusEnumValues.includes(item.fields["status"])
-                ? item.fields["status"]
+              status: statusEnumValues.includes(
+                item.fields["status"] as StatusEnum,
+              )
+                ? (item.fields["status"] as StatusEnum)
                 : null,
             };
           })[0] || null
@@ -253,7 +265,7 @@ export function filterLookup(
 export async function getFiltersBasic(
   members: MemberPublic[],
   filterType: FirebaseTablesEnum | "experience",
-  filterData?: DocumentData[],
+  filterData?: FirestoreDocumentData[],
 ): Promise<Filter[]> {
   const filterList = [];
   const filters =
@@ -297,10 +309,10 @@ export async function getFiltersBasic(
 
 function hasApprovedMembers(
   approvedMemberIds: string[],
-  memberList: DocumentData,
+  memberList: string[],
 ): boolean {
-  for (const member in memberList) {
-    if (approvedMemberIds.includes(memberList[member])) {
+  for (const member of memberList) {
+    if (approvedMemberIds.includes(member)) {
       return true;
     }
   }
@@ -313,7 +325,7 @@ export async function getFilters(
   filterType: FirebaseTablesEnum,
   limitByMembers?: boolean,
   approvedMemberIds?: string[],
-  filterData?: DocumentData[],
+  filterData?: FirestoreDocumentData[],
 ): Promise<Filter[]> {
   const filters = filterData || (await getFirebaseTable(filterType));
   return filters
@@ -324,12 +336,14 @@ export async function getFilters(
         (limitByMembers
           ? hasApprovedMembers(
               approvedMemberIds,
-              role.fields["members"].map((member) => member.id),
+              (role.fields["members"] as any[]).map((member) => member.id),
             )
           : true),
     )
     .map((role) => {
-      const member_ids = role.fields["members"].map((member) => member.id);
+      const member_ids = (role.fields["members"] as any[]).map(
+        (member) => member.id,
+      );
       return {
         name:
           typeof role.fields["name"] === "string" ? role.fields["name"] : null,

@@ -11,7 +11,7 @@ export function scrollToTop() {
 export function toKebab(string) {
   return string
     .split("")
-    .map((letter, index) => {
+    .map((letter) => {
       if (/[A-Z]/.test(letter)) {
         return ` ${letter.toLowerCase()}`;
       }
@@ -69,7 +69,7 @@ export function validateEmail(email: string): boolean {
   return emailRegex.test(email);
 }
 
-export function useEmailCloaker(initialValue: string): string {
+export function cloakEmail(initialValue: string): string {
   const email = parseOneAddress(initialValue);
   if (
     !validateEmail(initialValue) ||

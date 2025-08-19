@@ -2,7 +2,10 @@ import { Heading } from "@/components/Heading";
 import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
 import Plausible from "@/components/Plausible";
-import { DocumentData, MemberPublic } from "@/lib/firebase-helpers/interfaces";
+import {
+  FirestoreDocumentData,
+  MemberPublic,
+} from "@/lib/firebase-helpers/interfaces";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -45,8 +48,8 @@ function EditMember() {
   const router = useRouter();
   const memberId = router.query.memberId as string;
   const [member, setMember] = useState<MemberPublic>(null);
-  const [regions, setRegions] = useState<DocumentData[]>([]);
-  const [experience, setExperience] = useState<DocumentData[]>([]);
+  const [regions, setRegions] = useState<FirestoreDocumentData[]>([]);
+  const [experience, setExperience] = useState<FirestoreDocumentData[]>([]);
   const experienceOrder = Object.values(YearsOfExperienceEnum) as string[];
 
   const getUser = async () => {
@@ -61,6 +64,9 @@ function EditMember() {
         })
           .then((res) => res.json())
           .then((data) => {
+            if (!data || !data.members) {
+              throw new Error(`Invalid API response: ${JSON.stringify(data)}`);
+            }
             const member = data.members.find((m) => m.id === memberId);
             if (!member) {
               throw new Error(
@@ -68,14 +74,35 @@ function EditMember() {
               );
             }
             setMember(member);
-            setRegions(data.regions);
-            setExperience(
-              data.experience?.sort(
-                (a, b) =>
-                  experienceOrder.indexOf(a.name) -
-                  experienceOrder.indexOf(b.name),
-              ), // sort experience filter explicitly
-            );
+
+            setRegions(data.regions || []);
+            try {
+              setExperience(
+                (data.experience || [])
+                  .filter((item) => {
+                    const isValid = item && item.fields && item.fields.name;
+                    return isValid;
+                  })
+                  .sort((a, b) => {
+                    const aName = a.fields.name;
+                    const bName = b.fields.name;
+                    const aIndex = experienceOrder.indexOf(aName);
+                    const bIndex = experienceOrder.indexOf(bName);
+
+                    // Handle cases where names are not found in the order array
+                    if (aIndex === -1 && bIndex === -1) return 0;
+                    if (aIndex === -1) return 1; // Put undefined names at the end
+                    if (bIndex === -1) return -1; // Put undefined names at the end
+
+                    return aIndex - bIndex;
+                  }), // sort experience filter explicitly
+              );
+            } catch (error) {
+              console.error("Error sorting experience:", error);
+              console.error("Error stack:", error.stack);
+              // Fallback to unsorted array
+              setExperience(data.experience || []);
+            }
             setLoading(false);
           })
           .catch((err) => {

@@ -10,7 +10,7 @@ import {
 } from "firebase/firestore";
 import { FirebaseTablesEnum, StatusEnum } from "../enums";
 import { db } from "../firebase";
-import { DocumentData } from "./interfaces";
+import { FirestoreDocumentData } from "./interfaces";
 import { PickerFilter } from "@/components/filters/FilterPicker";
 
 export default function serverSideOnly(moduleObject) {
@@ -21,13 +21,27 @@ export default function serverSideOnly(moduleObject) {
 }
 
 export async function getReferences(
-  referenceIds: string[],
+  referenceIds: string[] | undefined | null,
   table: FirebaseTablesEnum,
 ): Promise<DocumentReference[]> {
   const references = [];
+
+  // Safety check: ensure referenceIds is a valid array
+  if (!referenceIds || !Array.isArray(referenceIds)) {
+    console.warn(
+      "getReferences called with invalid referenceIds:",
+      referenceIds,
+    );
+    return references;
+  }
+
   for (const referenceId of referenceIds) {
-    const reference = doc(db, table, referenceId);
-    references.push(reference);
+    if (referenceId && typeof referenceId === "string") {
+      const reference = doc(db, table, referenceId);
+      references.push(reference);
+    } else {
+      console.warn("Invalid referenceId:", referenceId);
+    }
   }
   return references;
 }
@@ -47,7 +61,7 @@ export async function deleteDocument(docRef: DocumentReference) {
 export async function getFirebaseTable(
   table: FirebaseTablesEnum,
   approved: boolean = false,
-): Promise<DocumentData[]> {
+): Promise<FirestoreDocumentData[]> {
   const documentsCollection = collection(db, table);
   let q = query(documentsCollection);
   if (approved === true) {

@@ -14,10 +14,10 @@ interface InputProps {
   labelTagged?: string;
   labelTranslation?: string;
   name: string;
-  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => any;
-  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => any;
-  onKeyPress?: (e: React.KeyboardEvent<HTMLInputElement>) => any;
-  onFocus?: (e: React.FocusEvent<HTMLInputElement>) => any;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onKeyPress?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  onFocus?: (e: React.FocusEvent<HTMLInputElement>) => void;
   placeholder?: string;
   value?: string;
   tabIndex?: number;

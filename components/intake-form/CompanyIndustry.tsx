@@ -47,7 +47,7 @@ export default function CompanyIndustry({
   const [deferIndustry, setDeferIndustry] = useState<"true">();
   const [companySize, setCompanySize] = useState<string>(initial.companySize);
   const [showSuggestButton, setShowSuggestButton] = useState(true);
-  const [error, setError] = useState<ErrorMessageProps>(null);
+  const [error] = useState<ErrorMessageProps | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [columnCount, setColumnCount] = useState<2 | 3>(3);
 
@@ -154,7 +154,7 @@ export default function CompanyIndustry({
                   headline={industry.name}
                   disabled={isDisabled || deferIndustry === "true"}
                   selected={isSelected && !deferIndustry}
-                  onClick={(e) => handleSelect(industry.id)}
+                  onClick={() => handleSelect(industry.id)}
                   key={`ind-${i}`}
                 />
               );

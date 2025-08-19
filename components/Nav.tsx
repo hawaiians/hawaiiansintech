@@ -17,7 +17,7 @@ import { useRouter } from "next/router";
 import { MobileNav } from "@/components/MobileNav";
 import navigationData from "@/public/navigation.json";
 import { ArrowUpRight } from "lucide-react";
-import { Icon, IconAsset, IconColor } from "./icon/icon";
+import { Icon, IconAsset } from "./icon/icon";
 
 interface NavProps {
   backLinkTo?: string;
@@ -25,7 +25,7 @@ interface NavProps {
   variant?: "primary" | "minimized";
 }
 
-interface NavigationItem {
+export interface NavigationItem {
   title: string;
   href: string;
   description?: string;
@@ -35,7 +35,7 @@ interface NavigationItem {
   variant?: string;
 }
 
-interface NavigationSection {
+export interface NavigationSection {
   label: string;
   variant?: string;
   layout?: string;

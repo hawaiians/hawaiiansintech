@@ -1,9 +1,10 @@
 import Link from "next/link";
+import React from "react";
 
 interface UndoButtonProps {
   children: React.ReactNode;
   linkTo?: string;
-  onClick?: (e: React.MouseEvent) => any;
+  onClick?: (e: React.MouseEvent) => void;
   type?: "button" | "submit" | "reset";
 }
 

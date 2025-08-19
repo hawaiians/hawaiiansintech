@@ -15,7 +15,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { NavAppearance, NavigationData, generateNavUrl } from "./Nav";
+import {
+  NavAppearance,
+  NavigationData,
+  NavigationSection,
+  NavigationItem,
+  generateNavUrl,
+} from "./Nav";
 
 interface MobileNavProps {
   navigation: NavigationData;
@@ -71,22 +77,24 @@ export function MobileNav({ navigation }: MobileNavProps) {
               transition={{ duration: 0.1 }}
               className="flex flex-col gap-1"
             >
-              {navigation?.items?.map((section: any, i: number) => (
-                <button
-                  key={`section-${i}`}
-                  onClick={() => setActiveSection(i)}
-                  className={cn(
-                    "flex items-center rounded-lg px-4 py-3 text-left hover:bg-muted/20",
-                    section.variant === "accent" &&
-                      "bg-gradient-to-br from-brown-600/5 to-brown-600/10 text-brown-600",
-                  )}
-                >
-                  <span className="grow text-sm font-medium">
-                    {section.label}
-                  </span>
-                  <ChevronRight className="size-4" />
-                </button>
-              ))}
+              {navigation?.items?.map(
+                (section: NavigationSection, i: number) => (
+                  <button
+                    key={`section-${i}`}
+                    onClick={() => setActiveSection(i)}
+                    className={cn(
+                      "flex items-center rounded-lg px-4 py-3 text-left hover:bg-muted/20",
+                      section.variant === "accent" &&
+                        "bg-gradient-to-br from-brown-600/5 to-brown-600/10 text-brown-600",
+                    )}
+                  >
+                    <span className="grow text-sm font-medium">
+                      {section.label}
+                    </span>
+                    <ChevronRight className="size-4" />
+                  </button>
+                ),
+              )}
             </motion.div>
           ) : (
             <motion.div
@@ -106,7 +114,7 @@ export function MobileNav({ navigation }: MobileNavProps) {
               </button>
 
               {navigation?.items[activeSection]?.items.map(
-                (item: any, j: number) => (
+                (item: NavigationItem, j: number) => (
                   <Link
                     key={`item-${activeSection}-${j}`}
                     href={

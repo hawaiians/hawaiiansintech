@@ -3,7 +3,6 @@ import { HashAnchorTarget } from "@/components/HashAnchorTarget";
 import { Heading } from "@/components/Heading";
 import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
-import Pill from "@/components/Pill";
 import Plausible from "@/components/Plausible";
 import Head from "next/head";
 import Link from "next/link";
@@ -123,15 +122,15 @@ export default function PrivacyPolicy({ pageTitle }) {
               </ul>
               <p>
                 When joining our community, we invite you to reflect on your{" "}
-                mo'okūauhau (genealogy) and your personal connection to Hawaiian
-                heritage. This connection might be expressed through family
-                histories, cultural practices, and/or your relationship with
-                Hawaiian lands and communities.
+                mo&lsquo;okūauhau (genealogy) and your personal connection to
+                Hawaiian heritage. This connection might be expressed through
+                family histories, cultural practices, and/or your relationship
+                with Hawaiian lands and communities.
               </p>
               <p>
                 <strong>
-                  We will not question or validate anyone's claim to Native
-                  Hawaiian identity.
+                  We will not question or validate anyone&rsquo;s claim to
+                  Native Hawaiian identity.
                 </strong>{" "}
                 We recognize the complexity and sensitivity of indigeneity and
                 trust in the sincerity of our community members.
@@ -150,7 +149,7 @@ export default function PrivacyPolicy({ pageTitle }) {
                 Members are expected to maintain respectful and professional
                 behavior in all community interactions. We encourage members to
                 participate in community functions and keep their profiles
-                up-to-date. If you can't access your account or need help,{" "}
+                up-to-date. If you can&rsquo;t access your account or need help,{" "}
                 <Link href={"#contact-us"}>contact us</Link>.
               </p>
               <p>

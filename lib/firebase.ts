@@ -30,7 +30,7 @@ export const signInWithGoogle = () => {
       );
       location.reload();
     })
-    .catch((error) => {});
+    .catch(() => {});
 };
 export const signOutWithGoogle = () => {
   auth.signOut();

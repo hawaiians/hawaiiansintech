@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
 import LoadingSpinner from "./LoadingSpinner";
+import React from "react";
 
 export enum ButtonVariant {
   Primary = "primary",
@@ -20,7 +21,7 @@ interface ButtonProps {
   disabled?: boolean;
   fullWidth?: boolean;
   loading?: boolean;
-  onClick?: (e: React.MouseEvent) => any;
+  onClick?: (e: React.MouseEvent) => void;
   size?: ButtonSize;
   variant?: ButtonVariant;
   type?: "button" | "submit" | "reset";

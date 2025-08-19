@@ -43,9 +43,12 @@ export interface RegionPublic {
   count?: number;
 }
 
-export interface DocumentData {
+export interface ApiDocumentData {
   id: string;
-  fields: any;
+  fields: Record<
+    string,
+    string | string[] | StatusEnum | { id: string }[] | null | undefined
+  >;
 }
 
 export interface FilterData {
@@ -56,7 +59,7 @@ export interface FilterData {
 
 export async function getFirebaseTable(
   table: FirebaseTablesEnum,
-): Promise<DocumentData[]> {
+): Promise<ApiDocumentData[]> {
   const documentsCollection = collection(db, table);
   const documentsSnapshot = await getDocs(documentsCollection);
   const documentsData = documentsSnapshot.docs.map((doc) => ({
@@ -66,34 +69,45 @@ export async function getFirebaseTable(
   return documentsData;
 }
 
-export async function getFirebaseData(
+export async function getFirebaseData<T>(
   table: FirebaseTablesEnum,
-  converter: FirestoreDataConverter<any>,
-): Promise<any[]> {
+  converter: FirestoreDataConverter<T>,
+): Promise<T[]> {
   const documentsCollection = collection(db, table).withConverter(converter);
   const documentsSnapshot = await getDocs(documentsCollection);
   return documentsSnapshot.docs.map((doc) => doc.data());
 }
 
 export function regionLookup(
-  regions: DocumentData[],
+  regions: ApiDocumentData[],
   memberRegionData: DocumentReference[],
-): FilterData {
-  return (
-    regions.find((region) => {
-      if (
-        memberRegionData &&
-        Array.isArray(memberRegionData) &&
-        memberRegionData.length !== 0
-      ) {
-        return region.id === memberRegionData[0].id;
-      }
-    })?.fields.name || null
-  );
+): FilterData | null {
+  const region = regions.find((region) => {
+    if (
+      memberRegionData &&
+      Array.isArray(memberRegionData) &&
+      memberRegionData.length !== 0
+    ) {
+      return region.id === memberRegionData[0].id;
+    }
+  });
+
+  if (!region) return null;
+
+  return {
+    id: region.id,
+    name:
+      typeof region.fields["name"] === "string" ? region.fields["name"] : "",
+    status:
+      typeof region.fields["status"] === "string" &&
+      statusEnumValues.includes(region.fields["status"] as StatusEnum)
+        ? (region.fields["status"] as StatusEnum)
+        : undefined,
+  };
 }
 
 export function focusLookup(
-  focuses: DocumentData[],
+  focuses: ApiDocumentData[],
   memberFocusData?: DocumentReference[],
 ): FilterData[] {
   if (
@@ -112,9 +126,11 @@ export function focusLookup(
                   ? foc.fields["name"]
                   : null,
               id: typeof foc.id === "string" ? foc.id : null,
-              status: typeof statusEnumValues.includes(foc.fields["status"])
-                ? foc.fields["status"]
-                : null,
+              status:
+                typeof foc.fields["status"] === "string" &&
+                statusEnumValues.includes(foc.fields["status"] as StatusEnum)
+                  ? (foc.fields["status"] as StatusEnum)
+                  : null,
             };
           })[0] || null
       );
@@ -124,7 +140,7 @@ export function focusLookup(
 }
 
 export function industryLookup(
-  industries: DocumentData[],
+  industries: ApiDocumentData[],
   memberIndustryData: DocumentReference[],
 ): FilterData[] {
   if (
@@ -143,9 +159,11 @@ export function industryLookup(
                   ? ind.fields["name"]
                   : null,
               id: typeof ind.id === "string" ? ind.id : null,
-              status: typeof statusEnumValues.includes(ind.fields["status"])
-                ? ind.fields["status"]
-                : null,
+              status:
+                typeof ind.fields["status"] === "string" &&
+                statusEnumValues.includes(ind.fields["status"] as StatusEnum)
+                  ? (ind.fields["status"] as StatusEnum)
+                  : null,
             };
           })[0] || null
       );
@@ -164,17 +182,25 @@ export interface MemberEmail {
   unsubKey?: string;
 }
 
-function hasApprovedMembers(
-  approvedMemberIds: string[],
-  memberList: DocumentData,
-): boolean {
-  for (const member in memberList) {
-    if (approvedMemberIds.includes(memberList[member])) {
-      return true;
-    }
-  }
-  return false;
-}
+const extractMemberIds = (
+  members: string | string[] | { id: string }[] | null | undefined,
+): string[] => {
+  if (!Array.isArray(members)) return [];
+  return members
+    .map((member) => {
+      if (typeof member === "string") {
+        return member;
+      } else if (
+        typeof member === "object" &&
+        member !== null &&
+        "id" in member
+      ) {
+        return member.id;
+      }
+      return "";
+    })
+    .filter((id) => id !== "");
+};
 
 export interface Filter {
   name: string;
@@ -189,7 +215,7 @@ export async function getFilters(
   filterType: FirebaseTablesEnum,
   limitByMembers?: boolean,
   approvedMemberIds?: string[],
-  filterData?: DocumentData[],
+  filterData?: ApiDocumentData[],
 ): Promise<Filter[]> {
   const filters = filterData || (await getFirebaseTable(filterType));
   return filters
@@ -198,23 +224,27 @@ export async function getFilters(
         role.fields["name"] &&
         role.fields.status === "approved" &&
         (limitByMembers
-          ? hasApprovedMembers(
-              approvedMemberIds,
-              role.fields["members"].map((member) => member.id),
-            )
+          ? (() => {
+              const members = role.fields["members"];
+              const memberIds = extractMemberIds(members);
+              return memberIds.some((memberId) =>
+                approvedMemberIds.includes(memberId),
+              );
+            })()
           : true),
     )
     .map((role) => {
-      const member_ids = role.fields["members"].map((member) => member.id);
+      const members = role.fields["members"];
+      const member_ids = extractMemberIds(members);
       return {
         name:
           typeof role.fields["name"] === "string" ? role.fields["name"] : null,
         id: typeof role.id === "string" ? role.id : null,
         filterType: filterType,
-        members: Array.isArray(role.fields["members"]) ? member_ids : null,
-        count: Array.isArray(role.fields["members"]) ? member_ids.length : 0,
+        members: member_ids.length > 0 ? member_ids : null,
+        count: member_ids.length,
         hasApprovedMembers: limitByMembers
-          ? hasApprovedMembers(approvedMemberIds, member_ids)
+          ? member_ids.some((memberId) => approvedMemberIds.includes(memberId))
           : true,
       };
     })
@@ -235,7 +265,7 @@ export function getExperienceData(): FilterData[] {
 export async function getFiltersBasic(
   members: MemberPublic[],
   filterType: FirebaseTablesEnum | "experience",
-  filterData?: DocumentData[],
+  filterData?: ApiDocumentData[],
 ): Promise<Filter[]> {
   const filterList = [];
   const filters =

@@ -46,7 +46,7 @@ async function updateEmailById(
   uid: string,
   email: string,
   currentUser: string,
-): Promise<FirebaseFirestore.WriteResult> {
+): Promise<admin.firestore.WriteResult> {
   await initializeAdmin();
   const docRef = admin
     .firestore()

@@ -1,5 +1,9 @@
-import { Filter, MemberPublic } from "./interfaces";
-import { CompanySizeEnum, YearsOfExperienceEnum, StatusEnum } from "../enums";
+import { Filter, MemberPublic, FirestoreDocumentData } from "./interfaces";
+import {
+  CompanySizeEnum,
+  YearsOfExperienceEnum,
+  FirebaseTablesEnum,
+} from "../enums";
 export type { MemberPublic };
 
 /**
@@ -423,9 +427,14 @@ export function mockGetMembers(
  * @returns Generated filter data
  */
 export function getFilters(
-  filterType: string,
-  limitByMembers?: boolean,
-  approvedMemberIds?: string[],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _filterType: FirebaseTablesEnum,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _limitByMembers?: boolean,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _approvedMemberIds?: string[],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _filterData?: FirestoreDocumentData[],
 ): Filter[] {
   // Generate mock members to calculate filter counts
   const mockMembers = mockGetMembers(50);

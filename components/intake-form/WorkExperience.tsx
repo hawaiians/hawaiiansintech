@@ -149,7 +149,7 @@ export default function WorkExperience({
                   headline={focus.name}
                   disabled={isDisabled}
                   selected={isSelected}
-                  onClick={(e) => handleSelect(focus.id)}
+                  onClick={() => handleSelect(focus.id)}
                   key={`Selectable-${i}-`}
                 />
               );
@@ -224,8 +224,8 @@ export default function WorkExperience({
             }
           />
           <div className="mx-auto mb-8 flex flex-wrap">
-            {Object.values(YearsOfExperienceEnum).map((dur) => (
-              <div className="mb-2 mr-2">
+            {Object.values(YearsOfExperienceEnum).map((dur, idx) => (
+              <div key={`${dur}-${idx}`} className="mb-2 mr-2">
                 <RadioBox
                   seriesOf="years-experience"
                   checked={dur === yearsExperience}

@@ -163,6 +163,7 @@ export default function ThankYou({ pageTitle, focuses, industries, members }) {
                                   )
                                   .map((member) => (
                                     <Link
+                                      key={member.id}
                                       href={member.link}
                                       className={cn(
                                         "flex items-center p-1 text-xs text-foreground",
@@ -276,7 +277,7 @@ export default function ThankYou({ pageTitle, focuses, industries, members }) {
           </section>
           <p className="text-sm tracking-wide text-secondary-foreground">
             You should have received a confirmation email from us. If you
-            didn't, you may need to add{" "}
+            didn&rsquo;t, you may need to add{" "}
             <Code noWrap>no-reply@hawaiiansintech.org</Code> to your address
             book.
           </p>

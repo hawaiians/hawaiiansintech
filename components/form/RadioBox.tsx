@@ -1,5 +1,6 @@
 import { toKebab } from "../../helpers";
 import { cn } from "@/lib/utils";
+import React from "react";
 
 interface RadioBoxProps {
   checked?: boolean;
@@ -58,6 +59,7 @@ export default function RadioBox(props: RadioBoxProps) {
           `,
           props.checked &&
             `
+            sm:before:border-6
             border-brown-700/50
             bg-brown-600
             text-white
@@ -66,7 +68,6 @@ export default function RadioBox(props: RadioBoxProps) {
             before:bg-white
             hover:border-brown-700
             hover:before:border-brown-800
-            sm:before:border-6
             `,
           // props.fullHeight && "h-full"
         )}

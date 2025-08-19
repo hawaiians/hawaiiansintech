@@ -1,8 +1,9 @@
 import { cn } from "@/lib/utils";
+import React from "react";
 
 interface BigPillProps {
   children?: React.ReactNode;
-  onClick?: () => {};
+  onClick?: () => void;
 }
 
 export default function BigPill({ children, onClick }: BigPillProps) {
