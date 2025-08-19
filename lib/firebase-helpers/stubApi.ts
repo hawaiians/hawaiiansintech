@@ -1,9 +1,5 @@
-import { Filter, MemberPublic, FirestoreDocumentData } from "./interfaces";
-import {
-  CompanySizeEnum,
-  YearsOfExperienceEnum,
-  FirebaseTablesEnum,
-} from "../enums";
+import { Filter, MemberPublic } from "./interfaces";
+import { CompanySizeEnum, YearsOfExperienceEnum, StatusEnum } from "../enums";
 export type { MemberPublic };
 
 /**
@@ -17,268 +13,13 @@ export type { MemberPublic };
  * @returns Generated mock member data
  */
 
-// List of common first names in Hawaii
-const MOCK_FIRST_NAMES = [
-  "Kai",
-  "Leilani",
-  "Keoni",
-  "Mahina",
-  "Koa",
-  "Noelani",
-  "Kaleo",
-  "Liko",
-  "Keala",
-  "Anela",
-  "Ikaika",
-  "Kailani",
-  "Malie",
-  "Pono",
-  "Kawika",
-  "Kalani",
-  "Maile",
-  "Joshua",
-  "Michael",
-  "Christopher",
-  "Justin",
-  "Matthew",
-  "Jordan",
-  "Ryan",
-  "Brandon",
-  "James",
-  "Daniel",
-  "Andrew",
-  "Kyle",
-  "Nicholas",
-  "Joseph",
-  "John",
-  "Jonathan",
-  "Robert",
-  "David",
-  "Kevin",
-  "Anthony",
-  "Sean",
-  "Zachary",
-  "Ashley",
-  "Jessica",
-  "Nicole",
-  "Brittany",
-  "Jennifer",
-  "Sarah",
-  "Amanda",
-  "Michelle",
-  "Chelsea",
-  "Lauren",
-  "Samantha",
-  "Jasmine",
-  "Amber",
-  "Tiffany",
-  "Rachel",
-  "Alyssa",
-  "Megan",
-  "Elizabeth",
-  "Kayla",
-  "Kimberly",
-  "Courtney",
-  "Melissa",
-];
-
-// List of common last names in Hawaii
-const MOCK_LAST_NAMES = [
-  "Nakamura",
-  "Yamamoto",
-  "Tanaka",
-  "Watanabe",
-  "Sato",
-  "Kaneshiro",
-  "Matsumoto",
-  "Yamada",
-  "Kimura",
-  "Takahashi",
-  "Suzuki",
-  "Yoshida",
-  "Inouye",
-  "Kobayashi",
-  "Sakamoto",
-  "Nakamoto",
-  "Saito",
-  "Miyamoto",
-  "Hashimoto",
-  "Ikeda",
-  "Sasaki",
-  "Hayashi",
-  "Nakagawa",
-  "Pascua",
-  "Corpuz",
-  "Santos",
-  "Reyes",
-  "Cruz",
-  "Ramos",
-  "Medeiros",
-  "Souza",
-  "Silva",
-  "Freitas",
-  "Rodrigues",
-  "Gomes",
-  "Carvalho",
-  "Lee",
-  "Wong",
-  "Kim",
-  "Young",
-  "Chang",
-  "Chun",
-  "Ching",
-  "Lau",
-  "Higa",
-  "Lum",
-  "Oshiro",
-  "Ho",
-  "Chong",
-  "Domingo",
-  "Leong",
-  "Chung",
-  "Pang",
-  "Miyashiro",
-  "Fujimoto",
-  "Chan",
-  "Arakaki",
-  "Murakami",
-  "Yee",
-  "Kam",
-  "Tom",
-  "Nishimura",
-  "Shimabukuro",
-  "Au",
-  "Fong",
-  "Yuen",
-  "Chen",
-  "Lam",
-];
-
-const MOCK_LOCATIONS = [
-  "Honolulu",
-  "Hilo",
-  "Kailua-Kona",
-  "Kahului",
-  "Lihue",
-  "Pearl City",
-  "Kailua",
-  "Kaneohe",
-  "Waipahu",
-  "Mililani",
-  "Aiea",
-  "Kihei",
-  "San Francisco Bay Area",
-  "Los Angeles",
-  "Seattle",
-  "Portland",
-  "Austin",
-  "Denver",
-  "Chicago",
-  "New York",
-  "Boston",
-  "Atlanta",
-  "Miami",
-  "Phoenix",
-  "Las Vegas",
-  "San Diego",
-  "Sacramento",
-  "Washington DC",
-];
-
-const MOCK_REGIONS = [
-  "California",
-  "Hawai‛i",
-  "Washington",
-  "Texas",
-  "Oregon",
-  "New York",
-  "Nevada",
-  "Utah",
-  "Arizona",
-  "Florida",
-  "Colorado",
-  "Virginia",
-  "Japan",
-  "Michigan",
-  "Massachusetts",
-  "Australia",
-  "Delaware",
-  "Minnesota",
-  "Idaho",
-  "Maryland",
-  "Oklahoma",
-  "United Kingdom",
-  "Illinois",
-  "New Jersey",
-  "Georgia",
-  "Arkansas",
-  "Aotearoa",
-];
-
-const MOCK_TITLES = [
-  "Software Engineer",
-  "Senior Software Engineer",
-  "Staff Software Engineer",
-  "Principal Software Engineer",
-  "Engineering Manager",
-  "Senior Engineering Manager",
-  "Product Manager",
-  "Senior Product Manager",
-  "Product Designer",
-  "UX Designer",
-  "UI Designer",
-  "UX/UI Designer",
-  "Senior UX Designer",
-  "Principal Designer",
-  "Data Scientist",
-  "Senior Data Scientist",
-  "Machine Learning Engineer",
-  "DevOps Engineer",
-  "Site Reliability Engineer",
-  "Full Stack Developer",
-  "Frontend Developer",
-  "Backend Developer",
-  "Mobile Developer",
-  "iOS Developer",
-  "Android Developer",
-  "QA Engineer",
-  "Software Engineer in Test",
-  "Security Engineer",
-  "Cloud Architect",
-  "Technical Lead",
-  "CTO",
-  "VP Engineering",
-];
-
-const MOCK_FOCUSES = [
-  { name: "Engineering", id: "focus_engineering" },
-  { name: "Design", id: "focus_design" },
-  { name: "Product", id: "focus_product" },
-  { name: "Data Science", id: "focus_data_science" },
-  { name: "DevOps", id: "focus_devops" },
-  { name: "Security", id: "focus_security" },
-  { name: "Mobile", id: "focus_mobile" },
-  { name: "Frontend", id: "focus_frontend" },
-  { name: "Backend", id: "focus_backend" },
-  { name: "Machine Learning", id: "focus_ml" },
-  { name: "Cloud", id: "focus_cloud" },
-  { name: "QA/Testing", id: "focus_qa" },
-];
-
-const MOCK_INDUSTRIES = [
-  { name: "Internet / Technology", id: "industry_tech" },
-  { name: "Healthcare", id: "industry_healthcare" },
-  { name: "Financial Services", id: "industry_fintech" },
-  { name: "E-commerce", id: "industry_ecommerce" },
-  { name: "Education", id: "industry_education" },
-  { name: "Gaming", id: "industry_gaming" },
-  { name: "Media & Entertainment", id: "industry_media" },
-  { name: "Transportation", id: "industry_transport" },
-  { name: "Real Estate", id: "industry_realestate" },
-  { name: "Non-profit", id: "industry_nonprofit" },
-  { name: "Government", id: "industry_government" },
-  { name: "Consulting", id: "industry_consulting" },
-];
+import MOCK_FIRST_NAMES from "./mock-data/first-names.json";
+import MOCK_LAST_NAMES from "./mock-data/last-names.json";
+import MOCK_LOCATIONS from "./mock-data/locations.json";
+import MOCK_REGIONS from "./mock-data/regions.json";
+import MOCK_TITLES from "./mock-data/titles.json";
+import MOCK_FOCUSES from "./mock-data/focuses.json";
+import MOCK_INDUSTRIES from "./mock-data/industries.json";
 
 // Simple seeded random number generator for consistent results
 class SeededRandom {
@@ -338,9 +79,11 @@ export function mockGetMembers(
     const lastInitial = lastName.charAt(0).toLowerCase();
     const emailAbbr = `${firstInitial}...${lastInitial}@hawaiiansintech.org`;
 
-    // Generate LinkedIn URL
-    const linkedinHandle = `${firstName.toLowerCase()}${lastName.toLowerCase()}`;
-    const link = `https://linkedin.com/in/${linkedinHandle}`;
+    // Generate member ID for consistent linking
+    const memberId = `mock_member_${String(i + 1).padStart(3, "0")}`;
+
+    // Generate local mock profile URL instead of LinkedIn
+    const link = `/dev-mock-user/${memberId}`;
 
     // Select 1-3 focus areas
     const focusCount = rng.nextInt(1, 3);
@@ -366,7 +109,7 @@ export function mockGetMembers(
       location.includes("Aiea") ||
       location.includes("Kihei")
     ) {
-      region = rng.choice(["Hawaiʻi", "Oʻahu", "Maui", "Kauaʻi"]);
+      region = "Hawaiʻi";
     } else if (
       location.includes("California") ||
       location.includes("San Francisco") ||
@@ -380,7 +123,7 @@ export function mockGetMembers(
     }
 
     const member: MemberPublic = {
-      id: `mock_member_${String(i + 1).padStart(3, "0")}`,
+      id: memberId,
       name,
       location,
       region, // Keep the singular region for backward compatibility
@@ -427,14 +170,9 @@ export function mockGetMembers(
  * @returns Generated filter data
  */
 export function getFilters(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _filterType: FirebaseTablesEnum,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _limitByMembers?: boolean,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _approvedMemberIds?: string[],
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _filterData?: FirestoreDocumentData[],
+  filterType: string,
+  limitByMembers?: boolean,
+  approvedMemberIds?: string[],
 ): Filter[] {
   // Generate mock members to calculate filter counts
   const mockMembers = mockGetMembers(50);
@@ -500,7 +238,7 @@ export function getFilters(
       const uniqueRegions = Array.from(
         new Set(mockMembers.map((m) => m.region).filter(Boolean)),
       );
-      uniqueRegions.forEach((regionName, index) => {
+      uniqueRegions.forEach((regionName) => {
         const memberIds = mockMembers
           .filter((member) => member.region === regionName)
           .map((member) => member.id!)
@@ -523,7 +261,7 @@ export function getFilters(
       const uniqueExperience = Array.from(
         new Set(mockMembers.map((m) => m.yearsExperience).filter(Boolean)),
       );
-      uniqueExperience.forEach((experienceName, index) => {
+      uniqueExperience.forEach((experienceName) => {
         const memberIds = mockMembers
           .filter((member) => member.yearsExperience === experienceName)
           .map((member) => member.id!)
