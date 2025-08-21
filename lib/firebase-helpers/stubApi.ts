@@ -122,6 +122,8 @@ export function mockGetMembers(
       region = rng.choice(MOCK_REGIONS);
     }
 
+    const selectedExperience = rng.choice(yearsExperience);
+
     const member: MemberPublic = {
       id: memberId,
       name,
@@ -140,15 +142,14 @@ export function mockGetMembers(
       industry,
       experience: [
         {
-          name: rng.choice(yearsExperience),
-          id: `experience_${rng
-            .choice(yearsExperience)
+          name: selectedExperience,
+          id: `experience_${selectedExperience
             .toLowerCase()
             .replace(/[^a-z0-9]/g, "_")}`,
         },
       ],
       companySize: rng.choice(companySizes),
-      yearsExperience: rng.choice(yearsExperience),
+      yearsExperience: selectedExperience,
       status: StatusEnum.APPROVED,
       unsubscribed: false,
     };
