@@ -11,18 +11,17 @@ import { getMembers, getNumberOfMembers } from "@/lib/firebase-helpers/members";
 import { getFilters } from "@/lib/firebase-helpers/filters";
 import { filterLookup } from "@/lib/firebase-helpers/general";
 import { mockGetMembersWithFilters } from "@/lib/firebase-helpers/stubApi";
+import { ENV_CONFIG } from "@/lib/config/environment";
 
 export async function getStaticProps() {
-  const isDevMode = process.env.NODE_ENV === "development";
-
   const { members, focuses, industries, regions, experience, cursor } =
-    isDevMode
+    ENV_CONFIG.isDevelopment
       ? mockGetMembersWithFilters({ limit: 25, includeFilters: true })
       : await getMembers({ paginated: true });
 
   // In development mode, use the mock filter data directly
   // In production, call the real getFilters functions
-  const fetchedFocuses = isDevMode
+  const fetchedFocuses = ENV_CONFIG.isDevelopment
     ? focuses
     : await getFilters(
         FirebaseTablesEnum.FOCUSES,
@@ -31,7 +30,7 @@ export async function getStaticProps() {
         focuses,
       );
 
-  const fetchedIndustries = isDevMode
+  const fetchedIndustries = ENV_CONFIG.isDevelopment
     ? industries
     : await getFilters(
         FirebaseTablesEnum.INDUSTRIES,
@@ -40,7 +39,7 @@ export async function getStaticProps() {
         industries,
       );
 
-  const fetchedExperiences = isDevMode
+  const fetchedExperiences = ENV_CONFIG.isDevelopment
     ? experience
     : await getFilters(
         FirebaseTablesEnum.EXPERIENCE,
@@ -48,7 +47,7 @@ export async function getStaticProps() {
         members.map((member) => member.id),
       );
 
-  const fetchedRegions = isDevMode
+  const fetchedRegions = ENV_CONFIG.isDevelopment
     ? regions.filter((region) => region.count > 0)
     : (
         await getFilters(
@@ -59,7 +58,7 @@ export async function getStaticProps() {
         )
       ).filter((region) => region.count > 0);
 
-  const fetchedTotalMemberCount = isDevMode
+  const fetchedTotalMemberCount = ENV_CONFIG.isDevelopment
     ? members.length
     : await getNumberOfMembers();
 
@@ -227,11 +226,12 @@ export default function HomePage({
     const filter = filtersList.filter((foc) => id === foc?.id)[0];
     const membersToLoad =
       filter?.members?.filter((memberId) => !membersIdSet.has(memberId)) ?? [];
+
     if (membersToLoad.length > 0) {
       setLoadingFilteredMembers(true);
       let allTransformedMembers = [];
 
-      if (process.env.NODE_ENV === "development") {
+      if (ENV_CONFIG.isDevelopment) {
         const { mockGetMembers } = await import(
           "@/lib/firebase-helpers/stubApi"
         );
@@ -264,11 +264,13 @@ export default function HomePage({
       });
       setLoadingFilteredMembers(false);
     }
+
     setListItemActive(filtersList, setFiltersList, id);
     setListItemActive(focuses, setFocuses, id);
     setListItemActive(industries, setIndustries, id);
     setListItemActive(experiences, setExperiences, id);
     setListItemActive(regions, setRegions, id);
+
     if (activeFilters.find((item) => item.id === id)) {
       setActiveFilters(activeFilters.filter((item) => item?.id !== id));
     } else {
@@ -293,7 +295,7 @@ export default function HomePage({
     try {
       let membersNotInList = null;
 
-      if (process.env.NODE_ENV === "development") {
+      if (ENV_CONFIG.isDevelopment) {
         const { mockGetMembers } = await import(
           "@/lib/firebase-helpers/stubApi"
         );
@@ -336,7 +338,7 @@ export default function HomePage({
       }
 
       let transformedMembers;
-      if (process.env.NODE_ENV === "development") {
+      if (ENV_CONFIG.isDevelopment) {
         transformedMembers = membersNotInList.map(transformMemberData);
       } else {
         transformedMembers = await handleFetchedMembers(membersNotInList);

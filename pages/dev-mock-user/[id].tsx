@@ -1,4 +1,5 @@
 import { GetServerSideProps } from "next";
+import { ENV_CONFIG } from "@/lib/config/environment";
 import { useRouter } from "next/router";
 import { MemberPublic } from "@/lib/firebase-helpers/interfaces";
 import { mockGetMembers } from "@/lib/firebase-helpers/stubApi";
@@ -266,7 +267,7 @@ export default function DevMockUserProfile({
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   // Only allow access to user profiles in development mode
-  if (process.env.NODE_ENV !== "development") {
+  if (!ENV_CONFIG.isDevelopment) {
     return {
       redirect: {
         destination: "/",

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "NODE_ENV=development && next dev",
+    "dev": "NODE_ENV=development && next dev --turbopack",
     "test": "NODE_ENV=test && next dev --turbopack",
     "dev:email": "email dev",
     "build": "next build",
