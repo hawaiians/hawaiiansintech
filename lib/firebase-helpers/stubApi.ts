@@ -15,11 +15,10 @@ export type { MemberPublic };
 
 import MOCK_FIRST_NAMES from "./mock-data/first-names.json";
 import MOCK_LAST_NAMES from "./mock-data/last-names.json";
-import MOCK_LOCATIONS from "./mock-data/locations.json";
-import MOCK_REGIONS from "./mock-data/regions.json";
 import MOCK_TITLES from "./mock-data/titles.json";
 import MOCK_FOCUSES from "./mock-data/focuses.json";
 import MOCK_INDUSTRIES from "./mock-data/industries.json";
+import REGIONS_LOCATIONS from "./mock-data/regions_locations.json";
 
 // Simple seeded random number generator for consistent results
 class SeededRandom {
@@ -68,11 +67,19 @@ export function mockGetMembers(
   const companySizes = Object.values(CompanySizeEnum);
   const yearsExperience = Object.values(YearsOfExperienceEnum);
 
+  // Get available regions from the regions_locations mapping
+  const availableRegions = Object.keys(REGIONS_LOCATIONS);
+
   for (let i = 0; i < count; i++) {
     const firstName = rng.choice(MOCK_FIRST_NAMES);
     const lastName = rng.choice(MOCK_LAST_NAMES);
     const name = `${firstName} ${lastName}`;
-    const location = rng.choice(MOCK_LOCATIONS);
+
+    // Select a region first, then pick a location from that region
+    const region = rng.choice(availableRegions);
+    const locationsInRegion =
+      REGIONS_LOCATIONS[region as keyof typeof REGIONS_LOCATIONS];
+    const location = rng.choice(locationsInRegion);
 
     // Generate email abbreviation based on name
     const firstInitial = firstName.charAt(0).toLowerCase();
@@ -93,35 +100,7 @@ export function mockGetMembers(
     const industryCount = rng.nextInt(1, 2);
     const industry = rng.choices(MOCK_INDUSTRIES, industryCount);
 
-    // Select region based on location
-    let region: string;
-    if (
-      location.includes("Honolulu") ||
-      location.includes("Hilo") ||
-      location.includes("Kailua-Kona") ||
-      location.includes("Kahului") ||
-      location.includes("Lihue") ||
-      location.includes("Pearl City") ||
-      location.includes("Kailua") ||
-      location.includes("Kaneohe") ||
-      location.includes("Waipahu") ||
-      location.includes("Mililani") ||
-      location.includes("Aiea") ||
-      location.includes("Kihei")
-    ) {
-      region = "Hawaiʻi";
-    } else if (
-      location.includes("California") ||
-      location.includes("San Francisco") ||
-      location.includes("Los Angeles") ||
-      location.includes("San Diego") ||
-      location.includes("Sacramento")
-    ) {
-      region = "California";
-    } else {
-      region = rng.choice(MOCK_REGIONS);
-    }
-
+    // Select experience level (ensure consistency between experience array and yearsExperience)
     const selectedExperience = rng.choice(yearsExperience);
 
     const member: MemberPublic = {
