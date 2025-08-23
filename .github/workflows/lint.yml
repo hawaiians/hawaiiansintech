@@ -1,14 +1,18 @@
-name: Lint and Type Check
+name: Lint, Type Check, and Format Check
 
 on:
   pull_request:
     branches:
       - main
       - tho-next-v15 # TODO: delete this line once functionality is confirmed
+  push:
+    branches:
+      - main
 
 jobs:
-  lint:
+  quality-checks:
     runs-on: ubuntu-latest
+    name: Code Quality Checks
 
     steps:
       - name: Checkout Code
@@ -17,16 +21,24 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "22"
 
-      - name: Install dependencies
+      - name: Install pnpm
         uses: pnpm/action-setup@v3
         with:
-          version: 10
-          run_install: true
+          version: 8
 
-      - name: Run Lint and Type Check
-        run: pnpm run check
+      - name: Install dependencies
+        run: pnpm install
 
-      - name: Check Formatting
-        run: pnpm run format --check
+      - name: Run TypeScript Type Check
+        run: pnpm run type-check
+
+      - name: Run ESLint
+        run: pnpm run lint
+
+      - name: Check Code Formatting
+        run: pnpm run format:check
+
+      - name: Build Check
+        run: pnpm run build
