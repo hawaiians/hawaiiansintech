@@ -27,7 +27,7 @@ import { StatusEnum, YearsOfExperienceEnum } from "@/lib/enums";
 import { useIsAdmin } from "@/lib/hooks";
 import { getAuth, User } from "firebase/auth";
 import { convertStringSnake } from "helpers";
-import { cn } from "@/lib/utils";
+import { cn, sortByOrder } from "@/lib/utils";
 import moment from "moment";
 import Head from "next/head";
 import { useRouter } from "next/router";
@@ -82,23 +82,7 @@ export default function DirectoryPage(props) {
             return aName.localeCompare(bName);
           }),
       );
-      setExperience(
-        (data.experience || [])
-          .filter((item) => item && item.fields && item.fields.name) // Filter out invalid items
-          .sort((a, b) => {
-            const aName = a.fields.name;
-            const bName = b.fields.name;
-            const aIndex = experienceOrder.indexOf(aName);
-            const bIndex = experienceOrder.indexOf(bName);
-
-            // Handle cases where names are not found in the order array
-            if (aIndex === -1 && bIndex === -1) return 0;
-            if (aIndex === -1) return 1; // Put undefined names at the end
-            if (bIndex === -1) return -1; // Put undefined names at the end
-
-            return aIndex - bIndex;
-          }), // sort experience filter explicitly
-      );
+      setExperience(sortByOrder(data.experience || [], experienceOrder));
     }
   }, [user, experienceOrder]);
 

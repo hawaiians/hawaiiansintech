@@ -18,6 +18,7 @@ import LoadingSpinner, {
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { ShieldAlert } from "lucide-react";
 import { YearsOfExperienceEnum } from "@/lib/enums";
+import { sortByOrder } from "@/lib/utils";
 export async function getStaticProps() {
   return {
     props: {
@@ -78,24 +79,7 @@ function EditMember() {
             setRegions(data.regions || []);
             try {
               setExperience(
-                (data.experience || [])
-                  .filter((item) => {
-                    const isValid = item && item.fields && item.fields.name;
-                    return isValid;
-                  })
-                  .sort((a, b) => {
-                    const aName = a.fields.name;
-                    const bName = b.fields.name;
-                    const aIndex = experienceOrder.indexOf(aName);
-                    const bIndex = experienceOrder.indexOf(bName);
-
-                    // Handle cases where names are not found in the order array
-                    if (aIndex === -1 && bIndex === -1) return 0;
-                    if (aIndex === -1) return 1; // Put undefined names at the end
-                    if (bIndex === -1) return -1; // Put undefined names at the end
-
-                    return aIndex - bIndex;
-                  }), // sort experience filter explicitly
+                sortByOrder(data.experience || [], experienceOrder),
               );
             } catch (error) {
               console.error("Error sorting experience:", error);
