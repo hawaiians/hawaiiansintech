@@ -313,7 +313,21 @@ export const updateMember = async (
   }
 
   // Have to drop the fields that are not in the database or are handled above
-  const { emailAbbr, companySize, ...droppedMemberData } = memberData;
+  const {
+    emailAbbr,
+    yearsExperience,
+    region,
+    companySize,
+    focus,
+    industry,
+    lastModified,
+    focusSuggested,
+    industrySuggested,
+    id,
+    experience,
+    regions,
+    ...droppedMemberData
+  } = memberData;
 
   // If currentUser is not an admin, don't allow them to change the status
   if (!currentUserIsAdmin) {
