@@ -312,30 +312,53 @@ export const updateMember = async (
     }
   }
 
+  // Define the fields we want to exclude from database updates
+  type FieldsToExclude =
+    | "emailAbbr"
+    | "yearsExperience"
+    | "region"
+    | "companySize"
+    | "focus"
+    | "industry"
+    | "lastModified"
+    | "focusSuggested"
+    | "industrySuggested"
+    | "id"
+    | "experience"
+    | "regions";
+
+  // Create a type that excludes those fields
+  type SafeMemberData = Omit<MemberPublic, FieldsToExclude>;
+
   // Have to drop the fields that are not in the database or are handled above
-  const {
-    emailAbbr,
-    yearsExperience,
-    region,
-    companySize,
-    focus,
-    industry,
-    lastModified,
-    focusSuggested,
-    industrySuggested,
-    id,
-    experience,
-    regions,
-    ...droppedMemberData
-  } = memberData;
+  const { emailAbbr, companySize } = memberData;
+  const droppedMemberData = { ...memberData };
+
+  // Remove the fields that are not in the database or are handled above
+  delete droppedMemberData.emailAbbr;
+  delete droppedMemberData.yearsExperience;
+  delete droppedMemberData.region;
+  delete droppedMemberData.companySize;
+  delete droppedMemberData.focus;
+  delete droppedMemberData.industry;
+  delete droppedMemberData.lastModified;
+  delete droppedMemberData.focusSuggested;
+  delete droppedMemberData.industrySuggested;
+  delete droppedMemberData.id;
+  delete droppedMemberData.experience;
+  delete droppedMemberData.regions;
+
+  // Type assertion for type safety - TypeScript will now prevent accessing excluded fields
+  // This means: safeMemberData.emailAbbr, safeMemberData.focus, etc. will cause compile errors
+  const safeMemberData: SafeMemberData = droppedMemberData as SafeMemberData;
 
   // If currentUser is not an admin, don't allow them to change the status
   if (!currentUserIsAdmin) {
-    droppedMemberData.status = data.status;
+    safeMemberData.status = data.status;
   }
 
   const writeResult = await docRef.update({
-    ...droppedMemberData,
+    ...safeMemberData,
     company_size: companySize,
     last_modified: admin.firestore.FieldValue.serverTimestamp(),
     last_modified_by: currentUser || "admin edit",
