@@ -1,5 +1,5 @@
 import { Filter } from "@/lib/firebase-helpers/interfaces";
-import { cn } from "@/lib/utils";
+import { cn, compareByOrder } from "@/lib/utils";
 import { useState } from "react";
 import BigPill from "../BigPill";
 import Selectable, { SelectableSize } from "../form/Selectable";
@@ -136,17 +136,7 @@ export default function FilterPicker({
             .filter((item) => item && item.id) // Filter out invalid items
             .sort((a, b) => {
               if (experienceActive) {
-                const aName = a?.name || "";
-                const bName = b?.name || "";
-                const aIndex = experienceOrder.indexOf(aName);
-                const bIndex = experienceOrder.indexOf(bName);
-
-                // Handle cases where names are not found in the order array
-                if (aIndex === -1 && bIndex === -1) return 0;
-                if (aIndex === -1) return 1; // Put undefined names at the end
-                if (bIndex === -1) return -1; // Put undefined names at the end
-
-                return aIndex - bIndex;
+                return compareByOrder(a, b, experienceOrder, "name");
               } else {
                 return (b.count || 0) - (a.count || 0);
               }
