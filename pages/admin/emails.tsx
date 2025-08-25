@@ -35,7 +35,7 @@ export async function getStaticProps() {
 
 export default function EmailsPage(props: { pageTitle }) {
   const auth = getAuth();
-  const [user, loading, error] = useAuthState(auth);
+  const [user, loading] = useAuthState(auth);
   const [isAdmin, isAdminLoading] = useIsAdmin(user, loading);
   const router = useRouter();
   const [emails, setEmails] = useState<MemberEmail[]>([]);
@@ -156,7 +156,6 @@ const EmailList: FC<{
   const [tabVisible, setTabVisible] = useState<EmailDirectoryFilter>(
     EmailDirectoryFilter.Newsletter,
   );
-  const [showUnsubscribed, setShowUnsubscribed] = useState<boolean>(false);
   const [emailsShown, setEmailsShown] = useState<MemberEmail[]>(emails);
   const [revealEmail, setRevealEmail] = useState<boolean>(false);
   const [includeName, setIncludeName] = useState<boolean>(true);

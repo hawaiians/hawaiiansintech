@@ -16,9 +16,9 @@ import {
   updateAdminFilterReferences,
 } from "@/lib/firebase-helpers/filters";
 import serverSideOnly, { getFirebaseTable } from "./general";
-import { memberConverter } from "../firestore-converters/member";
+import { memberConverter, Member } from "../firestore-converters/member";
 import {
-  DocumentData,
+  FirestoreDocumentData,
   FilterData,
   MemberPublic,
   // regionLookup
@@ -27,7 +27,6 @@ import { verifyAdminToken, verifyEmailAuthToken } from "@/lib/api-helpers/auth";
 import {
   DocumentReference,
   FirestoreDataConverter,
-  QueryDocumentSnapshot,
   addDoc,
   collection,
   doc,
@@ -36,14 +35,13 @@ import {
   getDoc,
   getDocs,
   limit,
-  orderBy,
   query,
   serverTimestamp,
   startAfter,
   updateDoc,
   where,
 } from "firebase/firestore";
-import { useEmailCloaker } from "@/helpers";
+import { cloakEmail } from "@/helpers";
 import { addSecureEmail, getIdByEmail } from "./emails";
 import { db } from "@/lib/firebase";
 
@@ -52,16 +50,16 @@ interface GetMembersOptions {
   limit?: number;
   cursor?: string;
   paginated?: boolean;
-  regions?: DocumentData[];
-  industries?: DocumentData[];
-  focuses?: DocumentData[];
-  experience?: DocumentData[];
+  regions?: FirestoreDocumentData[];
+  industries?: FirestoreDocumentData[];
+  focuses?: FirestoreDocumentData[];
+  experience?: FirestoreDocumentData[];
   memberIds?: string[];
   includeFilters?: boolean;
 }
 
 interface PaginatedResponse {
-  items: any[];
+  items: Member[];
   hasMore: boolean;
   cursor: string;
 }
@@ -79,10 +77,10 @@ export async function getMembers({
   includeFilters = true,
 }: GetMembersOptions = {}): Promise<{
   members: MemberPublic[];
-  regions: DocumentData[];
-  industries: DocumentData[];
-  focuses: DocumentData[];
-  experience: DocumentData[];
+  regions: FirestoreDocumentData[];
+  industries: FirestoreDocumentData[];
+  focuses: FirestoreDocumentData[];
+  experience: FirestoreDocumentData[];
   cursor?: string;
   hasMore?: boolean;
 }> {
@@ -152,10 +150,9 @@ export async function getMembers({
           regions,
           industries,
           focuses,
-          lastModifiedBy,
           maskedEmail,
           lastModified,
-          emailAbbr,
+          lastModifiedBy,
           requests,
           unsubscribed,
           experience,
@@ -163,6 +160,20 @@ export async function getMembers({
         } = member;
 
         let memberObject = { ...rest };
+
+        // Handle lastModifiedBy - convert DocumentReference to string if needed
+        if (lastModifiedBy) {
+          memberObject["lastModifiedBy"] =
+            typeof lastModifiedBy === "string"
+              ? lastModifiedBy
+              : lastModifiedBy.id || null;
+        }
+
+        // Handle lastModified - ensure it's always serializable
+        if (lastModified) {
+          memberObject["lastModified"] = lastModified.toDate().toLocaleString();
+        }
+
         memberObject["focus"] = includeFilters
           ? filterLookup(focusesData, focuses)
           : focuses.map((focus) => focus.id);
@@ -182,17 +193,15 @@ export async function getMembers({
 
         // TODO: migrate to regions and experience, adding for backward
         //  compatibility on admin page
-        memberObject["yearsExperience"] = experienceFiltered
-          ? (experienceFiltered[0] as FilterData).name
-          : (memberObject["yearsExperience"] as string);
+        memberObject["yearsExperience"] =
+          experienceFiltered && experienceFiltered[0]
+            ? (experienceFiltered[0] as FilterData).name
+            : (memberObject["yearsExperience"] as string);
         memberObject["region"] = filterLookup(regionsData, regions, true);
 
         if (isAdmin || userId === member.id) {
           memberObject = {
             ...memberObject,
-            lastModified: lastModified
-              ? lastModified.toDate().toLocaleString()
-              : null,
             emailAbbr: maskedEmail,
             requests: requests,
             unsubscribed: unsubscribed,
@@ -200,8 +209,8 @@ export async function getMembers({
         }
         return memberObject;
       })
-      .filter((value) => value !== null)
-      .sort((a, b) => a.name.localeCompare(b.name)),
+      .filter((value) => value !== null && value.name)
+      .sort((a, b) => (a.name || "").localeCompare(b.name || "")),
     focuses: focusesData,
     industries: industriesData,
     regions: regionsData,
@@ -227,7 +236,7 @@ export const updateMember = async (
     throw new Error(`Member with uid ${memberData.id} does not exist`);
   }
 
-  let data = doc.data();
+  const data = doc.data();
   // Need to convert to array since filterLookup expects an array
   data["experience"] = data["experience"] ? [data["experience"]] : [];
 
@@ -252,15 +261,28 @@ export const updateMember = async (
   };
   for (const field of fields) {
     const oldReferenceIds = data[field] ? data[field].map((ref) => ref.id) : [];
-    const newReferenceIds =
-      // TODO: Update region to regions
-      (field === FirebaseMemberFieldsEnum.REGIONS.toString() ||
-        field === FirebaseMemberFieldsEnum.EXPERIENCE.toString()) &&
-      memberData[fieldSingular[field]]
-        ? [memberData[fieldSingular[field]]]
-        : memberData[fieldSingular[field]]
-          ? memberData[fieldSingular[field]].map((ref) => ref.id)
-          : [];
+    let newReferenceIds = [];
+    if (
+      field === FirebaseMemberFieldsEnum.REGIONS.toString() ||
+      field === FirebaseMemberFieldsEnum.EXPERIENCE.toString()
+    ) {
+      const fieldValue = memberData[fieldSingular[field]];
+      if (fieldValue) {
+        // Handle both single values and arrays
+        if (Array.isArray(fieldValue)) {
+          newReferenceIds = fieldValue.map((ref) => ref.id);
+        } else if (typeof fieldValue === "object" && fieldValue.id) {
+          newReferenceIds = [fieldValue.id];
+        } else if (typeof fieldValue === "string") {
+          newReferenceIds = [fieldValue];
+        }
+      }
+    } else {
+      const fieldValue = memberData[fieldSingular[field]];
+      if (fieldValue && Array.isArray(fieldValue)) {
+        newReferenceIds = fieldValue.map((ref) => ref.id);
+      }
+    }
     const [referencesToAdd, referencesToDelete] = await updateFilterReferences(
       memberData.id,
       oldReferenceIds,
@@ -290,30 +312,53 @@ export const updateMember = async (
     }
   }
 
+  // Define the fields we want to exclude from database updates
+  type FieldsToExclude =
+    | "emailAbbr"
+    | "yearsExperience"
+    | "region"
+    | "companySize"
+    | "focus"
+    | "industry"
+    | "lastModified"
+    | "focusSuggested"
+    | "industrySuggested"
+    | "id"
+    | "experience"
+    | "regions";
+
+  // Create a type that excludes those fields
+  type SafeMemberData = Omit<MemberPublic, FieldsToExclude>;
+
   // Have to drop the fields that are not in the database or are handled above
-  const {
-    emailAbbr,
-    yearsExperience,
-    region,
-    companySize,
-    focus,
-    industry,
-    lastModified,
-    focusSuggested,
-    industrySuggested,
-    id,
-    experience,
-    regions,
-    ...droppedMemberData
-  } = memberData;
+  const { emailAbbr, companySize } = memberData;
+  const droppedMemberData = { ...memberData };
+
+  // Remove the fields that are not in the database or are handled above
+  delete droppedMemberData.emailAbbr;
+  delete droppedMemberData.yearsExperience;
+  delete droppedMemberData.region;
+  delete droppedMemberData.companySize;
+  delete droppedMemberData.focus;
+  delete droppedMemberData.industry;
+  delete droppedMemberData.lastModified;
+  delete droppedMemberData.focusSuggested;
+  delete droppedMemberData.industrySuggested;
+  delete droppedMemberData.id;
+  delete droppedMemberData.experience;
+  delete droppedMemberData.regions;
+
+  // Type assertion for type safety - TypeScript will now prevent accessing excluded fields
+  // This means: safeMemberData.emailAbbr, safeMemberData.focus, etc. will cause compile errors
+  const safeMemberData: SafeMemberData = droppedMemberData as SafeMemberData;
 
   // If currentUser is not an admin, don't allow them to change the status
   if (!currentUserIsAdmin) {
-    droppedMemberData.status = data.status;
+    safeMemberData.status = data.status;
   }
 
   const writeResult = await docRef.update({
-    ...droppedMemberData,
+    ...safeMemberData,
     company_size: companySize,
     last_modified: admin.firestore.FieldValue.serverTimestamp(),
     last_modified_by: currentUser || "admin edit",
@@ -388,7 +433,7 @@ const addMember = async (
 ): Promise<DocumentReference> => {
   try {
     const collectionRef = collection(db, FirebaseTablesEnum.MEMBERS);
-    const maskedEmail = useEmailCloaker(member.email);
+    const maskedEmail = cloakEmail(member.email);
     const data = {
       ...member,
       last_modified: serverTimestamp(),
@@ -435,7 +480,7 @@ async function handleLabelRefs(
 export const addMemberToFirebase = async (
   fields: CreateMemberFields,
 ): Promise<DocumentReference> => {
-  let member = {
+  const member = {
     company_size: fields.companySize,
     email: fields.email,
     focuses: [],
@@ -536,14 +581,14 @@ export async function getMemberRef(uid: string): Promise<DocumentReference> {
 
 export async function getMembersTable(
   table: FirebaseTablesEnum,
-  converter: FirestoreDataConverter<any>,
+  converter: FirestoreDataConverter<Member>,
   approved: boolean = false,
   isAdmin: boolean = false,
   memberIds?: string[],
   userId?: string,
-): Promise<any[]> {
+): Promise<Member[]> {
   const documentsCollection = collection(db, table).withConverter(converter);
-  let queryConditions = [];
+  const queryConditions = [];
   if (approved) {
     queryConditions.push(where("status", "==", StatusEnum.APPROVED));
   }
@@ -552,11 +597,14 @@ export async function getMembersTable(
   }
   const q = query(documentsCollection, ...queryConditions);
   const documentsSnapshot = await getDocs(q);
-  return documentsSnapshot.docs.map((doc) => {
-    if (approved || doc.id === userId || isAdmin) {
-      return doc.data();
-    }
-  });
+  return documentsSnapshot.docs
+    .map((doc) => {
+      if (approved || doc.id === userId || isAdmin) {
+        return doc.data();
+      }
+      return null; // Explicitly return null for filtered out members
+    })
+    .filter((member) => member !== null); // Filter out null values
 }
 
 export async function getNumberOfMembers(): Promise<number> {
@@ -569,7 +617,7 @@ export async function getNumberOfMembers(): Promise<number> {
 }
 
 async function getMembersTablePaged(
-  converter: FirestoreDataConverter<any>,
+  converter: FirestoreDataConverter<Member>,
   pageSize: number = 10,
   cursor?: string,
 ): Promise<PaginatedResponse> {

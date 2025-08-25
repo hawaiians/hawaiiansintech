@@ -15,7 +15,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
 export async function getStaticProps() {
-  let focuses = (await getFilters(FirebaseTablesEnum.FOCUSES)) ?? [];
+  const focuses = (await getFilters(FirebaseTablesEnum.FOCUSES)) ?? [];
   return {
     props: {
       focuses: focuses.sort((a, b) => b.count - a.count),
@@ -40,13 +40,13 @@ export default function JoinStep2({ focuses, pageTitle }) {
 
   // check localStorage and set pre-defined fields
   useEffect(() => {
-    let storedFocuses = getItem("jfFocuses");
-    let storedFocusSuggested = getItem("jfFocusSuggested");
-    let storedTitle = getItem("jfTitle");
-    let storedDeferTitle = getItem("jfDeferTitle");
-    let storedYearsExperience = getItem("jfYearsExperience");
+    const storedFocuses = getItem("jfFocuses");
+    const storedFocusSuggested = getItem("jfFocusSuggested");
+    const storedTitle = getItem("jfTitle");
+    const storedDeferTitle = getItem("jfDeferTitle");
+    const storedYearsExperience = getItem("jfYearsExperience");
     if (storedFocuses) {
-      let match = focuses
+      const match = focuses
         .filter((foc) => JSON.parse(storedFocuses).includes(foc.id))
         .map((foc) => foc.id);
       setFocusesSelected(match);

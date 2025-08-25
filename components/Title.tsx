@@ -17,7 +17,7 @@ const item = {
     opacity: 1,
     y: "0%",
     transition: {
-      easing: "easeInOut",
+      easing: "easeInOut" as const,
     },
   },
 };

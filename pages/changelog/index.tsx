@@ -1,12 +1,10 @@
 import React from "react";
 import Head from "next/head";
-import Link from "next/link";
 import Image from "next/image";
 import { GetStaticProps } from "next";
 import ReactMarkdown from "react-markdown";
 import MetaTags from "@/components/Metatags";
 import Plausible from "@/components/Plausible";
-import { server } from "@/config";
 import Nav from "@/components/Nav";
 import ChangelogLinks from "@/components/ChangelogLinks";
 import { formatDate } from "@/helpers";

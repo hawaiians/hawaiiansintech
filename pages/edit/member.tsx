@@ -2,7 +2,10 @@ import { Heading } from "@/components/Heading";
 import MetaTags from "@/components/Metatags";
 import Nav from "@/components/Nav";
 import Plausible from "@/components/Plausible";
-import { DocumentData, MemberPublic } from "@/lib/firebase-helpers/interfaces";
+import {
+  FirestoreDocumentData,
+  MemberPublic,
+} from "@/lib/firebase-helpers/interfaces";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -15,6 +18,7 @@ import LoadingSpinner, {
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { ShieldAlert } from "lucide-react";
 import { YearsOfExperienceEnum } from "@/lib/enums";
+import { sortByOrder } from "@/lib/utils";
 export async function getStaticProps() {
   return {
     props: {
@@ -45,8 +49,8 @@ function EditMember() {
   const router = useRouter();
   const memberId = router.query.memberId as string;
   const [member, setMember] = useState<MemberPublic>(null);
-  const [regions, setRegions] = useState<DocumentData[]>([]);
-  const [experience, setExperience] = useState<DocumentData[]>([]);
+  const [regions, setRegions] = useState<FirestoreDocumentData[]>([]);
+  const [experience, setExperience] = useState<FirestoreDocumentData[]>([]);
   const experienceOrder = Object.values(YearsOfExperienceEnum) as string[];
 
   const getUser = async () => {
@@ -61,6 +65,9 @@ function EditMember() {
         })
           .then((res) => res.json())
           .then((data) => {
+            if (!data || !data.members) {
+              throw new Error(`Invalid API response: ${JSON.stringify(data)}`);
+            }
             const member = data.members.find((m) => m.id === memberId);
             if (!member) {
               throw new Error(
@@ -68,14 +75,18 @@ function EditMember() {
               );
             }
             setMember(member);
-            setRegions(data.regions);
-            setExperience(
-              data.experience?.sort(
-                (a, b) =>
-                  experienceOrder.indexOf(a.name) -
-                  experienceOrder.indexOf(b.name),
-              ), // sort experience filter explicitly
-            );
+
+            setRegions(data.regions || []);
+            try {
+              setExperience(
+                sortByOrder(data.experience || [], experienceOrder),
+              );
+            } catch (error) {
+              console.error("Error sorting experience:", error);
+              console.error("Error stack:", error.stack);
+              // Fallback to unsorted array
+              setExperience(data.experience || []);
+            }
             setLoading(false);
           })
           .catch((err) => {

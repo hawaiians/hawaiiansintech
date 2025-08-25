@@ -47,7 +47,7 @@ export default function CompanyIndustry({
   const [deferIndustry, setDeferIndustry] = useState<"true">();
   const [companySize, setCompanySize] = useState<string>(initial.companySize);
   const [showSuggestButton, setShowSuggestButton] = useState(true);
-  const [error, setError] = useState<ErrorMessageProps>(null);
+  const [error] = useState<ErrorMessageProps | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [columnCount, setColumnCount] = useState<2 | 3>(3);
 
@@ -55,7 +55,7 @@ export default function CompanyIndustry({
     industriesSelected.length + (industrySuggested ? 1 : 0);
   const isMaxSelected = totalIndustriesSelected >= MAX_COUNT;
 
-  let technologyInd =
+  const technologyInd =
     industries.find((item) => item.name === TECHNOLOGY_LABEL) || null;
   if (technologyInd) {
     industries = [
@@ -68,7 +68,7 @@ export default function CompanyIndustry({
   }, [error]);
 
   useEffect(() => {
-    let mql = window.matchMedia(
+    const mql = window.matchMedia(
       `(min-width: ${theme.layout.breakPoints.small})`,
     );
     if (mql.matches) {
@@ -85,7 +85,7 @@ export default function CompanyIndustry({
   }, [initial.companySize, initial.industriesSelected]);
 
   const handleSelect = (industry) => {
-    let nextIndustriesSelected = [...industriesSelected];
+    const nextIndustriesSelected = [...industriesSelected];
     const isSelected = industriesSelected.includes(industry);
 
     if (isSelected) {
@@ -154,7 +154,7 @@ export default function CompanyIndustry({
                   headline={industry.name}
                   disabled={isDisabled || deferIndustry === "true"}
                   selected={isSelected && !deferIndustry}
-                  onClick={(e) => handleSelect(industry.id)}
+                  onClick={() => handleSelect(industry.id)}
                   key={`ind-${i}`}
                 />
               );

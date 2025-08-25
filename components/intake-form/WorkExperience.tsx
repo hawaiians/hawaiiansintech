@@ -65,7 +65,7 @@ export default function WorkExperience({
   }, [error]);
 
   useEffect(() => {
-    let mql = window.matchMedia(
+    const mql = window.matchMedia(
       `(min-width: ${theme.layout.breakPoints.small})`,
     );
     if (mql.matches) {
@@ -94,7 +94,7 @@ export default function WorkExperience({
   ]);
 
   const handleSelect = (focusID: string) => {
-    let newFocusesSelected = [...focusesSelected];
+    const newFocusesSelected = [...focusesSelected];
     const isSelected = focusesSelected?.includes(focusID);
     if (isSelected) {
       const index = focusesSelected?.indexOf(focusID);
@@ -149,7 +149,7 @@ export default function WorkExperience({
                   headline={focus.name}
                   disabled={isDisabled}
                   selected={isSelected}
-                  onClick={(e) => handleSelect(focus.id)}
+                  onClick={() => handleSelect(focus.id)}
                   key={`Selectable-${i}-`}
                 />
               );
@@ -224,8 +224,8 @@ export default function WorkExperience({
             }
           />
           <div className="mx-auto mb-8 flex flex-wrap">
-            {Object.values(YearsOfExperienceEnum).map((dur) => (
-              <div className="mb-2 mr-2">
+            {Object.values(YearsOfExperienceEnum).map((dur, idx) => (
+              <div key={`${dur}-${idx}`} className="mb-2 mr-2">
                 <RadioBox
                   seriesOf="years-experience"
                   checked={dur === yearsExperience}

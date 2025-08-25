@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import React from "react";
 import { ExternalLink, Mails, Users } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -20,8 +21,8 @@ function AdminBody({
 }
 
 type AdminNavProps = {
-  handleLogOut: () => any;
-  handleLogIn: () => any;
+  handleLogOut: () => void;
+  handleLogIn: () => void;
   displayName?: string;
   isAdmin?: boolean;
   isLoggedIn?: boolean;

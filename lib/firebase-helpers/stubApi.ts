@@ -1,5 +1,9 @@
-import { Filter, MemberPublic } from "./interfaces";
-import { CompanySizeEnum, YearsOfExperienceEnum } from "../enums";
+import { Filter, MemberPublic, FirestoreDocumentData } from "./interfaces";
+import {
+  CompanySizeEnum,
+  YearsOfExperienceEnum,
+  FirebaseTablesEnum,
+} from "../enums";
 export type { MemberPublic };
 /**
  * Stubbed function to simulate fetching technologists
@@ -80,9 +84,14 @@ export function getMembers(): MemberPublicDupe[] {
  */
 
 export function getFilters(
-  filterType: string,
-  limitByMembers?: boolean,
-  approvedMemberIds?: string[],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _filterType: FirebaseTablesEnum,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _limitByMembers?: boolean,
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _approvedMemberIds?: string[],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _filterData?: FirestoreDocumentData[],
 ): Filter[] {
   return [
     {

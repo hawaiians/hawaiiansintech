@@ -14,7 +14,7 @@ export const initializeAdmin = async () => {
     let serviceAccount: string;
     try {
       serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY);
-    } catch (error) {
+    } catch {
       throw new Error(
         "The FIREBASE_SERVICE_ACCOUNT_KEY environment variable " +
           "is not a valid JSON string.",
@@ -26,7 +26,7 @@ export const initializeAdmin = async () => {
         credential: admin.credential.cert(serviceAccount),
       });
       admin.firestore().settings({ ignoreUndefinedProperties: true });
-    } catch (error) {
+    } catch {
       throw new Error(
         "Failed to initialize Firebase Admin SDK with the " +
           "provided service account key.",

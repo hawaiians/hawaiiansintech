@@ -11,7 +11,7 @@ import Plausible from "@/components/Plausible";
 import TurnstileWidget from "@/components/TurnstileWidget";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useStorage } from "@/lib/hooks";
-import { clearAllStoredFields, useInvalid } from "@/lib/utils";
+import { useClearAllStoredFields, useInvalid } from "@/lib/utils";
 import { Formik } from "formik";
 import Head from "next/head";
 import Link from "next/link";
@@ -29,7 +29,8 @@ export async function getStaticProps() {
 
 export default function JoinStep4({ pageTitle }) {
   const router = useRouter();
-  const { getItem, setItem, removeItem } = useStorage();
+  const { getItem } = useStorage();
+  const clearAllStoredFields = useClearAllStoredFields();
   const [email, setEmail] = useState<string>("");
 
   const [name, setName] = useState<string>("");
@@ -42,7 +43,7 @@ export default function JoinStep4({ pageTitle }) {
   const [industrySuggested, setIndustrySuggested] = useState("");
   const [companySize, setCompanySize] = useState("");
   const [yearsExperience, setYearsExperience] = useState<string>();
-  const [subscribed, setSubscribed] = useState<boolean>(true);
+  const [subscribed] = useState<boolean>(true);
 
   const [validateAfterSubmit, setValidateAfterSubmit] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -51,36 +52,27 @@ export default function JoinStep4({ pageTitle }) {
   const [turnstileToken, setTurnstileToken] = useState<string>(null);
   const [widgetKey, setWidgetKey] = useState<number>(0);
 
-  const createMember = async () => {
-    return new Promise((resolve, reject) => {
-      fetch("/api/members", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name,
-          location,
-          website,
-          focusesSelected,
-          focusSuggested,
-          title,
-          yearsExperience,
-          industriesSelected,
-          industrySuggested,
-          companySize,
-          email,
-          unsubscribed: !subscribed,
-          turnstileToken,
-        }),
-      }).then(
-        (response: Response) => {
-          resolve(response);
-        },
-        (error: Response) => {
-          reject(error);
-        },
-      );
+  const createMember = async (): Promise<Response> => {
+    return fetch("/api/members", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name,
+        location,
+        website,
+        focusesSelected,
+        focusSuggested,
+        title,
+        yearsExperience,
+        industriesSelected,
+        industrySuggested,
+        companySize,
+        email,
+        unsubscribed: !subscribed,
+        turnstileToken,
+      }),
     });
   };
 
@@ -89,16 +81,16 @@ export default function JoinStep4({ pageTitle }) {
 
   // check localStorage and set pre-defined fields
   useEffect(() => {
-    let storedName = getItem("jfName");
-    let storedLocation = getItem("jfLocation");
-    let storedWebsite = getItem("jfWebsite");
-    let storedFocuses = getItem("jfFocuses");
-    let storedFocusSuggested = getItem("jfFocusSuggested");
-    let storedTitle = getItem("jfTitle");
-    let storedYearsExperience = getItem("jfYearsExperience");
-    let storedIndustries = getItem("jfIndustries");
-    let storedIndustrySuggested = getItem("jfIndustrySuggested");
-    let storedCompanySize = getItem("jfCompanySize");
+    const storedName = getItem("jfName");
+    const storedLocation = getItem("jfLocation");
+    const storedWebsite = getItem("jfWebsite");
+    const storedFocuses = getItem("jfFocuses");
+    const storedFocusSuggested = getItem("jfFocusSuggested");
+    const storedTitle = getItem("jfTitle");
+    const storedYearsExperience = getItem("jfYearsExperience");
+    const storedIndustries = getItem("jfIndustries");
+    const storedIndustrySuggested = getItem("jfIndustrySuggested");
+    const storedCompanySize = getItem("jfCompanySize");
 
     if (storedName) setName(storedName);
     if (storedLocation) setLocation(storedLocation);
@@ -112,10 +104,10 @@ export default function JoinStep4({ pageTitle }) {
     if (storedCompanySize) setCompanySize(storedCompanySize);
   }, []);
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async () => {
     setLoading(true);
     setError(undefined);
-    const res: Response | any = await createMember();
+    const res: Response = await createMember();
     const resJSON = await res.json();
     if (res.ok) {
       clearAllStoredFields("jf");
@@ -181,9 +173,7 @@ export default function JoinStep4({ pageTitle }) {
           validateOnBlur={validateAfterSubmit}
           validateOnChange={validateAfterSubmit}
           validate={() => setValidateAfterSubmit(true)}
-          onSubmit={(values) => {
-            handleSubmit(values);
-          }}
+          onSubmit={handleSubmit}
           validationSchema={Yup.object().shape({
             email: Yup.string()
               .email("That email doesn't look right. Please try again.")
@@ -239,7 +229,7 @@ export default function JoinStep4({ pageTitle }) {
                   </label>
                 </div>
                 <p className="my-2 text-center text-xs text-secondary-foreground">
-                  By continuing, you confirm that you've agreed to our{" "}
+                  By continuing, you confirm that you&rsquo;ve agreed to our{" "}
                   <Link
                     href="/terms-of-use"
                     target="_blank"

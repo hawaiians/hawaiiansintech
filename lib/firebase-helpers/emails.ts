@@ -5,7 +5,10 @@ import {
 } from "@/lib/enums";
 import { DocumentReference, doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
-import { DocumentData, MemberEmail } from "@/lib/firebase-helpers/interfaces";
+import {
+  FirestoreDocumentData,
+  MemberEmail,
+} from "@/lib/firebase-helpers/interfaces";
 import serverSideOnly, { getFirebaseTable } from "./general";
 import { initializeAdmin } from "./initializeAdmin";
 import * as admin from "firebase-admin";
@@ -14,12 +17,12 @@ import { sendLoginPromptEmail } from "@/lib/email";
 export async function getEmails(
   approved: boolean = false,
 ): Promise<MemberEmail[]> {
-  const secureMemberData: DocumentData[] = await getFirebaseTable(
+  const secureMemberData: FirestoreDocumentData[] = await getFirebaseTable(
     FirebaseTablesEnum.SECURE_MEMBER_DATA,
   );
   const emails = await Promise.all(
     secureMemberData
-      .filter((secM) => secM.fields.email !== "")
+      .filter((secM) => (secM.fields.email as string) !== "")
       .map(async (secM) => {
         const docRef = doc(db, FirebaseTablesEnum.MEMBERS, secM.id);
         try {
@@ -27,12 +30,12 @@ export async function getEmails(
           if (docSnapshot.exists()) {
             return {
               id: secM.id,
-              email: secM.fields.email,
+              email: secM.fields.email as string,
               name: docSnapshot.data().name || null,
               emailAbbr: docSnapshot.data().masked_email || null,
               status: docSnapshot.data().status || null,
               unsubscribed: docSnapshot.data().unsubscribed || false,
-              unsubKey: secM.fields.unsubscribe_key || null,
+              unsubKey: (secM.fields.unsubscribe_key as string) || null,
             };
           }
         } catch (error) {
@@ -63,11 +66,11 @@ export const getIdByEmail = async (email: string): Promise<string> => {
 };
 
 export const emailExists = async (email: string): Promise<boolean> => {
-  const secureMemberData: DocumentData[] = await getFirebaseTable(
+  const secureMemberData: FirestoreDocumentData[] = await getFirebaseTable(
     FirebaseTablesEnum.SECURE_MEMBER_DATA,
   );
   const emailExists = secureMemberData.some(
-    (secM) => secM.fields.email === email,
+    (secM) => (secM.fields.email as string) === email,
   );
   return emailExists;
 };

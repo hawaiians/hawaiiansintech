@@ -37,9 +37,18 @@ export interface RegionPublic {
   count?: number;
 }
 
-export interface DocumentData {
+export interface FirestoreDocumentData {
   id: string;
-  fields: any;
+  fields: {
+    [key: string]:
+      | string
+      | string[]
+      | boolean
+      | number
+      | null
+      | undefined
+      | Record<string, unknown>;
+  };
 }
 
 export interface FilterData {

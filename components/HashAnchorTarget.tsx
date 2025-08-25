@@ -1,3 +1,5 @@
+import React from "react";
+
 interface HashAnchorTargetProps {
   id: string;
   children: React.ReactNode;

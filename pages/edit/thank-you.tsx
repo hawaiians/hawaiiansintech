@@ -113,8 +113,8 @@ function EmailNullMessage() {
             shooting us a message, DM, etc.
           </p>
           <p>
-            Be sure to include <strong>your email</strong> in the message. We'll
-            use that to confirm changes bumbai.
+            Be sure to include <strong>your email</strong> in the message.
+            We&rsquo;ll use that to confirm changes bumbai.
           </p>
           <h4 className="text-sm font-semibold">Ways to verify</h4>
         </div>

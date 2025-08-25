@@ -8,7 +8,7 @@ import { FirebaseTablesEnum } from "@/lib/enums";
 import Head from "next/head";
 import React, { useEffect, useState } from "react";
 import { getMembers, getNumberOfMembers } from "@/lib/firebase-helpers/members";
-import { getFilters, getFiltersBasic } from "@/lib/firebase-helpers/filters";
+import { getFilters } from "@/lib/firebase-helpers/filters";
 import { filterLookup } from "@/lib/firebase-helpers/general";
 
 export async function getStaticProps() {
@@ -52,7 +52,7 @@ export async function getStaticProps() {
   };
 }
 
-const transformMemberData = (member: any) => ({
+const transformMemberData = (member: DirectoryMember) => ({
   ...member,
   focus: member.focus
     ? member.focus.map((item) => ({ ...item, active: false }))
@@ -171,7 +171,7 @@ export default function HomePage({
 
   const setListItemActive = (
     list?: PickerFilter[],
-    setList?: Function,
+    setList?: (list: PickerFilter[]) => void,
     id?: string,
   ) => {
     setList(
@@ -183,7 +183,7 @@ export default function HomePage({
   };
 
   const handleFetchedMembers = async (members) => {
-    let newMembers = {};
+    const newMembers = {};
     for (const member of members) {
       const memberData = {
         ...member,
@@ -198,7 +198,7 @@ export default function HomePage({
   };
 
   const handleFilter = async (id?: string) => {
-    let filter = filtersList.filter((foc) => id === foc?.id)[0];
+    const filter = filtersList.filter((foc) => id === foc?.id)[0];
     const membersToLoad =
       filter?.members?.filter((memberId) => !membersIdSet.has(memberId)) ?? [];
     if (membersToLoad.length > 0) {

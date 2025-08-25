@@ -163,7 +163,8 @@ export default function AboutPage({ pageTitle }) {
             >
               Brazillians Who Design
             </Link>
-            's repo. There are many more that continue to inspire us, including:{" "}
+            &rsquo;s repo. There are many more that continue to inspire us,
+            including:{" "}
             <Link
               className="font-semibold"
               target="_blank"

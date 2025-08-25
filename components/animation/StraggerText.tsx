@@ -30,8 +30,10 @@ export function StaggerText({ words, classNames }: StaggerTextProps) {
         ${classNames}
       `}
     >
-      {words.map((word) => (
-        <motion.span variants={item}>{word}</motion.span>
+      {words.map((word, idx) => (
+        <motion.span key={`${word}-${idx}`} variants={item}>
+          {word}
+        </motion.span>
       ))}
     </motion.div>
   );

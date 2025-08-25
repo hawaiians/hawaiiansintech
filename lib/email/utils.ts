@@ -1,3 +1,5 @@
+import React from "react";
+
 export const REPLY_EMAIL = "no-reply@hawaiiansintech.org";
 
 export const ADMIN_EMAILS = [

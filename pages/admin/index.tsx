@@ -14,13 +14,6 @@ import { useEffect } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { signInWithGoogle, signOutWithGoogle } from "../../lib/firebase";
 
-interface User {
-  name: string;
-  uid: string;
-  email: Array<string>;
-  emailIsVerified: boolean;
-}
-
 export async function getStaticProps() {
   return {
     props: {
@@ -32,7 +25,7 @@ export async function getStaticProps() {
 
 export default function AdminPage(props: { pageTitle }) {
   const auth = getAuth();
-  const [user, loading, error] = useAuthState(auth);
+  const [user, loading] = useAuthState(auth);
   const [isAdmin, isAdminLoading] = useIsAdmin(user, loading);
   const router = useRouter();
 

@@ -11,7 +11,7 @@ The code was forked from [Brazillians who Design](https://brazilianswho.design/)
 Making sure you're in the correct project folder and install the dependencies:
 
 ```
-yarn install
+pnpm install
 ```
 
 ### Run the project locally
@@ -19,7 +19,7 @@ yarn install
 To start the development server run:
 
 ```
-yarn dev
+pnpm dev
 ```
 
 In your browser, open `localhost:3000`.
@@ -27,10 +27,33 @@ In your browser, open `localhost:3000`.
 To start the email templating server run:
 
 ```
-yarn dev:email
+pnpm dev:email
 ```
 
 In your browser, open `localhost:3000`.
+
+### Code Quality
+
+This project includes linting that integrates ESLint, TypeScript, and Prettier:
+
+```bash
+# Lint your code (shows warnings but won't fail)
+pnpm run lint
+
+# Auto-fix many linting issues
+pnpm run lint:fix
+
+# Type checking (must pass for production)
+pnpm run type-check
+
+# Format code with Prettier
+pnpm run format
+
+# Run both type checking and linting
+pnpm run check
+```
+
+See [LINTING.md](./LINTING.md) for detailed information about the linting setup.
 
 ## Firebase Access
 

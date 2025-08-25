@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiResponse } from "next";
 
 export class MissingHeaderError extends Error {
   constructor() {

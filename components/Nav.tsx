@@ -8,7 +8,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { Icon, IconAsset, IconColor } from "@/components/icon/icon";
+
 import Logo from "@/components/Logo";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -17,6 +17,7 @@ import { useRouter } from "next/router";
 import { MobileNav } from "@/components/MobileNav";
 import navigationData from "@/public/navigation.json";
 import { ArrowUpRight } from "lucide-react";
+import { Icon, IconAsset } from "./icon/icon";
 
 interface NavProps {
   backLinkTo?: string;
@@ -24,7 +25,7 @@ interface NavProps {
   variant?: "primary" | "minimized";
 }
 
-interface NavigationItem {
+export interface NavigationItem {
   title: string;
   href: string;
   description?: string;
@@ -34,7 +35,7 @@ interface NavigationItem {
   variant?: string;
 }
 
-interface NavigationSection {
+export interface NavigationSection {
   label: string;
   variant?: string;
   layout?: string;
@@ -71,14 +72,14 @@ export default function Nav({
   const { nav } = router.query;
 
   const renderLogo = () => {
-    let logo = <Logo />;
+    const logo = <Logo />;
     if (!backLinkTo) return logo;
 
     return (
       <>
         <Link href={backLinkTo} shallow={true}>
           <div className="transition-transform hover:scale-105 active:scale-95">
-            <Icon asset={IconAsset.CaretLeft} color={IconColor.Inherit} />
+            <Icon asset={IconAsset.CaretLeft} />
           </div>
         </Link>
         <motion.a

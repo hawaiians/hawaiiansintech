@@ -279,12 +279,12 @@ export default function HackathonPage({ pageTitle }) {
               <ul>
                 <li>
                   Engage in thoughtful discussions exploring our modern
-                  relationship to mo'oku'auhau and connect with like minded
-                  individuals
+                  relationship to mo&lsquo;oku&lsquo;auhau and connect with like
+                  minded individuals
                 </li>
                 <li>
                   Co-develop a framework to digitize, organize, and share
-                  genealogy with the rest of their 'ohana
+                  genealogy with the rest of their &lsquo;ohana
                 </li>
                 <li>
                   Test out and provide thoughtful feedback on existing
@@ -302,9 +302,9 @@ export default function HackathonPage({ pageTitle }) {
               The weekend will include:
               <ul>
                 <li>Keynote speakers</li>
-                <li>Mo'olelo talk stories</li>
+                <li>Mo&lsquo;olelo talk stories</li>
                 <li>Art workshops</li>
-                <li>Lo'i kalo</li>
+                <li>Lo&lsquo;i kalo</li>
               </ul>
             </DataListItem>
           </DataList>
@@ -317,7 +317,7 @@ export default function HackathonPage({ pageTitle }) {
               textItem
             >
               <p>
-                <span className="bold">No, you don’t</span>. We are simply
+                <span className="bold">No, you don&rsquo;t</span>. We are simply
                 looking for passionate folks who can contribute to the
                 aforementioned goals.
               </p>
@@ -337,8 +337,8 @@ export default function HackathonPage({ pageTitle }) {
                 goes well, this should probably be the first of many.
               </p>
               <p>
-                If you cannot make it, please reach out and we’ll give you
-                head’s up for the next! Even if you have ideas for future
+                If you cannot make it, please reach out and we&rsquo;ll give you
+                head&rsquo;s up for the next! Even if you have ideas for future
                 events, let us know!
               </p>
             </DataListItem>
@@ -349,8 +349,9 @@ export default function HackathonPage({ pageTitle }) {
             >
               <p>
                 <span className="bold">Absolutely.</span> The more, the better
-                we’re able to facilitate a more thorough experience for those
-                attending virtually. Please RSVP when it's available!
+                we&rsquo;re able to facilitate a more thorough experience for
+                those attending virtually. Please RSVP when it&rsquo;s
+                available!
               </p>
             </DataListItem>
             <DataListItem

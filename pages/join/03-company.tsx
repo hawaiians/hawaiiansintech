@@ -24,10 +24,8 @@ import { useEffect, useState } from "react";
 import theme from "styles/theme";
 import { scrollToTop } from "../../helpers";
 
-const NEXT_PAGE = "04-contact";
-
 export async function getStaticProps() {
-  let industries = (await getFilters(FirebaseTablesEnum.INDUSTRIES)) ?? [];
+  const industries = (await getFilters(FirebaseTablesEnum.INDUSTRIES)) ?? [];
   return {
     props: {
       industries: industries,
@@ -50,7 +48,7 @@ export default function JoinStep3({ industries, pageTitle }) {
   const [deferIndustry, setDeferIndustry] = useState<"true">();
   const [industriesSelected, setIndustriesSelected] = useState<string[]>([]);
   const [showSuggestButton, setShowSuggestButton] = useState(true);
-  const [error, setError] = useState<ErrorMessageProps>(null);
+  const [error] = useState<ErrorMessageProps>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [columnCount, setColumnCount] = useState<2 | 3>(3);
 
@@ -58,7 +56,7 @@ export default function JoinStep3({ industries, pageTitle }) {
     industriesSelected.length + (industrySuggested ? 1 : 0);
   const isMaxSelected = totalIndustriesSelected >= MAX_COUNT;
 
-  let technologyInd =
+  const technologyInd =
     industries.find((item) => item.name === TECHNOLOGY_LABEL) || null;
   if (technologyInd) {
     industries = [
@@ -72,13 +70,13 @@ export default function JoinStep3({ industries, pageTitle }) {
   // check localStorage and set pre-defined fields
   useEffect(() => {
     let storedIndustries = getItem("jfIndustries");
-    let storedDeferIndustry = getItem("jfDeferIndustry");
-    let storedCompanySize = getItem("jfCompanySize");
-    let storedIndustrySuggested = getItem("jfIndustrySuggested");
+    const storedDeferIndustry = getItem("jfDeferIndustry");
+    const storedCompanySize = getItem("jfCompanySize");
+    const storedIndustrySuggested = getItem("jfIndustrySuggested");
     if (!storedDeferIndustry && storedIndustries) {
       // Convert string "[]" to parsable JSON
       storedIndustries = JSON.parse(storedIndustries);
-      let match = [...industries, technologyInd]
+      const match = [...industries, technologyInd]
         .filter((ind) => storedIndustries.includes(ind?.id))
         .map((ind) => ind.id);
       setIndustriesSelected(match);
@@ -96,7 +94,7 @@ export default function JoinStep3({ industries, pageTitle }) {
   }, [error]);
 
   useEffect(() => {
-    let mql = window.matchMedia(
+    const mql = window.matchMedia(
       `(min-width: ${theme.layout.breakPoints.small})`,
     );
     if (mql.matches) {
@@ -107,7 +105,7 @@ export default function JoinStep3({ industries, pageTitle }) {
   }, [width]);
 
   const handleSelect = (industry) => {
-    let nextIndustriesSelected = [...industriesSelected];
+    const nextIndustriesSelected = [...industriesSelected];
     const isSelected = industriesSelected.includes(industry);
 
     if (isSelected) {
@@ -195,7 +193,7 @@ export default function JoinStep3({ industries, pageTitle }) {
                   headline={industry.name}
                   disabled={isDisabled || deferIndustry === "true"}
                   selected={isSelected && !deferIndustry}
-                  onClick={(e) => handleSelect(industry.id)}
+                  onClick={() => handleSelect(industry.id)}
                   key={`ind-${i}`}
                 />
               );
