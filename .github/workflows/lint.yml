@@ -4,10 +4,6 @@ on:
   pull_request:
     branches:
       - main
-      - tho-next-v15 # TODO: delete this line once functionality is confirmed
-  push:
-    branches:
-      - main
 
 jobs:
   quality-checks:
