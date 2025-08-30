@@ -102,19 +102,19 @@ pnpm run lint:fix
 
 ## 🔄 **GitHub Actions Integration**
 
-This project includes GitHub Actions that automatically run quality checks on every pull request:
+This project includes GitHub Actions that automatically run quality checks on every pull request to the `main` branch:
 
-- **Type Checking**: Ensures TypeScript types are correct
-- **ESLint**: Checks code quality and enforces coding standards
-- **Format Checking**: Verifies code is properly formatted with Prettier
-- **Build Check**: Ensures the project builds successfully
+- **Type Checking**: Ensures TypeScript types are correct (`pnpm run type-check`)
+- **ESLint**: Checks code quality and enforces coding standards (`pnpm run lint`)
+- **Format Checking**: Verifies code is properly formatted with Prettier (`pnpm run format:check`)
+
+**Note**: The build check is currently disabled due to Firebase dependencies in `getStaticProps` that require real credentials. This will be re-enabled once mock data is properly implemented for CI environments.
 
 All checks must pass before a pull request can be merged. If any check fails:
 
 1. **Formatting Issues**: Run `pnpm run format` to fix automatically
 2. **Lint Issues**: Run `pnpm run lint:fix` for auto-fixable issues
 3. **Type Issues**: Fix TypeScript errors manually
-4. **Build Issues**: Check the build logs and fix any compilation errors
 
 You can run the same checks locally with `pnpm run check` before pushing.
 

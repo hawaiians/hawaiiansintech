@@ -7,6 +7,12 @@
     "href": ["https://github.com/hawaiians/hawaiiansintech/pull/46"]
   },
   {
+    "date": "2025-08-30",
+    "title": "Enhanced development workflow and mock data system",
+    "slug": "development-workflow-and-mock-data-improvements",
+    "content": "Improved the development experience with automated code quality checks and environment-based data mocking.\n\n### Key improvements\n* Added GitHub workflow for automated linting, type checking, and formatting on pull requests\n* Development mode now uses mock data instead of live Firebase data\n* Environment detection automatically switches between mock and real data\n* Updated shaka.gif image"
+  },
+  {
     "date": "2025-08-02",
     "title": "Added pagination to homepage for improved performance",
     "slug": "homepage-pagination-performance-improvement",

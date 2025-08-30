@@ -16,13 +16,21 @@ pnpm install
 
 ### Run the project locally
 
-To start the development server run:
+To start the development server with mock data run:
 
 ```
 pnpm dev
 ```
 
-In your browser, open `localhost:3000`.
+This sets `NODE_ENV=development` and uses mock user data for local development.
+
+To start the server with real Firebase data run:
+
+```
+pnpm test
+```
+
+This sets `NODE_ENV=test` and connects to the actual Firebase database.
 
 To start the email templating server run:
 
@@ -59,19 +67,7 @@ See [LINTING.md](./LINTING.md) for detailed information about the linting setup.
 
 If you are looking to access the Firebase data, please reach out to our Hawaiians In Tech website development team on our [Discord](https://discord.gg/p7338Z5MJQ).
 
-You can also load mock data in `index.tsx` by updating the import statement to `"@/lib/stubApi"`
-
-```javascript
-import {
-  Focus,
-  getFocuses,
-  getIndustries,
-  getMembers,
-  Industry,
-  MemberPublic,
-} from "@/lib/api";
-/* 🔺🔺🔺🔺🔺🔺🔺 */
-```
+**Note:** You no longer need to manually switch imports to use mock data. The application automatically uses mock data when running in development mode (`pnpm dev`) and real Firebase data when running in test mode (`pnpm test` with Firebase access).
 
 ### Deploy at vercel
 
