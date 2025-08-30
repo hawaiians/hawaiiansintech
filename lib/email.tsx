@@ -3,8 +3,17 @@ import WelcomeEmail from "@/emails/welcome-email";
 import { ADMIN_EMAILS, REPLY_EMAIL } from "./email/utils";
 import PendingMemberEmail from "@/emails/pending-member-email";
 import LoginPromptEmail from "@/emails/login-prompt";
+import { ENV_CONFIG } from "@/lib/config/environment";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resend = null;
+if (!ENV_CONFIG.isDevelopment && process.env.RESEND_API_KEY) {
+  resend = new Resend(process.env.RESEND_API_KEY);
+} else {
+  console.warn(
+    "Resend API key not provided or in development mode. Email functionality is disabled.",
+  );
+  resend = null;
+}
 
 export interface SendConfirmationEmailProps {
   email: string;
