@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "NODE_ENV=development && next dev --turbopack",
+    "test": "NODE_ENV=test && next dev --turbopack",
     "dev:email": "email dev",
     "build": "next build",
     "start": "next start",
@@ -11,7 +12,8 @@
     "lint:fix": "next lint --fix",
     "type-check": "tsc --noEmit",
     "format": "prettier --write '**/*.{js,jsx,ts,tsx,json,css,md}'",
-    "check": "pnpm run type-check && pnpm run lint"
+    "format:check": "prettier --check '**/*.{js,jsx,ts,tsx,json,css,md}'",
+    "check": "pnpm run type-check && pnpm run lint && pnpm run format:check"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.1.2",

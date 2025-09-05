@@ -10,42 +10,67 @@ import React, { useEffect, useState } from "react";
 import { getMembers, getNumberOfMembers } from "@/lib/firebase-helpers/members";
 import { getFilters } from "@/lib/firebase-helpers/filters";
 import { filterLookup } from "@/lib/firebase-helpers/general";
+import { mockGetMembersWithFilters } from "@/lib/firebase-helpers/stubApi";
+import { ENV_CONFIG } from "@/lib/config/environment";
 
 export async function getStaticProps() {
-  const { members, focuses, industries, regions, cursor } = await getMembers({
-    paginated: true,
-  });
+  const { members, focuses, industries, regions, experience, cursor } =
+    ENV_CONFIG.isDevelopment
+      ? mockGetMembersWithFilters({ limit: 25, includeFilters: true })
+      : await getMembers({ paginated: true });
 
-  return {
-    props: {
-      fetchedMembers: members,
-      fetchedMembersCursor: cursor,
-      fetchedFocuses: await getFilters(
+  // In development mode, use the mock filter data directly
+  // In production, call the real getFilters functions
+  const fetchedFocuses = ENV_CONFIG.isDevelopment
+    ? focuses
+    : await getFilters(
         FirebaseTablesEnum.FOCUSES,
         false,
         members.map((member) => member.id),
         focuses,
-      ),
-      fetchedIndustries: await getFilters(
+      );
+
+  const fetchedIndustries = ENV_CONFIG.isDevelopment
+    ? industries
+    : await getFilters(
         FirebaseTablesEnum.INDUSTRIES,
         false,
         members.map((member) => member.id),
         industries,
-      ),
-      fetchedExperiences: await getFilters(
+      );
+
+  const fetchedExperiences = ENV_CONFIG.isDevelopment
+    ? experience
+    : await getFilters(
         FirebaseTablesEnum.EXPERIENCE,
         false,
         members.map((member) => member.id),
-      ),
-      fetchedRegions: (
+      );
+
+  const fetchedRegions = ENV_CONFIG.isDevelopment
+    ? regions.filter((region) => region.count > 0)
+    : (
         await getFilters(
           FirebaseTablesEnum.REGIONS,
           false,
           members.map((member) => member.id),
           regions,
         )
-      ).filter((region) => region.count > 0),
-      fetchedTotalMemberCount: await getNumberOfMembers(),
+      ).filter((region) => region.count > 0);
+
+  const fetchedTotalMemberCount = ENV_CONFIG.isDevelopment
+    ? members.length
+    : await getNumberOfMembers();
+
+  return {
+    props: {
+      fetchedMembers: members,
+      fetchedMembersCursor: cursor || null,
+      fetchedFocuses,
+      fetchedIndustries,
+      fetchedExperiences,
+      fetchedRegions,
+      fetchedTotalMemberCount,
       pageTitle: "Hawaiians in Tech",
     },
     revalidate: 60,
@@ -201,22 +226,36 @@ export default function HomePage({
     const filter = filtersList.filter((foc) => id === foc?.id)[0];
     const membersToLoad =
       filter?.members?.filter((memberId) => !membersIdSet.has(memberId)) ?? [];
+
     if (membersToLoad.length > 0) {
       setLoadingFilteredMembers(true);
-      const batchSize = 25; // TODO: align batchSize with limit var in getMembers
       let allTransformedMembers = [];
-      for (let i = 0; i < membersToLoad.length; i += batchSize) {
-        const batch = membersToLoad.slice(i, i + batchSize);
-        const response = await fetch(
-          `/api/members?memberIds=${batch.join(",")}&withoutFilters=true`,
+
+      if (ENV_CONFIG.isDevelopment) {
+        const { mockGetMembers } = await import(
+          "@/lib/firebase-helpers/stubApi"
         );
-        const data = await response.json();
-        const transformedMembers = await handleFetchedMembers(data.members);
-        allTransformedMembers = [
-          ...allTransformedMembers,
-          ...transformedMembers,
-        ];
+        const allMockMembers = mockGetMembers(100);
+        const requestedMembers = allMockMembers.filter((member) =>
+          membersToLoad.includes(member.id),
+        );
+        allTransformedMembers = requestedMembers.map(transformMemberData);
+      } else {
+        const batchSize = 25; // TODO: align batchSize with limit var in getMembers
+        for (let i = 0; i < membersToLoad.length; i += batchSize) {
+          const batch = membersToLoad.slice(i, i + batchSize);
+          const response = await fetch(
+            `/api/members?memberIds=${batch.join(",")}&withoutFilters=true`,
+          );
+          const data = await response.json();
+          const transformedMembers = await handleFetchedMembers(data.members);
+          allTransformedMembers = [
+            ...allTransformedMembers,
+            ...transformedMembers,
+          ];
+        }
       }
+
       setMembers((prevMembers) => [...prevMembers, ...allTransformedMembers]);
       setMembersIdSet((prevMembersIdSet) => {
         const newMembersIdSet = new Set(prevMembersIdSet);
@@ -225,11 +264,13 @@ export default function HomePage({
       });
       setLoadingFilteredMembers(false);
     }
+
     setListItemActive(filtersList, setFiltersList, id);
     setListItemActive(focuses, setFocuses, id);
     setListItemActive(industries, setIndustries, id);
     setListItemActive(experiences, setExperiences, id);
     setListItemActive(regions, setRegions, id);
+
     if (activeFilters.find((item) => item.id === id)) {
       setActiveFilters(activeFilters.filter((item) => item?.id !== id));
     } else {
@@ -253,18 +294,56 @@ export default function HomePage({
     setLoadingMoreMembers(true);
     try {
       let membersNotInList = null;
-      while (!membersNotInList) {
-        const response = await fetch(
-          `/api/members?cursor=${membersCursor}&withoutFilters=true`,
+
+      if (ENV_CONFIG.isDevelopment) {
+        const { mockGetMembers } = await import(
+          "@/lib/firebase-helpers/stubApi"
         );
-        const data = await response.json();
-        membersNotInList = data.members.filter(
+        const allMockMembers = mockGetMembers(100);
+
+        const currentIndex = membersCursor
+          ? allMockMembers.findIndex((m) => m.id === membersCursor)
+          : -1;
+
+        const startIndex = currentIndex + 1;
+        const endIndex = Math.min(startIndex + 25, allMockMembers.length);
+        const nextBatch = allMockMembers.slice(startIndex, endIndex);
+
+        membersNotInList = nextBatch.filter(
           (member) => !membersIdSet.has(member.id),
         );
-        setMembersCursor(data.cursor);
-        setCanLoadMoreMembers(data.hasMore);
+
+        const newCursor =
+          nextBatch.length > 0 ? nextBatch[nextBatch.length - 1].id : null;
+        setMembersCursor(newCursor);
+        setCanLoadMoreMembers(endIndex < allMockMembers.length);
+      } else {
+        while (!membersNotInList) {
+          const response = await fetch(
+            `/api/members?cursor=${membersCursor}&withoutFilters=true`,
+          );
+          const data = await response.json();
+          if (!data.members || !Array.isArray(data.members)) {
+            console.error("Invalid response from API:", data);
+            setCanLoadMoreMembers(false);
+            return;
+          }
+
+          membersNotInList = data.members.filter(
+            (member) => !membersIdSet.has(member.id),
+          );
+          setMembersCursor(data.cursor);
+          setCanLoadMoreMembers(data.hasMore);
+        }
       }
-      const transformedMembers = await handleFetchedMembers(membersNotInList);
+
+      let transformedMembers;
+      if (ENV_CONFIG.isDevelopment) {
+        transformedMembers = membersNotInList.map(transformMemberData);
+      } else {
+        transformedMembers = await handleFetchedMembers(membersNotInList);
+      }
+
       setMembers((prevMembers) => [...prevMembers, ...transformedMembers]);
       setMembersIdSet((prevMembersIdSet) => {
         const newMembersIdSet = new Set(prevMembersIdSet);

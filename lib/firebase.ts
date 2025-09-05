@@ -2,6 +2,7 @@ import { getFirestore } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { getStorage } from "firebase/storage";
+import { ENV_CONFIG } from "@/lib/config/environment";
 
 export const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -13,11 +14,34 @@ export const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-const app = initializeApp(firebaseConfig);
-const provider = new GoogleAuthProvider();
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const storage = getStorage(app);
+const isFirebaseConfigValid = () => {
+  return !!(
+    firebaseConfig.apiKey &&
+    firebaseConfig.authDomain &&
+    firebaseConfig.projectId
+  );
+};
+
+let app = null;
+let provider = null;
+let auth = null;
+let db = null;
+let storage = null;
+
+if (!ENV_CONFIG.isDevelopment && isFirebaseConfigValid()) {
+  app = initializeApp(firebaseConfig);
+  provider = new GoogleAuthProvider();
+  auth = getAuth(app);
+  db = getFirestore(app);
+  storage = getStorage(app);
+} else {
+  console.warn(
+    "Firebase config not provided or in development mode. Firebase functionality is disabled.",
+  );
+}
+
+export { auth, db, storage };
+
 export const signInWithGoogle = () => {
   signInWithPopup(auth, provider)
     .then((result) => {

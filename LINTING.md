@@ -19,7 +19,10 @@ pnpm run type-check
 # Format code with Prettier
 pnpm run format
 
-# Run both type checking and linting
+# Check if code is properly formatted (doesn't modify files)
+pnpm run format:check
+
+# Run all checks (type checking, linting, and format checking)
 pnpm run check
 ```
 
@@ -94,7 +97,26 @@ pnpm run lint:fix
 3. **Use auto-fix**: Run `pnpm run lint:fix` to automatically fix issues
 4. **Check types**: Run `pnpm run type-check` before major changes
 5. **Format code**: Use `pnpm run format` to maintain consistent formatting
-6. **Commit hooks**: Consider adding pre-commit hooks for automatic formatting
+6. **Run all checks**: Use `pnpm run check` before committing
+7. **Commit hooks**: Consider adding pre-commit hooks for automatic formatting
+
+## 🔄 **GitHub Actions Integration**
+
+This project includes GitHub Actions that automatically run quality checks on every pull request to the `main` branch:
+
+- **Type Checking**: Ensures TypeScript types are correct (`pnpm run type-check`)
+- **ESLint**: Checks code quality and enforces coding standards (`pnpm run lint`)
+- **Format Checking**: Verifies code is properly formatted with Prettier (`pnpm run format:check`)
+
+**Note**: The build check is currently disabled due to Firebase dependencies in `getStaticProps` that require real credentials. This will be re-enabled once mock data is properly implemented for CI environments.
+
+All checks must pass before a pull request can be merged. If any check fails:
+
+1. **Formatting Issues**: Run `pnpm run format` to fix automatically
+2. **Lint Issues**: Run `pnpm run lint:fix` for auto-fixable issues
+3. **Type Issues**: Fix TypeScript errors manually
+
+You can run the same checks locally with `pnpm run check` before pushing.
 
 ## 📈 **Performance Impact**
 
