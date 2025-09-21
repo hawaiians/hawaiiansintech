@@ -40,11 +40,7 @@ export default async function handler(
 ) {
   try {
     checkMethods(req.method, ["POST"]);
-    if (req.method === "POST") {
-      await postHandler(req, res);
-    } else {
-      res.status(405).json({ message: "Only POST requests allowed" });
-    }
+    await postHandler(req, res);
   } catch (error) {
     return handleApiErrors(error, res);
   }

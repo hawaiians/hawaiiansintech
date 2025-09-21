@@ -6,6 +6,7 @@ import {
   TokenVerificationError,
   InvalidApiMethodError,
 } from "@/lib/api-helpers/errors";
+import { testInvalidToken, testUnexpectedError } from "./api-test-utils";
 
 // Mock the auth module
 jest.mock("@/lib/api-helpers/auth", () => ({
@@ -57,7 +58,8 @@ describe("/api/is-admin", () => {
     expect(res._getData()).toEqual({ isAdmin: false });
   });
 
-  it("should handle auth errors", async () => {
+  // Common API tests using utilities
+  it("should handle missing authorization header", async () => {
     const { req, res } = createMocks({
       method: "GET",
       headers: {},
@@ -75,24 +77,15 @@ describe("/api/is-admin", () => {
     });
   });
 
-  it("should handle token verification errors", async () => {
-    const { req, res } = createMocks({
-      method: "GET",
-      headers: { authorization: "Bearer invalid-token" },
-    });
-
-    (auth.verifyAuthHeader as jest.Mock).mockResolvedValue("invalid-token");
-    (auth.verifyAdminToken as jest.Mock).mockRejectedValue(
-      new TokenVerificationError("Invalid token"),
-    );
-
-    await handler(req, res);
-
-    expect(res._getStatusCode()).toBe(401);
-    expect(JSON.parse(res._getData())).toEqual({
-      message: "Invalid token",
-    });
-  });
+  it(
+    "should handle token verification errors",
+    testInvalidToken(handler, "GET", () => {
+      (auth.verifyAuthHeader as jest.Mock).mockResolvedValue("invalid-token");
+      (auth.verifyAdminToken as jest.Mock).mockRejectedValue(
+        new TokenVerificationError("Invalid token"),
+      );
+    }),
+  );
 
   it("should return 405 for unsupported HTTP methods", async () => {
     const { req, res } = createMocks({
@@ -108,21 +101,17 @@ describe("/api/is-admin", () => {
     });
   });
 
-  it("should handle unexpected errors", async () => {
-    const { req, res } = createMocks({
-      method: "GET",
-      headers: { authorization: "Bearer token" },
-    });
-
-    (auth.verifyAuthHeader as jest.Mock).mockRejectedValue(
-      new Error("Unexpected error"),
-    );
-
-    await handler(req, res);
-
-    expect(res._getStatusCode()).toBe(500);
-    expect(JSON.parse(res._getData())).toEqual({
-      message: "Unexpected error",
-    });
-  });
+  it(
+    "should handle unexpected errors",
+    testUnexpectedError(
+      handler,
+      "GET",
+      () => {
+        (auth.verifyAuthHeader as jest.Mock).mockRejectedValue(
+          new Error("Unexpected error"),
+        );
+      },
+      { authorization: "Bearer token" },
+    ),
+  );
 });
