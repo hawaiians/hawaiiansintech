@@ -113,14 +113,22 @@ export function testUnexpectedError(
   method: string,
   mockSetup: () => void,
   headers?: any,
-  body?: any,
+  queryOrBody?: any,
 ) {
   return async () => {
-    const { req, res } = createMocks({
+    const mockData: any = {
       method: method as any,
       headers: headers || { authorization: "Bearer token" },
-      body: body || {},
-    });
+    };
+
+    // For GET requests, use query parameters; for others, use body
+    if (method === "GET") {
+      mockData.query = queryOrBody || {};
+    } else {
+      mockData.body = queryOrBody || {};
+    }
+
+    const { req, res } = createMocks(mockData);
 
     mockSetup();
     await handler(req as any, res as any);
