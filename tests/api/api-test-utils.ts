@@ -138,3 +138,154 @@ export function testUnexpectedError(
     expect(response.message).toBe("Unexpected error");
   };
 }
+
+/**
+ * Enhanced test generators for common patterns
+ */
+
+/**
+ * Generate authentication tests for an endpoint
+ */
+export function generateAuthTests(handler: any, method: string = "GET") {
+  return {
+    missingHeader: testMissingAuthHeader(handler, method),
+    invalidToken: testInvalidToken(handler, method),
+  };
+}
+
+/**
+ * Generate validation tests for body parameters
+ */
+export function generateBodyValidationTests(
+  handler: any,
+  requiredParams: string[],
+  method: string = "POST",
+) {
+  return requiredParams.reduce(
+    (tests, param) => {
+      tests[`missing_${param}`] = testMissingBodyParam(
+        handler,
+        method,
+        {},
+        param,
+      );
+      return tests;
+    },
+    {} as Record<string, () => Promise<void>>,
+  );
+}
+
+/**
+ * Test suite generator for complete endpoint coverage
+ */
+export function generateEndpointTests(
+  handler: any,
+  config: {
+    allowedMethods: string[];
+    requiresAuth?: boolean;
+    bodyParams?: string[];
+    queryParams?: string[];
+    customTests?: Record<string, () => Promise<void>>;
+  },
+) {
+  describe("Common endpoint tests", () => {
+    // Method validation
+    const forbiddenMethods = ["GET", "POST", "PUT", "PATCH", "DELETE"].filter(
+      (method) => !config.allowedMethods.includes(method),
+    );
+
+    forbiddenMethods.forEach((method) => {
+      it(
+        `should reject ${method} requests`,
+        testInvalidMethod(handler, method),
+      );
+    });
+
+    // Authentication tests
+    if (config.requiresAuth) {
+      describe("Authentication", () => {
+        const authTests = generateAuthTests(handler, config.allowedMethods[0]);
+
+        it("should reject missing auth header", authTests.missingHeader);
+        it("should reject invalid token", authTests.invalidToken);
+      });
+    }
+
+    // Body validation tests
+    if (config.bodyParams?.length) {
+      describe("Body validation", () => {
+        const validationTests = generateBodyValidationTests(
+          handler,
+          config.bodyParams,
+          config.allowedMethods.find((m) => m !== "GET") || "POST",
+        );
+
+        Object.entries(validationTests).forEach(([name, test]) => {
+          it(`should reject ${name.replace("_", " ")}`, test);
+        });
+      });
+    }
+
+    // Custom tests
+    if (config.customTests) {
+      describe("Custom scenarios", () => {
+        Object.entries(config.customTests).forEach(([name, test]) => {
+          it(name, test);
+        });
+      });
+    }
+  });
+}
+
+/**
+ * Response assertion helpers
+ */
+export const expectApiResponse = {
+  success: (res: any, expectedData?: any) => {
+    expect(res._getStatusCode()).toBe(200);
+    if (expectedData) {
+      const data = JSON.parse(res._getData());
+      expect(data).toEqual(expect.objectContaining(expectedData));
+    }
+  },
+
+  error: (
+    res: any,
+    expectedStatus: number,
+    expectedMessage?: string | RegExp,
+  ) => {
+    expect(res._getStatusCode()).toBe(expectedStatus);
+    const data = JSON.parse(res._getData());
+
+    if (typeof expectedMessage === "string") {
+      expect(data.message).toBe(expectedMessage);
+    } else if (expectedMessage instanceof RegExp) {
+      expect(data.message).toMatch(expectedMessage);
+    }
+  },
+
+  hasFields: (res: any, fields: string[]) => {
+    expect(res._getStatusCode()).toBe(200);
+    const data = JSON.parse(res._getData());
+    fields.forEach((field) => {
+      expect(data).toHaveProperty(field);
+    });
+  },
+};
+
+/**
+ * Mock assertion helpers
+ */
+export const expectMockCalls = {
+  toHaveBeenCalledOnce: (mockFn: jest.Mock) => {
+    expect(mockFn).toHaveBeenCalledTimes(1);
+  },
+
+  toHaveBeenCalledWith: (mockFn: jest.Mock, expectedArgs: any[]) => {
+    expect(mockFn).toHaveBeenCalledWith(...expectedArgs);
+  },
+
+  notToHaveBeenCalled: (mockFn: jest.Mock) => {
+    expect(mockFn).not.toHaveBeenCalled();
+  },
+};

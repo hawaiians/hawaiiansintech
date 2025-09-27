@@ -1,29 +1,19 @@
 import { createMocks } from "node-mocks-http";
 import { NextApiRequest, NextApiResponse } from "next";
-import handler from "@/pages/api/verify-email";
-import * as auth from "@/lib/api-helpers/auth";
-import * as emails from "@/lib/firebase-helpers/emails";
-import {
-  MissingBodyParamError,
-  InvalidApiMethodError,
-  CloudflareVerificationError,
-} from "@/lib/api-helpers/errors";
 import {
   testMissingBodyParam,
   testInvalidMethod,
   testUnexpectedError,
 } from "./api-test-utils";
+import { createStandardMocks, setupHelpers } from "./working-mocks";
+import {
+  MissingBodyParamError,
+  InvalidApiMethodError,
+  CloudflareVerificationError,
+} from "@/lib/api-helpers/errors";
 
-// Mock dependencies
-jest.mock("@/lib/api-helpers/auth", () => ({
-  verifyTurnstileToken: jest.fn(),
-}));
-
-jest.mock("@/lib/firebase-helpers/emails", () => ({
-  getEmails: jest.fn(),
-  sendVerificationEmail: jest.fn(),
-}));
-
+jest.mock("@/lib/api-helpers/auth", () => createStandardMocks.auth());
+jest.mock("@/lib/firebase-helpers/emails", () => createStandardMocks.emails());
 jest.mock("@/lib/api-helpers/format", () => ({
   checkMethods: jest.fn((method, allowedMethods) => {
     if (!allowedMethods.includes(method)) {
@@ -39,10 +29,12 @@ jest.mock("@/lib/api-helpers/format", () => ({
   }),
 }));
 
+import handler from "@/pages/api/verify-email";
+import * as auth from "@/lib/api-helpers/auth";
+import * as emails from "@/lib/firebase-helpers/emails";
+
 describe("/api/verify-email", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+  beforeEach(setupHelpers.beforeEach);
 
   it("should send verification email for valid member", async () => {
     const { req, res } = createMocks({

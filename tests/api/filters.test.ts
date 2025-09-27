@@ -1,33 +1,24 @@
 import { createMocks } from "node-mocks-http";
 import { NextApiRequest, NextApiResponse } from "next";
-import handler from "@/pages/api/filters";
-import * as filtersHelper from "@/lib/firebase-helpers/filters";
+import { testInvalidMethod, testUnexpectedError } from "./api-test-utils";
+import { createStandardMocks, setupHelpers } from "./working-mocks";
 import {
   InvalidEnumValueError,
   InvalidQueryParamTypeError,
   InvalidApiMethodError,
 } from "@/lib/api-helpers/errors";
-import { testInvalidMethod, testUnexpectedError } from "./api-test-utils";
 import { FirebaseTablesEnum } from "@/lib/enums";
 
-// Mock dependencies
-jest.mock("@/lib/firebase-helpers/filters", () => ({
-  getFilters: jest.fn(),
-}));
+jest.mock("@/lib/firebase-helpers/filters", () =>
+  createStandardMocks.filters(),
+);
+jest.mock("@/lib/api-helpers/format", () => createStandardMocks.format());
 
-jest.mock("@/lib/api-helpers/format", () => ({
-  checkMethods: jest.fn((method, allowedMethods) => {
-    if (!allowedMethods.includes(method)) {
-      throw new InvalidApiMethodError(`Method ${method} not allowed`);
-    }
-  }),
-  checkQueryParams: jest.fn(),
-}));
+import handler from "@/pages/api/filters";
+import * as filtersHelper from "@/lib/firebase-helpers/filters";
 
 describe("/api/filters", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+  beforeEach(setupHelpers.beforeEach);
 
   describe("GET requests", () => {
     it("should return filters for focuses table", async () => {
@@ -206,13 +197,11 @@ describe("/api/filters", () => {
       handler,
       "GET",
       () => {
-        // Mock getFilters to throw an unexpected error
         const { getFilters } = require("@/lib/firebase-helpers/filters");
         getFilters.mockRejectedValue(new Error("Unexpected error"));
 
-        // Ensure checkQueryParams passes for this test
         const { checkQueryParams } = require("@/lib/api-helpers/format");
-        checkQueryParams.mockImplementation(() => {}); // Do nothing, let it pass
+        checkQueryParams.mockImplementation(() => {});
       },
       {},
       { filterTable: "focuses" },

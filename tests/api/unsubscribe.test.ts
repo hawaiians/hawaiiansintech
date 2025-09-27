@@ -1,7 +1,11 @@
 import { createMocks } from "node-mocks-http";
 import { NextApiRequest, NextApiResponse } from "next";
-import handler from "@/pages/api/unsubscribe";
-import * as auth from "@/lib/api-helpers/auth";
+import { testInvalidMethod, testUnexpectedError } from "./api-test-utils";
+import {
+  createStandardMocks,
+  createMockScenarios,
+  setupHelpers,
+} from "./working-mocks";
 import {
   InvalidApiMethodError,
   MissingHeaderError,
@@ -9,68 +13,25 @@ import {
   MissingQueryParamError,
   InvalidBodyParamTypeError,
 } from "@/lib/api-helpers/errors";
-import { testInvalidMethod, testUnexpectedError } from "./api-test-utils";
 
-jest.mock("@/lib/api-helpers/auth", () => ({
-  verifyAuthHeader: jest.fn(),
-  verifyAdminToken: jest.fn(),
-}));
+jest.mock("@/lib/api-helpers/auth", () => createStandardMocks.auth());
+jest.mock("@/lib/firebase-helpers/initializeAdmin", () =>
+  createStandardMocks.initializeAdmin(),
+);
+jest.mock("@/lib/api-helpers/format", () => createStandardMocks.format());
+jest.mock("firebase-admin", () => createStandardMocks.firebaseAdmin());
+jest.mock("crypto", () => createStandardMocks.crypto());
 
-jest.mock("@/lib/firebase-helpers/initializeAdmin", () => ({
-  initializeAdmin: jest.fn(),
-}));
-
-jest.mock("@/lib/api-helpers/format", () => ({
-  checkMethods: jest.fn((method, allowedMethods) => {
-    if (!allowedMethods.includes(method)) {
-      throw new InvalidApiMethodError(`Method ${method} not allowed`);
-    }
-  }),
-  checkQueryParams: jest.fn((req, params) => {
-    if (req.query.uid === undefined) {
-      throw new MissingQueryParamError("uid");
-    }
-    if (Array.isArray(req.query.uid)) {
-      throw new InvalidBodyParamTypeError("id", "string");
-    }
-  }),
-  checkBodyParams: jest.fn((req, params) => {
-    if (!req.body.uid) {
-      throw new MissingBodyParamError("uid");
-    }
-    if (!req.body.unsubKey) {
-      throw new MissingBodyParamError("unsubKey");
-    }
-  }),
-}));
-
-jest.mock("firebase-admin", () => ({
-  firestore: jest.fn(() => ({
-    collection: jest.fn(() => ({
-      doc: jest.fn(() => ({
-        get: jest.fn(),
-        update: jest.fn(),
-      })),
-    })),
-    FieldValue: {
-      serverTimestamp: jest.fn(() => "mock-timestamp"),
-    },
-  })),
-  apps: [],
-  initializeApp: jest.fn(),
-  credential: {
-    cert: jest.fn(),
-    applicationDefault: jest.fn(),
-  },
-}));
-
-jest.mock("crypto", () => ({
-  randomBytes: jest.fn(() => ({
-    toString: jest.fn(() => "abc123"),
-  })),
-}));
+import handler from "@/pages/api/unsubscribe";
+import * as auth from "@/lib/api-helpers/auth";
 
 describe("/api/unsubscribe", () => {
+  const mockFormat = require("@/lib/api-helpers/format");
+  const mockScenarios = createMockScenarios({
+    auth,
+    format: mockFormat,
+  });
+
   const mockFirestore = require("firebase-admin").firestore;
   const mockInitializeAdmin =
     require("@/lib/firebase-helpers/initializeAdmin").initializeAdmin;
@@ -80,7 +41,7 @@ describe("/api/unsubscribe", () => {
   } = require("@/lib/api-helpers/format");
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    setupHelpers.resetMocks();
     (checkQueryParams as jest.Mock).mockImplementation((req, params) => {
       if (req.query.uid === undefined) {
         throw new MissingQueryParamError("uid");
@@ -107,8 +68,7 @@ describe("/api/unsubscribe", () => {
         headers: { authorization: "Bearer admin-token" },
       });
 
-      (auth.verifyAuthHeader as jest.Mock).mockResolvedValue("admin-token");
-      (auth.verifyAdminToken as jest.Mock).mockResolvedValue(true);
+      mockScenarios.validAdmin();
       (checkQueryParams as jest.Mock).mockImplementation(() => {});
 
       const mockDoc = {
@@ -129,7 +89,6 @@ describe("/api/unsubscribe", () => {
       await handler(req as any, res as any);
 
       expect(res._getStatusCode()).toBe(200);
-      // The API uses res.send() not res.json(), so parse differently
       const responseData = res._getData();
       expect(responseData).toEqual({
         unsubKey: "existing-key",
@@ -140,7 +99,7 @@ describe("/api/unsubscribe", () => {
     it("should handle array uid query parameter error", async () => {
       const { req, res } = createMocks({
         method: "GET",
-        query: { uid: ["user1", "user2"] }, // Array instead of string
+        query: { uid: ["user1", "user2"] },
         headers: { authorization: "Bearer admin-token" },
       });
 
@@ -175,7 +134,7 @@ describe("/api/unsubscribe", () => {
         get: jest
           .fn()
           .mockReturnValueOnce("valid-key")
-          .mockReturnValueOnce(true), // unsubscribed status = true
+          .mockReturnValueOnce(true),
       };
       const mockSecureDocRef = {
         get: jest.fn().mockResolvedValue(mockSecureDoc),
@@ -190,7 +149,7 @@ describe("/api/unsubscribe", () => {
       await handler(req as any, res as any);
 
       expect(res._getStatusCode()).toBe(200);
-      const responseData = JSON.parse(res._getData()); // PATCH uses res.json()
+      const responseData = JSON.parse(res._getData());
       expect(responseData).toEqual({
         message: "Successfully unsubscribed member with uid user123",
       });
@@ -209,7 +168,6 @@ describe("/api/unsubscribe", () => {
       (auth.verifyAdminToken as jest.Mock).mockResolvedValue(true);
       (checkQueryParams as jest.Mock).mockImplementation(() => {});
 
-      // Mock Firebase operations - user doesn't exist
       const mockDoc = {
         exists: false,
       };
@@ -240,7 +198,7 @@ describe("/api/unsubscribe", () => {
 
       const mockSecureDoc = {
         exists: true,
-        get: jest.fn().mockReturnValue("valid-key"), // Different from provided key
+        get: jest.fn().mockReturnValue("valid-key"),
       };
       const mockSecureDocRef = {
         get: jest.fn().mockResolvedValue(mockSecureDoc),

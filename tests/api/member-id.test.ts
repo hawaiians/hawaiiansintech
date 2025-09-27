@@ -1,41 +1,27 @@
 import { createMocks } from "node-mocks-http";
 import { NextApiRequest, NextApiResponse } from "next";
-import handler from "@/pages/api/member-id";
-import * as auth from "@/lib/api-helpers/auth";
-import * as emails from "@/lib/firebase-helpers/emails";
-import {
-  MissingHeaderError,
-  TokenVerificationError,
-  InvalidApiMethodError,
-} from "@/lib/api-helpers/errors";
 import {
   testMissingAuthHeader,
   testInvalidToken,
   testUnexpectedError,
 } from "./api-test-utils";
+import { createStandardMocks, setupHelpers } from "./working-mocks";
+import {
+  MissingHeaderError,
+  TokenVerificationError,
+  InvalidApiMethodError,
+} from "@/lib/api-helpers/errors";
 
-// Mock dependencies
-jest.mock("@/lib/api-helpers/auth", () => ({
-  verifyAuthHeader: jest.fn(),
-  verifyEmailAuthToken: jest.fn(),
-}));
+jest.mock("@/lib/api-helpers/auth", () => createStandardMocks.auth());
+jest.mock("@/lib/firebase-helpers/emails", () => createStandardMocks.emails());
+jest.mock("@/lib/api-helpers/format", () => createStandardMocks.format());
 
-jest.mock("@/lib/firebase-helpers/emails", () => ({
-  getEmails: jest.fn(),
-}));
-
-jest.mock("@/lib/api-helpers/format", () => ({
-  checkMethods: jest.fn((method, allowedMethods) => {
-    if (!allowedMethods.includes(method)) {
-      throw new InvalidApiMethodError(`Method ${method} not allowed`);
-    }
-  }),
-}));
+import handler from "@/pages/api/member-id";
+import * as auth from "@/lib/api-helpers/auth";
+import * as emails from "@/lib/firebase-helpers/emails";
 
 describe("/api/member-id", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+  beforeEach(setupHelpers.beforeEach);
 
   it("should return memberId for valid token", async () => {
     const { req, res } = createMocks({
@@ -105,7 +91,6 @@ describe("/api/member-id", () => {
     });
   });
 
-  // Common error handling tests using DRY utilities
   it("should handle missing authorization header", async () => {
     const { req, res } = createMocks({
       method: "GET",

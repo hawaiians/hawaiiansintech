@@ -1,32 +1,26 @@
 import { createMocks } from "node-mocks-http";
-import handler from "@/pages/api/is-admin";
-import * as auth from "@/lib/api-helpers/auth";
+import { testInvalidToken, testUnexpectedError } from "./api-test-utils";
+import {
+  createStandardMocks,
+  createMockScenarios,
+  setupHelpers,
+} from "./working-mocks";
 import {
   MissingHeaderError,
   TokenVerificationError,
   InvalidApiMethodError,
 } from "@/lib/api-helpers/errors";
-import { testInvalidToken, testUnexpectedError } from "./api-test-utils";
 
-// Mock the auth module
-jest.mock("@/lib/api-helpers/auth", () => ({
-  verifyAuthHeader: jest.fn(),
-  verifyAdminToken: jest.fn(),
-}));
+jest.mock("@/lib/api-helpers/auth", () => createStandardMocks.auth());
+jest.mock("@/lib/api-helpers/format", () => createStandardMocks.format());
 
-// Mock the format module
-jest.mock("@/lib/api-helpers/format", () => ({
-  checkMethods: jest.fn((method, allowedMethods) => {
-    if (!allowedMethods.includes(method)) {
-      throw new InvalidApiMethodError(`Method ${method} not allowed`);
-    }
-  }),
-}));
+import handler from "@/pages/api/is-admin";
+import * as auth from "@/lib/api-helpers/auth";
 
 describe("/api/is-admin", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+  const mockScenarios = createMockScenarios({ auth });
+
+  beforeEach(setupHelpers.beforeEach);
 
   it("should return isAdmin: true for valid admin token", async () => {
     const { req, res } = createMocks({
@@ -34,8 +28,7 @@ describe("/api/is-admin", () => {
       headers: { authorization: "Bearer admin-token" },
     });
 
-    (auth.verifyAuthHeader as jest.Mock).mockResolvedValue("admin-token");
-    (auth.verifyAdminToken as jest.Mock).mockResolvedValue(true);
+    mockScenarios.validAdmin();
 
     await handler(req, res);
 
@@ -49,8 +42,7 @@ describe("/api/is-admin", () => {
       headers: { authorization: "Bearer user-token" },
     });
 
-    (auth.verifyAuthHeader as jest.Mock).mockResolvedValue("user-token");
-    (auth.verifyAdminToken as jest.Mock).mockResolvedValue(false);
+    mockScenarios.validUser();
 
     await handler(req, res);
 
@@ -58,7 +50,6 @@ describe("/api/is-admin", () => {
     expect(res._getData()).toEqual({ isAdmin: false });
   });
 
-  // Common API tests using utilities
   it("should handle missing authorization header", async () => {
     const { req, res } = createMocks({
       method: "GET",
