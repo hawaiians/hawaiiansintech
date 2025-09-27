@@ -5,7 +5,7 @@ import {
   testInvalidToken,
   testUnexpectedError,
 } from "./api-test-utils";
-import { createStandardMocks, setupHelpers } from "./working-mocks";
+import { createStandardMocks, setupHelpers } from "./test-mocks";
 import {
   MissingHeaderError,
   TokenVerificationError,

@@ -1,7 +1,7 @@
 import { createMocks } from "node-mocks-http";
 import { NextApiRequest, NextApiResponse } from "next";
 import { testInvalidMethod, testUnexpectedError } from "./api-test-utils";
-import { createStandardMocks, setupHelpers } from "./working-mocks";
+import { createStandardMocks, setupHelpers } from "./test-mocks";
 import {
   InvalidEnumValueError,
   InvalidQueryParamTypeError,

@@ -83,49 +83,6 @@ pnpm run test:unit:coverage
 pnpm run test:unit tests/api/is-admin.test.ts
 ```
 
-### Writing Tests
-
-Our API tests follow this pattern using `@/` path aliases and the project's error handling:
-
-```typescript
-import { createMocks } from "node-mocks-http";
-import handler from "@/pages/api/your-endpoint";
-
-// Mock dependencies using @/ paths
-jest.mock("@/lib/api-helpers/auth", () => ({
-  verifyAuthHeader: jest.fn(),
-  verifyAdminToken: jest.fn(),
-}));
-
-describe("/api/your-endpoint", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it("should handle valid requests", async () => {
-    const { req, res } = createMocks({
-      method: "GET",
-      headers: { authorization: "Bearer valid-token" },
-    });
-
-    await handler(req, res);
-
-    expect(res._getStatusCode()).toBe(200);
-    expect(res._getData()).toEqual({ expected: "response" });
-  });
-
-  it("should return 401 for unauthorized requests", async () => {
-    // Test error cases following project patterns
-  });
-});
-```
-
-### Testing Strategy
-
-- **API Coverage**: Comprehensive testing of authentication, validation, and error handling
-- **Mocking**: Firebase Admin SDK and auth helpers are automatically mocked in `jest.setup.js`
-- **Response Format**: API errors return `{ message: string }` format as defined in `@/lib/api-helpers/errors`
-
 ## Firebase Access
 
 If you are looking to access the Firebase data, please reach out to our Hawaiians In Tech website development team on our [Discord](https://discord.gg/p7338Z5MJQ).
