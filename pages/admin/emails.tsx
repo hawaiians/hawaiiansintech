@@ -11,7 +11,7 @@ import Plausible from "@/components/Plausible";
 import Tag, { TagVariant } from "@/components/Tag";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MemberEmail } from "@/lib/api";
+import { MemberEmail } from "@/lib/firebase-helpers/interfaces";
 import { StatusEnum } from "@/lib/enums";
 import { useIsAdmin } from "@/lib/hooks";
 import { CheckIcon, PlusIcon } from "@radix-ui/react-icons";
