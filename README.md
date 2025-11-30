@@ -63,6 +63,26 @@ pnpm run check
 
 See [LINTING.md](./LINTING.md) for detailed information about the linting setup.
 
+## Testing
+
+This project uses Jest for unit testing, particularly focused on API endpoint testing with comprehensive mocking for Firebase and external dependencies.
+
+### Test Commands
+
+```bash
+# Run all tests
+pnpm run test:unit
+
+# Run tests in watch mode (auto-reruns on file changes)
+pnpm run test:unit:watch
+
+# Run tests with coverage report
+pnpm run test:unit:coverage
+
+# Run specific test file
+pnpm run test:unit tests/api/is-admin.test.ts
+```
+
 ## Firebase Access
 
 If you are looking to access the Firebase data, please reach out to our Hawaiians In Tech website development team on our [Discord](https://discord.gg/p7338Z5MJQ).

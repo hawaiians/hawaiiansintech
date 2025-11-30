@@ -37,7 +37,7 @@ export class MissingQueryError extends Error {
 
 export class MissingQueryParamError extends Error {
   constructor(param: string) {
-    super(`Body parameter ${param} missing`);
+    super(`Query parameter ${param} missing`);
     this.name = "MissingQueryParamError";
   }
 }
@@ -106,6 +106,7 @@ export function handleApiErrors(error: Error, res: NextApiResponse) {
   if (
     error instanceof MissingHeaderError ||
     error instanceof MissingQueryError ||
+    error instanceof MissingQueryParamError ||
     error instanceof MissingBodyParamError ||
     error instanceof InvalidQueryParamTypeError ||
     error instanceof InvalidEnumValueError
