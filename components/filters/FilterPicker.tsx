@@ -1,6 +1,6 @@
 import { Filter } from "@/lib/firebase-helpers/interfaces";
 import { cn, compareByOrder } from "@/lib/utils";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import BigPill from "../BigPill";
 import Selectable, { SelectableSize } from "../form/Selectable";
 import Tabs, { TabsSize } from "../Tabs";
@@ -29,6 +29,7 @@ interface FilterPickerProps {
   onNameSearch?: (query: string) => void;
   onClearSearch?: () => void;
   isSearching?: boolean;
+  onEnterSearchMode?: () => void;
 }
 
 export default function FilterPicker({
@@ -45,6 +46,7 @@ export default function FilterPicker({
   onNameSearch,
   onClearSearch,
   isSearching,
+  onEnterSearchMode,
 }: FilterPickerProps) {
   const [focusActive, setFocusActive] = useState<boolean>(true);
   const [industryActive, setIndustryActive] = useState<boolean>();
@@ -52,7 +54,6 @@ export default function FilterPicker({
   const [experienceActive, setExperienceActive] = useState<boolean>();
   const filterIsSelected = activeFilters.length !== 0 || isSearching;
   const experienceOrder = Object.values(YearsOfExperienceEnum) as string[];
-
   const [showSearchInput, setShowSearchInput] = useState<boolean>(false);
 
   function activateFilter(
@@ -71,6 +72,15 @@ export default function FilterPicker({
     setFilter(true);
     onFilterSelect(filtertype);
   }
+
+  // When closing the search UI, clear the current search query/results.
+  // Note: we intentionally only depend on `showSearchInput` so this runs
+  // on the toggle transition, not every time the handler reference changes.
+  useEffect(() => {
+    if (!showSearchInput) {
+      onClearSearch?.();
+    }
+  }, [showSearchInput]);
 
   return (
     <>
@@ -120,7 +130,6 @@ export default function FilterPicker({
                       placeholder="Search by name"
                       autoFocus
                       value={nameSearchQuery || ""}
-                      onBlur={() => onClearSearch?.()}
                       onChange={(e) => {
                         const value = e.target.value;
                         onNameSearch?.(value);
@@ -174,7 +183,13 @@ export default function FilterPicker({
                 variant={showSearchInput ? "secondary" : "ghost"}
                 className={cn("h-10 w-12 rounded-full px-0 transition-all")}
                 size="icon"
-                onClick={() => setShowSearchInput(!showSearchInput)}
+                onClick={() => {
+                  const next = !showSearchInput;
+                  setShowSearchInput(next);
+                  if (next) {
+                    onEnterSearchMode?.();
+                  }
+                }}
               >
                 {showSearchInput ? (
                   <X className="size-5" />

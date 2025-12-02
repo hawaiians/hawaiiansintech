@@ -45,6 +45,15 @@ import { cloakEmail } from "@/helpers";
 import { addSecureEmail, getIdByEmail } from "./emails";
 import { db } from "@/lib/firebase";
 
+// Cache for name-searchable members to avoid repeated full-collection scans
+// This cache lives for the lifetime of the serverless/container process.
+let cachedSearchMembers:
+  | {
+      id: string;
+      member: Member;
+    }[]
+  | null = null;
+
 interface GetMembersOptions {
   token?: string;
   limit?: number;
@@ -605,47 +614,54 @@ async function getMembersTableWithNameSearch(
     return [];
   }
 
-  const documentsCollection = collection(
-    db,
-    FirebaseTablesEnum.MEMBERS,
-  ).withConverter(converter);
-  const queryConditions = [];
-
-  // Always filter by approved status for search (unless admin)
-  if (approved) {
-    queryConditions.push(where("status", "==", StatusEnum.APPROVED));
-  }
-
   // Trim and normalize the search query
   const searchLower = nameSearchQuery.trim().toLowerCase();
   if (!searchLower) {
     return [];
   }
 
-  // Fetch all members (handle pagination if needed)
-  let allDocs = [];
-  let lastDoc = null;
-  const batchSize = 1000; // Firestore limit per query
+  // Build cache on first search to minimize Firestore reads.
+  if (!cachedSearchMembers) {
+    const documentsCollection = collection(
+      db,
+      FirebaseTablesEnum.MEMBERS,
+    ).withConverter(converter);
+    const queryConditions = [];
 
-  do {
-    let q = query(documentsCollection, ...queryConditions);
-    if (lastDoc) {
-      q = query(q, startAfter(lastDoc));
+    // Always filter by approved status for search (unless admin)
+    if (approved) {
+      queryConditions.push(where("status", "==", StatusEnum.APPROVED));
     }
-    q = query(q, limit(batchSize));
 
-    const documentsSnapshot = await getDocs(q);
-    allDocs = allDocs.concat(documentsSnapshot.docs);
-    lastDoc =
-      documentsSnapshot.docs.length === batchSize
-        ? documentsSnapshot.docs[documentsSnapshot.docs.length - 1]
-        : null;
-  } while (lastDoc);
+    // Fetch all members (handle pagination if needed)
+    let allDocs = [];
+    let lastDoc = null;
+    const batchSize = 1000; // Firestore limit per query
+
+    do {
+      let q = query(documentsCollection, ...queryConditions);
+      if (lastDoc) {
+        q = query(q, startAfter(lastDoc));
+      }
+      q = query(q, limit(batchSize));
+
+      const documentsSnapshot = await getDocs(q);
+      allDocs = allDocs.concat(documentsSnapshot.docs);
+      lastDoc =
+        documentsSnapshot.docs.length === batchSize
+          ? documentsSnapshot.docs[documentsSnapshot.docs.length - 1]
+          : null;
+    } while (lastDoc);
+
+    cachedSearchMembers = allDocs.map((doc) => ({
+      id: doc.id,
+      member: doc.data(),
+    }));
+  }
 
   // Filter results server-side for case-insensitive partial matching
-  return allDocs
-    .map((doc) => {
-      const member = doc.data();
+  return cachedSearchMembers
+    .map(({ id, member }) => {
       // Check if member should be included based on permissions
       if (approved) {
         // For approved-only searches, only return approved members
@@ -653,7 +669,7 @@ async function getMembersTableWithNameSearch(
       } else if (isAdmin) {
         // Admins can see all members
         return member;
-      } else if (userId && doc.id === userId) {
+      } else if (userId && id === userId) {
         // Users can see their own member record
         return member;
       }

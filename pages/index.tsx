@@ -338,6 +338,16 @@ export default function HomePage({
     debouncedNameSearch(query);
   };
 
+  const handleEnterSearchMode = () => {
+    // Clear all active filters when entering search mode
+    setFocuses((prev) => prev.map((f) => ({ ...f, active: false })));
+    setIndustries((prev) => prev.map((f) => ({ ...f, active: false })));
+    setExperiences((prev) => prev.map((f) => ({ ...f, active: false })));
+    setRegions((prev) => prev.map((f) => ({ ...f, active: false })));
+    setActiveFilters([]);
+    setFiltersList(focuses.slice(0, 6));
+  };
+
   const handleFilter = async (id?: string) => {
     const filter = filtersList.filter((foc) => id === foc?.id)[0];
     const membersToLoad =
@@ -501,6 +511,7 @@ export default function HomePage({
             onNameSearch={handleNameSearchChange}
             onClearSearch={handleClearNameSearch}
             isSearching={isSearching}
+            onEnterSearchMode={handleEnterSearchMode}
           />
         )}
       </div>
