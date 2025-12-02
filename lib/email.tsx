@@ -8,9 +8,7 @@ let resend = null;
 if (process.env.RESEND_API_KEY) {
   resend = new Resend(process.env.RESEND_API_KEY);
 } else {
-  console.warn(
-    "Resend API key not provided. Email functionality is disabled.",
-  );
+  console.warn("Resend API key not provided. Email functionality is disabled.");
 }
 
 export interface SendConfirmationEmailProps {
