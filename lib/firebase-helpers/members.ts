@@ -597,42 +597,74 @@ async function getMembersTableWithNameSearch(
   isAdmin: boolean = false,
   userId?: string,
 ): Promise<Member[]> {
+  // For case-insensitive partial matching, we need to fetch all approved members
+  // and filter server-side, since Firestore doesn't support case-insensitive
+  // or partial (non-prefix) matching natively
+  if (!db) {
+    console.error("Firebase db is not initialized");
+    return [];
+  }
+
   const documentsCollection = collection(
     db,
     FirebaseTablesEnum.MEMBERS,
   ).withConverter(converter);
   const queryConditions = [];
 
-  // Always filter by approved status for search
+  // Always filter by approved status for search (unless admin)
   if (approved) {
     queryConditions.push(where("status", "==", StatusEnum.APPROVED));
   }
 
-  // Use Firestore's prefix matching for efficient queries
-  // This leverages Firestore's indexing
-  const searchLower = nameSearchQuery.toLowerCase();
-  // Use \uf8ff as the highest Unicode character for prefix matching
-  const searchUpper = nameSearchQuery + "\uf8ff";
+  // Trim and normalize the search query
+  const searchLower = nameSearchQuery.trim().toLowerCase();
+  if (!searchLower) {
+    return [];
+  }
 
-  // Query for prefix match (case-sensitive at Firestore level)
-  queryConditions.push(where("name", ">=", nameSearchQuery));
-  queryConditions.push(where("name", "<", searchUpper));
+  // Fetch all members (handle pagination if needed)
+  let allDocs = [];
+  let lastDoc = null;
+  const batchSize = 1000; // Firestore limit per query
 
-  const q = query(documentsCollection, ...queryConditions);
-  const documentsSnapshot = await getDocs(q);
+  do {
+    let q = query(documentsCollection, ...queryConditions);
+    if (lastDoc) {
+      q = query(q, startAfter(lastDoc));
+    }
+    q = query(q, limit(batchSize));
+
+    const documentsSnapshot = await getDocs(q);
+    allDocs = allDocs.concat(documentsSnapshot.docs);
+    lastDoc =
+      documentsSnapshot.docs.length === batchSize
+        ? documentsSnapshot.docs[documentsSnapshot.docs.length - 1]
+        : null;
+  } while (lastDoc);
 
   // Filter results server-side for case-insensitive partial matching
-  return documentsSnapshot.docs
+  return allDocs
     .map((doc) => {
-      if (approved || doc.id === userId || isAdmin) {
-        return doc.data();
+      const member = doc.data();
+      // Check if member should be included based on permissions
+      if (approved) {
+        // For approved-only searches, only return approved members
+        return member.status === StatusEnum.APPROVED ? member : null;
+      } else if (isAdmin) {
+        // Admins can see all members
+        return member;
+      } else if (userId && doc.id === userId) {
+        // Users can see their own member record
+        return member;
       }
+      // Default: don't include member
       return null;
     })
     .filter((member) => {
-      if (member === null) return false;
-      // Case-insensitive partial matching
-      const memberNameLower = member.name?.toLowerCase() || "";
+      if (member === null || !member.name) return false;
+      // Case-insensitive partial matching (matches anywhere in the name)
+      // Trim and normalize the member name for comparison
+      const memberNameLower = (member.name || "").trim().toLowerCase();
       return memberNameLower.includes(searchLower);
     });
 }

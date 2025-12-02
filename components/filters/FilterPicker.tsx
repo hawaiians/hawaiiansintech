@@ -7,7 +7,9 @@ import Tabs, { TabsSize } from "../Tabs";
 import { YearsOfExperienceEnum } from "@/lib/enums";
 import { LoadingSpinnerVariant } from "../LoadingSpinner";
 import LoadingSpinner from "../LoadingSpinner";
-import { motion, LayoutGroup } from "framer-motion";
+import { motion, LayoutGroup, AnimatePresence } from "framer-motion";
+import { Button } from "../ui/button";
+import { Search, X } from "lucide-react";
 
 export interface PickerFilter extends Filter {
   active?: boolean;
@@ -23,6 +25,10 @@ interface FilterPickerProps {
   totalMemberCount: number;
   selectedMemberCount?: number;
   viewAll?: boolean;
+  nameSearchQuery?: string;
+  onNameSearch?: (query: string) => void;
+  onClearSearch?: () => void;
+  isSearching?: boolean;
 }
 
 export default function FilterPicker({
@@ -35,13 +41,19 @@ export default function FilterPicker({
   selectedMemberCount,
   onViewAll,
   viewAll,
+  nameSearchQuery,
+  onNameSearch,
+  onClearSearch,
+  isSearching,
 }: FilterPickerProps) {
   const [focusActive, setFocusActive] = useState<boolean>(true);
   const [industryActive, setIndustryActive] = useState<boolean>();
   const [regionActive, setRegionActive] = useState<boolean>();
   const [experienceActive, setExperienceActive] = useState<boolean>();
-  const filterIsSelected = activeFilters.length !== 0;
+  const filterIsSelected = activeFilters.length !== 0 || isSearching;
   const experienceOrder = Object.values(YearsOfExperienceEnum) as string[];
+
+  const [showSearchInput, setShowSearchInput] = useState<boolean>(false);
 
   function activateFilter(
     setFilter: (value: boolean) => void,
@@ -91,42 +103,97 @@ export default function FilterPicker({
           )}
         >
           <div className="flex items-center gap-4 px-4 py-4 lg:px-8">
-            <Tabs
-              className="shrink-0"
-              size={TabsSize.Large}
-              items={[
-                {
-                  label: "Focus",
-                  selected: focusActive,
-                  onClick: () => activateFilter(setFocusActive, "focus"),
-                },
-                {
-                  label: "Industry",
-                  selected: industryActive,
-                  onClick: () => activateFilter(setIndustryActive, "industry"),
-                },
-                {
-                  label: "Experience",
-                  selected: experienceActive,
-                  onClick: () =>
-                    activateFilter(setExperienceActive, "experience"),
-                },
-                {
-                  label: "Location",
-                  selected: regionActive,
-                  onClick: () => activateFilter(setRegionActive, "region"),
-                },
-              ]}
-            />
+            <div className="flex gap-2">
+              <AnimatePresence mode="popLayout">
+                {showSearchInput ? (
+                  <motion.div
+                    key="search-input"
+                    layout
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.15, ease: "easeInOut" }}
+                    className="flex-1"
+                  >
+                    <input
+                      type="text"
+                      placeholder="Search by name"
+                      autoFocus
+                      value={nameSearchQuery || ""}
+                      onBlur={() => onClearSearch?.()}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        onNameSearch?.(value);
+                      }}
+                      className="w-full rounded-full border-none bg-tan-100 p-2 px-4 text-foreground outline-none placeholder:text-tan-800"
+                    />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="filter-tabs"
+                    layout
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.15, ease: "easeInOut" }}
+                  >
+                    <Tabs
+                      className="shrink-0"
+                      size={TabsSize.Large}
+                      items={[
+                        {
+                          label: "Focus",
+                          selected: focusActive,
+                          onClick: () =>
+                            activateFilter(setFocusActive, "focus"),
+                        },
+                        {
+                          label: "Industry",
+                          selected: industryActive,
+                          onClick: () =>
+                            activateFilter(setIndustryActive, "industry"),
+                        },
+                        {
+                          label: "Experience",
+                          selected: experienceActive,
+                          onClick: () =>
+                            activateFilter(setExperienceActive, "experience"),
+                        },
+                        {
+                          label: "Location",
+                          selected: regionActive,
+                          onClick: () =>
+                            activateFilter(setRegionActive, "region"),
+                        },
+                      ]}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <Button
+                variant={showSearchInput ? "secondary" : "ghost"}
+                className={cn("h-10 w-12 rounded-full px-0 transition-all")}
+                size="icon"
+                onClick={() => setShowSearchInput(!showSearchInput)}
+              >
+                {showSearchInput ? (
+                  <X className="size-5" />
+                ) : (
+                  <Search className="size-5" />
+                )}
+              </Button>
+            </div>
             <h4
               className={cn(
                 `shrink-0 grow text-right text-sm text-stone-600 sm:text-lg`,
                 filterIsSelected && "text-brown-600",
               )}
             >{`${
-              filterIsSelected
-                ? `Selected (${selectedMemberCount})`
-                : `All (${totalMemberCount})`
+              isSearching
+                ? `Search Results (${selectedMemberCount || 0})`
+                : filterIsSelected
+                  ? `Selected (${selectedMemberCount})`
+                  : `All (${totalMemberCount})`
             }`}</h4>
           </div>
         </div>

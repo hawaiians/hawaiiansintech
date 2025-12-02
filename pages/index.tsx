@@ -12,11 +12,6 @@ import { getFilters } from "@/lib/firebase-helpers/filters";
 import { filterLookup } from "@/lib/firebase-helpers/general";
 import { mockGetMembersWithFilters } from "@/lib/firebase-helpers/stubApi";
 import { ENV_CONFIG } from "@/lib/config/environment";
-import { Input } from "@/components/ui/input";
-import { Icon, IconAsset, IconSize } from "@/components/icon/icon";
-import LoadingSpinner, {
-  LoadingSpinnerVariant,
-} from "@/components/LoadingSpinner";
 import debounce from "lodash/debounce";
 
 export async function getStaticProps() {
@@ -284,21 +279,19 @@ export default function HomePage({
       try {
         let searchResults = [];
 
-        if (ENV_CONFIG.useMockData) {
-          const { mockGetMembers } = await import(
-            "@/lib/firebase-helpers/stubApi"
-          );
-          const allMockMembers = mockGetMembers(100);
-          const queryLower = query.toLowerCase();
-          searchResults = allMockMembers.filter((member) =>
-            member.name?.toLowerCase().includes(queryLower),
-          );
-          searchResults = searchResults.map(transformMemberData);
-        } else {
+        // Always try the API first (runs server-side, has access to Firebase env vars at runtime)
+        // Only fall back to mock data if the API call fails
+        try {
           const response = await fetch(
             `/api/members?nameSearchQuery=${encodeURIComponent(query)}&withoutFilters=true`,
           );
+
+          if (!response.ok) {
+            throw new Error(`API returned ${response.status}`);
+          }
+
           const data = await response.json();
+
           // Transform members for search results
           const newMembers = {};
           for (const member of data.members) {
@@ -312,6 +305,17 @@ export default function HomePage({
             newMembers[member.id] = memberData;
           }
           searchResults = Object.values(newMembers).map(transformMemberData);
+        } catch (apiError) {
+          // Fall back to mock data if API fails
+          const { mockGetMembers } = await import(
+            "@/lib/firebase-helpers/stubApi"
+          );
+          const allMockMembers = mockGetMembers(100);
+          const queryLower = query.toLowerCase();
+          searchResults = allMockMembers.filter((member) =>
+            member.name?.toLowerCase().includes(queryLower),
+          );
+          searchResults = searchResults.map(transformMemberData);
         }
 
         setMembers(searchResults);
@@ -327,7 +331,10 @@ export default function HomePage({
     [fetchedMembers, fetchedMembersCursor, focuses],
   );
 
-  const handleNameSearch = (query: string) => {
+  const handleNameSearchChange = (query: string) => {
+    // Update state immediately so input shows what user is typing
+    setNameSearchQuery(query);
+    // Trigger debounced search (handles empty query internally)
     debouncedNameSearch(query);
   };
 
@@ -476,35 +483,6 @@ export default function HomePage({
       <Nav />
       <div className="pt-[26vh]">
         <Title text="Hawaiians*in&nbsp;Technology" className="px-4 lg:px-8" />
-        <div className="px-4 lg:px-8">
-          <div className="relative mb-4 flex items-center gap-2">
-            <div className="relative flex-1">
-              <Input
-                type="text"
-                placeholder="Search by name..."
-                value={nameSearchQuery}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  setNameSearchQuery(value);
-                  handleNameSearch(value);
-                }}
-                className="w-full"
-              />
-              {nameSearchQuery && (
-                <button
-                  onClick={handleClearNameSearch}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 hover:bg-tan-300/50"
-                  aria-label="Clear search"
-                >
-                  <Icon asset={IconAsset.Close} size={IconSize.Small} />
-                </button>
-              )}
-            </div>
-            {loadingFilteredMembers && isSearching && (
-              <LoadingSpinner variant={LoadingSpinnerVariant.Invert} />
-            )}
-          </div>
-        </div>
         {focuses && (
           <FilterPicker
             filtersList={filtersList}
@@ -517,8 +495,12 @@ export default function HomePage({
               setFiltersList(focuses);
               setViewAll(false);
             }}
-            selectedMemberCount={isSearching ? membersCount : membersCount}
+            selectedMemberCount={membersCount}
             viewAll={viewAll}
+            nameSearchQuery={nameSearchQuery}
+            onNameSearch={handleNameSearchChange}
+            onClearSearch={handleClearNameSearch}
+            isSearching={isSearching}
           />
         )}
       </div>
