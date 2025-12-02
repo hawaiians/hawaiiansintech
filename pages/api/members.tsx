@@ -48,6 +48,9 @@ async function getHandler(req: NextApiRequest, res: NextApiResponse) {
     if (req.query.withoutFilters) {
       payload["includeFilters"] = false;
     }
+    if (req.query.nameSearchQuery) {
+      payload["nameSearchQuery"] = req.query.nameSearchQuery as string;
+    }
     data = await getMembers(payload);
   }
 

@@ -56,6 +56,7 @@ interface GetMembersOptions {
   experience?: FirestoreDocumentData[];
   memberIds?: string[];
   includeFilters?: boolean;
+  nameSearchQuery?: string;
 }
 
 interface PaginatedResponse {
@@ -75,6 +76,7 @@ export async function getMembers({
   experience,
   memberIds,
   includeFilters = true,
+  nameSearchQuery,
 }: GetMembersOptions = {}): Promise<{
   members: MemberPublic[];
   regions: FirestoreDocumentData[];
@@ -98,7 +100,16 @@ export async function getMembers({
 
   let membersArray = [];
   let membersPaginated = null;
-  if (paginated) {
+  if (nameSearchQuery && nameSearchQuery.trim() !== "") {
+    // Use name search function when search query is provided
+    membersArray = await getMembersTableWithNameSearch(
+      memberConverter,
+      nameSearchQuery,
+      !isAdmin,
+      isAdmin,
+      userId,
+    );
+  } else if (paginated) {
     membersPaginated = await getMembersTablePaged(
       memberConverter,
       limit,
@@ -577,6 +588,53 @@ export async function getMemberRef(uid: string): Promise<DocumentReference> {
     memberConverter,
   );
   return memberRef;
+}
+
+async function getMembersTableWithNameSearch(
+  converter: FirestoreDataConverter<Member>,
+  nameSearchQuery: string,
+  approved: boolean = false,
+  isAdmin: boolean = false,
+  userId?: string,
+): Promise<Member[]> {
+  const documentsCollection = collection(
+    db,
+    FirebaseTablesEnum.MEMBERS,
+  ).withConverter(converter);
+  const queryConditions = [];
+
+  // Always filter by approved status for search
+  if (approved) {
+    queryConditions.push(where("status", "==", StatusEnum.APPROVED));
+  }
+
+  // Use Firestore's prefix matching for efficient queries
+  // This leverages Firestore's indexing
+  const searchLower = nameSearchQuery.toLowerCase();
+  // Use \uf8ff as the highest Unicode character for prefix matching
+  const searchUpper = nameSearchQuery + "\uf8ff";
+
+  // Query for prefix match (case-sensitive at Firestore level)
+  queryConditions.push(where("name", ">=", nameSearchQuery));
+  queryConditions.push(where("name", "<", searchUpper));
+
+  const q = query(documentsCollection, ...queryConditions);
+  const documentsSnapshot = await getDocs(q);
+
+  // Filter results server-side for case-insensitive partial matching
+  return documentsSnapshot.docs
+    .map((doc) => {
+      if (approved || doc.id === userId || isAdmin) {
+        return doc.data();
+      }
+      return null;
+    })
+    .filter((member) => {
+      if (member === null) return false;
+      // Case-insensitive partial matching
+      const memberNameLower = member.name?.toLowerCase() || "";
+      return memberNameLower.includes(searchLower);
+    });
 }
 
 export async function getMembersTable(
