@@ -102,7 +102,7 @@ export default function FilterPicker({
             "after:fixed after:inset-y-0 after:right-0 after:z-10 after:w-4 after:bg-gradient-to-l after:from-background after:to-transparent",
           )}
         >
-          <div className="flex items-center gap-4 px-4 py-4 lg:px-8">
+          <div className="flex items-center gap-4 p-4 lg:px-8">
             <div className="flex gap-2">
               <AnimatePresence mode="popLayout">
                 {showSearchInput ? (
@@ -111,7 +111,7 @@ export default function FilterPicker({
                     layout
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
+                    exit={{ opacity: 0, y: 8 }}
                     transition={{ duration: 0.15, ease: "easeInOut" }}
                     className="flex-1"
                   >
@@ -134,7 +134,7 @@ export default function FilterPicker({
                     layout
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
+                    exit={{ opacity: 0, y: 8 }}
                     transition={{ duration: 0.15, ease: "easeInOut" }}
                   >
                     <Tabs
@@ -185,65 +185,75 @@ export default function FilterPicker({
             </div>
             <h4
               className={cn(
-                `shrink-0 grow text-right text-sm text-stone-600 sm:text-lg`,
+                `shrink-0 grow text-right text-sm text-stone-600 transition-opacity sm:text-lg`,
                 filterIsSelected && "text-brown-600",
+                showSearchInput && "opacity-0",
               )}
             >{`${
-              isSearching
-                ? `Search Results (${selectedMemberCount || 0})`
-                : filterIsSelected
-                  ? `Selected (${selectedMemberCount})`
-                  : `All (${totalMemberCount})`
+              filterIsSelected
+                ? `Selected (${selectedMemberCount})`
+                : `All (${totalMemberCount})`
             }`}</h4>
           </div>
         </div>
 
-        <ul className="flex flex-wrap gap-2 px-4 lg:px-8">
-          {(filtersList || [])
-            .filter((item) => item && item.id) // Filter out invalid items
-            .sort((a, b) => {
-              if (experienceActive) {
-                return compareByOrder(a, b, experienceOrder, "name");
-              } else {
-                return (b.count || 0) - (a.count || 0);
-              }
-            }) // sort experience filter explicitly, otherwise sort by count
-            .map((filter) => (
-              <li key={`focus-filter-${filter.id}`}>
-                <Selectable
-                  headline={filter.name || "Unnamed Filter"}
-                  onClick={() => onFilterClick(filter.id)}
-                  // TODO: fix inaccurate count
-                  //       - thinking it has something to do with non-approved
-                  // count={filter.count}
-                  selected={filter.active}
-                  disabled={filter.count === 0}
-                  centered
-                  size={SelectableSize.Large}
-                />
-              </li>
-            ))}
-          {viewAll && (
-            <li>
-              <button
-                className={`
-                  h-full
-                  rounded-lg
-                  border-4
-                  border-transparent
-                  bg-tan-300
-                  px-2
-                  py-1
-                  hover:border-tan-500/50
-                  hover:transition-all
-                `}
-                onClick={onViewAll}
-              >
-                ...
-              </button>
-            </li>
+        <AnimatePresence>
+          {!showSearchInput && (
+            <motion.ul
+              key="selectables-list"
+              initial={{ opacity: 1, height: "auto" }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.2, ease: "easeInOut" }}
+              className="flex flex-wrap gap-2 overflow-hidden px-4 lg:px-8"
+            >
+              {(filtersList || [])
+                .filter((item) => item && item.id) // Filter out invalid items
+                .sort((a, b) => {
+                  if (experienceActive) {
+                    return compareByOrder(a, b, experienceOrder, "name");
+                  } else {
+                    return (b.count || 0) - (a.count || 0);
+                  }
+                }) // sort experience filter explicitly, otherwise sort by count
+                .map((filter) => (
+                  <li key={`focus-filter-${filter.id}`}>
+                    <Selectable
+                      headline={filter.name || "Unnamed Filter"}
+                      onClick={() => onFilterClick(filter.id)}
+                      // TODO: fix inaccurate count
+                      //       - thinking it has something to do with non-approved
+                      // count={filter.count}
+                      selected={filter.active}
+                      disabled={filter.count === 0}
+                      centered
+                      size={SelectableSize.Large}
+                    />
+                  </li>
+                ))}
+              {viewAll && (
+                <li>
+                  <button
+                    className={`
+                        h-full
+                        rounded-lg
+                        border-4
+                        border-transparent
+                        bg-tan-300
+                        px-2
+                        py-1
+                        hover:border-tan-500/50
+                        hover:transition-all
+                      `}
+                    onClick={onViewAll}
+                  >
+                    ...
+                  </button>
+                </li>
+              )}
+            </motion.ul>
           )}
-        </ul>
+        </AnimatePresence>
       </div>
     </>
   );

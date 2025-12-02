@@ -59,7 +59,7 @@ export default function MemberDirectory({
       className={cn(
         `
         relative
-        mt-8
+        mt-4
         grid
         grid-flow-row
         grid-cols-1
