@@ -238,23 +238,43 @@ export function filterLookup(
     items.length !== 0
   ) {
     const results = memberData.map((item) => {
+      const matchingItems = items.filter((thisItem) => item.id === thisItem.id);
+
+      // Debug logging for broken references
+      if (matchingItems.length === 0) {
+        console.log(`🚨 BROKEN REFERENCE DETECTED:`);
+        console.log(`   - Referenced ID: ${item.id}`);
+        console.log(
+          `   - Available IDs: [${items.map((i) => i.id).join(", ")}]`,
+        );
+        console.log(
+          `   - This reference points to a deleted/non-existent item`,
+        );
+        console.log(
+          `   - Member data:`,
+          memberData.map((ref) => ref.id),
+        );
+        console.log(
+          `   - Items type: ${items[0]?.fields?.name ? "industries" : "focuses" || "unknown"}`,
+        );
+        console.log(`---`);
+      }
+
       return (
-        items
-          .filter((thisItem) => item.id === thisItem.id)
-          .map((item) => {
-            return {
-              name:
-                typeof item.fields["name"] === "string"
-                  ? item.fields["name"]
-                  : null,
-              id: typeof item.id === "string" ? item.id : null,
-              status: statusEnumValues.includes(
-                item.fields["status"] as StatusEnum,
-              )
-                ? (item.fields["status"] as StatusEnum)
+        matchingItems.map((item) => {
+          return {
+            name:
+              typeof item.fields["name"] === "string"
+                ? item.fields["name"]
                 : null,
-            };
-          })[0] || null
+            id: typeof item.id === "string" ? item.id : null,
+            status: statusEnumValues.includes(
+              item.fields["status"] as StatusEnum,
+            )
+              ? (item.fields["status"] as StatusEnum)
+              : null,
+          };
+        })[0] || null
       );
     });
     return returnFirstName ? results[0].name : results;
