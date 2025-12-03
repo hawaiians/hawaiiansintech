@@ -25,7 +25,7 @@ import {
 } from "@/lib/firebase-helpers/interfaces";
 import { StatusEnum, YearsOfExperienceEnum } from "@/lib/enums";
 import { useIsAdmin } from "@/lib/hooks";
-import { getAuth, User } from "firebase/auth";
+import { User } from "firebase/auth";
 import { convertStringSnake } from "helpers";
 import { cn, sortByOrder } from "@/lib/utils";
 import moment from "moment";
@@ -33,7 +33,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState, useCallback } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { signInWithGoogle, signOutWithGoogle } from "../../lib/firebase";
+import { auth, signInWithGoogle, signOutWithGoogle } from "../../lib/firebase";
 import { MemberEdit } from "@/components/MemberEdit";
 // import { getAllMemberReferencesToDelete } from "@/lib/firebase-helpers/members";
 // import { deleteReferences } from "@/lib/firebase-helpers/members";
@@ -49,7 +49,6 @@ export async function getStaticProps() {
 
 export default function DirectoryPage(props) {
   const { pageTitle } = props;
-  const auth = getAuth();
   const [members, setMembers] = useState<MemberPublic[]>([]);
   const [regions, setRegions] = useState<FirestoreDocumentData[]>([]);
   const [experience, setExperience] = useState<FirestoreDocumentData[]>([]);
@@ -398,6 +397,9 @@ function Card({ member, regions, experience, user }: CardProps) {
                   <p>
                     {member.focus &&
                       member.focus.map((focus, i) => {
+                        // Skip null/undefined focus objects
+                        if (!focus) return null;
+
                         const focusNotApproved =
                           focus.status !== StatusEnum.APPROVED;
                         return (
@@ -421,6 +423,9 @@ function Card({ member, regions, experience, user }: CardProps) {
                   <p>
                     {member.industry &&
                       member.industry.map((industry, i) => {
+                        // Skip null/undefined industry objects
+                        if (!industry) return null;
+
                         const industryNotApproved =
                           industry.status !== StatusEnum.APPROVED;
                         return (

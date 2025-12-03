@@ -3,16 +3,12 @@ import WelcomeEmail from "@/emails/welcome-email";
 import { ADMIN_EMAILS, REPLY_EMAIL } from "./email/utils";
 import PendingMemberEmail from "@/emails/pending-member-email";
 import LoginPromptEmail from "@/emails/login-prompt";
-import { ENV_CONFIG } from "@/lib/config/environment";
 
 let resend = null;
-if (!ENV_CONFIG.isDevelopment && process.env.RESEND_API_KEY) {
+if (process.env.RESEND_API_KEY) {
   resend = new Resend(process.env.RESEND_API_KEY);
 } else {
-  console.warn(
-    "Resend API key not provided or in development mode. Email functionality is disabled.",
-  );
-  resend = null;
+  console.warn("Resend API key not provided. Email functionality is disabled.");
 }
 
 export interface SendConfirmationEmailProps {
@@ -39,6 +35,12 @@ export async function sendConfirmationEmails({
     if (!name) throw new Error("No name provided");
     if (!location) throw new Error("No location provided");
     if (!link) throw new Error("No link provided");
+
+    if (!resend) {
+      throw new Error(
+        "Email functionality is disabled. RESEND_API_KEY environment variable is not set.",
+      );
+    }
 
     // Send welcome email to new member
     await resend.emails.send({
@@ -81,6 +83,12 @@ export async function sendLoginPromptEmail({
   promptLink: string;
 }) {
   try {
+    if (!resend) {
+      throw new Error(
+        "Email functionality is disabled. RESEND_API_KEY environment variable is not set.",
+      );
+    }
+
     await resend.emails.send({
       from: REPLY_EMAIL,
       to: [emailAddress],

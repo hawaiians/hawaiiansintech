@@ -15,14 +15,13 @@ import { MemberEmail } from "@/lib/api";
 import { StatusEnum } from "@/lib/enums";
 import { useIsAdmin } from "@/lib/hooks";
 import { CheckIcon, PlusIcon } from "@radix-ui/react-icons";
-import { getAuth } from "firebase/auth";
 import { convertStringSnake } from "helpers";
 import { cn } from "@/lib/utils";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { FC, useEffect, useState } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { signInWithGoogle, signOutWithGoogle } from "../../lib/firebase";
+import { auth, signInWithGoogle, signOutWithGoogle } from "../../lib/firebase";
 import { ADMIN_EMAILS } from "@/lib/email/utils";
 
 export async function getStaticProps() {
@@ -34,7 +33,6 @@ export async function getStaticProps() {
 }
 
 export default function EmailsPage(props: { pageTitle }) {
-  const auth = getAuth();
   const [user, loading] = useAuthState(auth);
   const [isAdmin, isAdminLoading] = useIsAdmin(user, loading);
   const router = useRouter();

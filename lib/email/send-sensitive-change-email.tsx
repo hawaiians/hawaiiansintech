@@ -2,7 +2,12 @@ import { Resend } from "resend";
 import { ADMIN_EMAILS, REPLY_EMAIL } from "@/lib/email/utils";
 import SensitiveChangesEmail from "@/emails/sensitive-changes-email";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resend = null;
+if (process.env.RESEND_API_KEY) {
+  resend = new Resend(process.env.RESEND_API_KEY);
+} else {
+  console.warn("Resend API key not provided. Email functionality is disabled.");
+}
 
 export interface SendSensitiveChangesEmailsProps {
   name: string;
@@ -17,6 +22,12 @@ export async function sendSensitiveChangesEmail({
 }: SendSensitiveChangesEmailsProps) {
   try {
     if (!changes) throw new Error("No changes provided");
+
+    if (!resend) {
+      throw new Error(
+        "Email functionality is disabled. RESEND_API_KEY environment variable is not set.",
+      );
+    }
 
     await resend.emails.send({
       from: REPLY_EMAIL,
