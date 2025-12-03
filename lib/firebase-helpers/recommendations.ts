@@ -63,10 +63,17 @@ function getSharedInterests(
     ? newMemberSelected
     : [newMemberSelected];
 
-  const mentorIds = mentorItems
-    .filter((item) => item != null) // Filter out null/undefined items
-    .map((item) => (typeof item === "string" ? item : item?.id))
-    .filter((id) => id != null); // Filter out any null/undefined IDs
+  // Handle union type by checking if first item is a string
+  // If array is empty, default to treating as object array (safer)
+  const isStringArray =
+    mentorItems.length > 0 && typeof mentorItems[0] === "string";
+
+  const mentorIds: string[] = isStringArray
+    ? (mentorItems as string[]).filter((id): id is string => id != null)
+    : (mentorItems as { name: string; id: string }[])
+        .filter((item) => item != null && item.id != null)
+        .map((item) => item.id)
+        .filter((id): id is string => id != null);
 
   return newMemberIds.filter((id) => mentorIds.includes(id));
 }

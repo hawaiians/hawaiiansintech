@@ -79,10 +79,18 @@ export default function RecommendedConnectionCard({
     if (!selected || !memberItems) return [];
 
     const selectedIds = Array.isArray(selected) ? selected : [selected];
-    const memberIds = memberItems
-      .filter((item) => item != null) // Filter out null/undefined items
-      .map((item) => (typeof item === "string" ? item : item?.id))
-      .filter((id) => id != null); // Filter out any null/undefined IDs
+
+    // Handle union type by checking if first item is a string
+    // If array is empty, default to treating as object array (safer)
+    const isStringArray =
+      memberItems.length > 0 && typeof memberItems[0] === "string";
+
+    const memberIds: string[] = isStringArray
+      ? (memberItems as string[]).filter((id): id is string => id != null)
+      : (memberItems as { name: string; id: string }[])
+          .filter((item) => item != null && item.id != null)
+          .map((item) => item.id)
+          .filter((id): id is string => id != null);
 
     const sharedIds = selectedIds.filter((id) => memberIds.includes(id));
     return allItems

@@ -255,7 +255,7 @@ export function filterLookup(
           memberData.map((ref) => ref.id),
         );
         console.debug(
-          `   - Items type: ${items[0]?.fields?.name ? "industries" : "focuses" || "unknown"}`,
+          `   - Items type: ${items[0]?.fields?.name ? "industries" : "focuses"}`,
         );
         console.debug(`---`);
       }
