@@ -20,9 +20,18 @@ import { cn } from "@/lib/utils";
 import theme from "@/styles/theme";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { buttonVariants } from "@/components/ui/button";
-import { Filter } from "@/lib/firebase-helpers/interfaces";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { Filter, MemberPublic } from "@/lib/firebase-helpers/interfaces";
 import { getFilters } from "@/lib/firebase-helpers/filters";
 import { getMembers } from "@/lib/firebase-helpers/members";
+import { getRecommendedMembers } from "@/lib/firebase-helpers/recommendations";
+import RecommendedConnectionCard from "@/components/RecommendedConnectionCard";
 
 export async function getStaticProps() {
   const { members, focuses, industries } = await getMembers();
@@ -53,9 +62,12 @@ export async function getStaticProps() {
 
 export default function ThankYou({ pageTitle, focuses, industries, members }) {
   const router = useRouter();
-  const { focusesSelected, industriesSelected } = router.query;
+  const { focusesSelected, industriesSelected, yearsExperience } = router.query;
   const [similarFocuses, setSimilarFocuses] = useState<Filter[]>([]);
   const [similarIndustries, setSimilarIndustries] = useState<Filter[]>([]);
+  const [recommendedMembers, setRecommendedMembers] = useState<MemberPublic[]>(
+    [],
+  );
 
   const getActiveFilters = (filters: Filter[], activeIds: string[]) => {
     return filters.filter((filter) => activeIds.includes(filter.id));
@@ -80,6 +92,28 @@ export default function ThankYou({ pageTitle, focuses, industries, members }) {
       setter: setSimilarIndustries,
     });
   }, [focuses, industries, focusesSelected, industriesSelected]);
+
+  // Get recommended members
+  useEffect(() => {
+    if (members && members.length > 0) {
+      const newMemberData = {
+        yearsExperience: yearsExperience as string | undefined,
+        focusesSelected: focusesSelected
+          ? Array.isArray(focusesSelected)
+            ? focusesSelected
+            : [focusesSelected]
+          : undefined,
+        industriesSelected: industriesSelected
+          ? Array.isArray(industriesSelected)
+            ? industriesSelected
+            : [industriesSelected]
+          : undefined,
+      };
+
+      const recommendations = getRecommendedMembers(newMemberData, members);
+      setRecommendedMembers(recommendations);
+    }
+  }, [members, yearsExperience, focusesSelected, industriesSelected]);
 
   return (
     <>
@@ -112,6 +146,49 @@ export default function ThankYou({ pageTitle, focuses, industries, members }) {
             and get you added to the directory. Beyond that, this is a pretty
             (intentionally) simple operation. 🤙🏼🤙🏽🤙🏾
           </p>
+          {recommendedMembers.length > 0 && (
+            <section className="w-full">
+              <h3 className="mb-4 font-semibold text-foreground">
+                Connect with your kanaka peers with interests in common.
+              </h3>
+              <Carousel opts={{ align: "start" }} className="w-full">
+                <CarouselContent>
+                  {recommendedMembers.slice(0, 5).map((member) => (
+                    <CarouselItem
+                      // 100% width on small, 50% on md and lg (two cards in view)
+                      key={member.id}
+                      className="basis-full md:basis-1/2 lg:basis-1/2"
+                    >
+                      <RecommendedConnectionCard
+                        member={member}
+                        newMemberData={{
+                          yearsExperience: yearsExperience as
+                            | string
+                            | undefined,
+                          focusesSelected: focusesSelected
+                            ? Array.isArray(focusesSelected)
+                              ? focusesSelected
+                              : [focusesSelected]
+                            : undefined,
+                          industriesSelected: industriesSelected
+                            ? Array.isArray(industriesSelected)
+                              ? industriesSelected
+                              : [industriesSelected]
+                            : undefined,
+                        }}
+                        focuses={focuses}
+                        industries={industries}
+                      />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <nav className="mt-4 flex w-full justify-center gap-3">
+                  <CarouselPrevious />
+                  <CarouselNext />
+                </nav>
+              </Carousel>
+            </section>
+          )}
           <section
             className={cn(
               "flex w-full flex-col gap-4 sm:flex-row",
