@@ -1,6 +1,7 @@
 import { MemberPublic } from "@/lib/firebase-helpers/interfaces";
-import { Clock, Briefcase, Sparkles } from "lucide-react";
+import { Clock, Briefcase, Sparkles, Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import LoadingSpinner from "./LoadingSpinner";
 
 interface RecommendedConnectionCardProps {
   member: MemberPublic;
@@ -11,6 +12,9 @@ interface RecommendedConnectionCardProps {
   };
   focuses?: { id: string; name: string }[];
   industries?: { id: string; name: string }[];
+  aiMessage?: string;
+  aiLoading?: boolean;
+  aiError?: boolean;
 }
 
 export default function RecommendedConnectionCard({
@@ -18,6 +22,9 @@ export default function RecommendedConnectionCard({
   newMemberData,
   focuses = [],
   industries = [],
+  aiMessage,
+  aiLoading,
+  aiError,
 }: RecommendedConnectionCardProps) {
   // Extract company from title (format: "Role @ Company" or just "Role")
   const titleParts = member.title?.split(" @ ") || [];
@@ -220,7 +227,18 @@ export default function RecommendedConnectionCard({
           Why this match?
         </h3>
         <p className="break-words text-xs leading-relaxed text-stone-600">
-          {generateWhyMatchText()}
+          {aiLoading ? (
+            <span className="inline-flex items-center gap-2 text-stone-500">
+              <Loader className="h-4 w-4 animate-spin" />
+              <span>Analyzing</span>
+            </span>
+          ) : aiMessage ? (
+            aiMessage
+          ) : aiError ? (
+            generateWhyMatchText()
+          ) : (
+            generateWhyMatchText()
+          )}
         </p>
       </div>
 

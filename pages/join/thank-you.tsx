@@ -26,6 +26,7 @@ import {
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  type CarouselApi,
 } from "@/components/ui/carousel";
 import { Filter, MemberPublic } from "@/lib/firebase-helpers/interfaces";
 import { getFilters } from "@/lib/firebase-helpers/filters";
@@ -68,6 +69,11 @@ export default function ThankYou({ pageTitle, focuses, industries, members }) {
   const [recommendedMembers, setRecommendedMembers] = useState<MemberPublic[]>(
     [],
   );
+  const [carouselApi, setCarouselApi] = useState<CarouselApi | undefined>();
+  const [visibleIndexes, setVisibleIndexes] = useState<number[]>([]);
+  const [aiMessages, setAiMessages] = useState<Record<string, string>>({});
+  const [aiLoadingIds, setAiLoadingIds] = useState<string[]>([]);
+  const [aiErrorIds, setAiErrorIds] = useState<string[]>([]);
 
   const getActiveFilters = (filters: Filter[], activeIds: string[]) => {
     return filters.filter((filter) => activeIds.includes(filter.id));
@@ -115,6 +121,118 @@ export default function ThankYou({ pageTitle, focuses, industries, members }) {
     }
   }, [members, yearsExperience, focusesSelected, industriesSelected]);
 
+  // Track which carousel items are in view
+  useEffect(() => {
+    if (!carouselApi) return;
+
+    const updateVisible = () => {
+      // slidesInView returns indexes of slides currently visible
+      const inView =
+        typeof carouselApi.slidesInView === "function"
+          ? carouselApi.slidesInView()
+          : [carouselApi.selectedScrollSnap()];
+      setVisibleIndexes(inView);
+    };
+
+    updateVisible();
+    carouselApi.on("select", updateVisible);
+    carouselApi.on("reInit", updateVisible);
+
+    return () => {
+      carouselApi.off("select", updateVisible);
+      carouselApi.off("reInit", updateVisible);
+    };
+  }, [carouselApi]);
+
+  // Fetch AI \"Why this match?\" copy only for visible members
+  useEffect(() => {
+    if (!recommendedMembers.length) return;
+
+    const normalizedFocuses =
+      focusesSelected && Array.isArray(focusesSelected)
+        ? focusesSelected
+        : focusesSelected
+          ? [focusesSelected]
+          : undefined;
+    const normalizedIndustries =
+      industriesSelected && Array.isArray(industriesSelected)
+        ? industriesSelected
+        : industriesSelected
+          ? [industriesSelected]
+          : undefined;
+
+    const newMemberData = {
+      yearsExperience: yearsExperience as string | undefined,
+      focusesSelected: normalizedFocuses,
+      industriesSelected: normalizedIndustries,
+    };
+
+    // If Embla hasn't reported visible slides yet, assume the first two slides
+    // are visible so we generate copy for the initial view.
+    const effectiveIndexes =
+      visibleIndexes.length > 0 ? visibleIndexes : [0, 1];
+
+    const visibleMembers = effectiveIndexes
+      .map((index) => recommendedMembers[index])
+      .filter((m) => !!m) as MemberPublic[];
+
+    visibleMembers.forEach((member) => {
+      if (
+        aiMessages[member.id] ||
+        aiLoadingIds.includes(member.id) ||
+        aiErrorIds.includes(member.id)
+      ) {
+        return;
+      }
+
+      setAiLoadingIds((prev) => [...prev, member.id]);
+
+      fetch("/api/recommendation-copy", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          member,
+          newMemberData,
+        }),
+      })
+        .then(async (res) => {
+          if (!res.ok) {
+            setAiErrorIds((prev) =>
+              prev.includes(member.id) ? prev : [...prev, member.id],
+            );
+            return;
+          }
+          const data = (await res.json()) as { message?: string };
+          if (data?.message) {
+            setAiMessages((prev) => ({
+              ...prev,
+              [member.id]: data.message,
+            }));
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching AI recommendation copy:", error);
+          setAiErrorIds((prev) =>
+            prev.includes(member.id) ? prev : [...prev, member.id],
+          );
+        })
+        .finally(() => {
+          setAiLoadingIds((prev) => prev.filter((id) => id !== member.id));
+        });
+    });
+  }, [
+    visibleIndexes,
+    recommendedMembers,
+    focusesSelected,
+    industriesSelected,
+    yearsExperience,
+    aiMessages,
+    aiLoadingIds,
+    aiErrorIds,
+  ]);
+
   return (
     <>
       <Head>
@@ -151,7 +269,11 @@ export default function ThankYou({ pageTitle, focuses, industries, members }) {
               <h3 className="mb-4 font-semibold text-foreground">
                 Connect with your kanaka peers with interests in common.
               </h3>
-              <Carousel opts={{ align: "start" }} className="w-full">
+              <Carousel
+                opts={{ align: "start" }}
+                className="w-full"
+                setApi={setCarouselApi}
+              >
                 <CarouselContent>
                   {recommendedMembers.slice(0, 5).map((member) => (
                     <CarouselItem
@@ -178,6 +300,9 @@ export default function ThankYou({ pageTitle, focuses, industries, members }) {
                         }}
                         focuses={focuses}
                         industries={industries}
+                        aiMessage={aiMessages[member.id]}
+                        aiLoading={aiLoadingIds.includes(member.id)}
+                        aiError={aiErrorIds.includes(member.id)}
                       />
                     </CarouselItem>
                   ))}

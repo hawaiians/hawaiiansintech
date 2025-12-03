@@ -19,6 +19,7 @@
     "test:unit:coverage": "jest --config=tests/jest.config.js --coverage"
   },
   "dependencies": {
+    "@ai-sdk/anthropic": "^2.0.53",
     "@radix-ui/react-accordion": "^1.1.2",
     "@radix-ui/react-checkbox": "^1.0.4",
     "@radix-ui/react-dialog": "^1.1.6",
@@ -36,6 +37,7 @@
     "@react-email/components": "^0.4.0",
     "@react-email/img": "0.0.11",
     "@react-email/tailwind": "1.2.2",
+    "ai": "^5.0.106",
     "autoprefixer": "^10.4.14",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
