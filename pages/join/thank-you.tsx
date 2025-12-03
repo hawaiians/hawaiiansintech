@@ -275,7 +275,7 @@ export default function ThankYou({ pageTitle, focuses, industries, members }) {
                 setApi={setCarouselApi}
               >
                 <CarouselContent>
-                  {recommendedMembers.slice(0, 5).map((member) => (
+                  {recommendedMembers.map((member) => (
                     <CarouselItem
                       // 100% width on small, 50% on md and lg (two cards in view)
                       key={member.id}

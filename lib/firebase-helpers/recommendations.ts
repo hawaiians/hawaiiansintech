@@ -172,8 +172,8 @@ export function getRecommendedMembers(
   const source =
     scoredWithLinkedIn.length > 0 ? scoredWithLinkedIn : scoredMembers;
 
-  // Return top 5
-  return source.slice(0, 5).map((scored) => scored.member);
+  // Return top 8
+  return source.slice(0, 8).map((scored) => scored.member);
 }
 
 /**

@@ -1,7 +1,6 @@
 import { MemberPublic } from "@/lib/firebase-helpers/interfaces";
 import { Clock, Briefcase, Sparkles, Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import LoadingSpinner from "./LoadingSpinner";
 
 interface RecommendedConnectionCardProps {
   member: MemberPublic;
@@ -168,6 +167,8 @@ export default function RecommendedConnectionCard({
     },
   ].filter(Boolean);
 
+  const isStrongMatch = sharedInterests.length > 0 && experienceGap >= 5;
+
   if (matchCriteria.length === 0) return null;
 
   return (
@@ -176,7 +177,7 @@ export default function RecommendedConnectionCard({
       <div className="mb-4 flex items-center gap-1.5 text-orange-500">
         <Sparkles className="h-4 w-4 flex-shrink-0" strokeWidth={2.5} />
         <span className="text-xs font-semibold uppercase tracking-wide">
-          Suggested for you
+          {isStrongMatch ? "Strong match for you" : "Suggested for you"}
         </span>
       </div>
 
@@ -229,16 +230,14 @@ export default function RecommendedConnectionCard({
         <p className="break-words text-xs leading-relaxed text-stone-600">
           {aiLoading ? (
             <span className="inline-flex items-center gap-2 text-stone-500">
-              <Loader className="h-4 w-4 animate-spin" />
+              <Loader className="h-4 w-4 animate-spin opacity-50" />
               <span>Analyzing</span>
             </span>
           ) : aiMessage ? (
             aiMessage
           ) : aiError ? (
             generateWhyMatchText()
-          ) : (
-            generateWhyMatchText()
-          )}
+          ) : null}
         </p>
       </div>
 
