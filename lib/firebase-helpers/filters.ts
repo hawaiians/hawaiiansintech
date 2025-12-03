@@ -242,22 +242,22 @@ export function filterLookup(
 
       // Debug logging for broken references
       if (matchingItems.length === 0) {
-        console.log(`🚨 BROKEN REFERENCE DETECTED:`);
-        console.log(`   - Referenced ID: ${item.id}`);
-        console.log(
+        console.debug(`🚨 BROKEN REFERENCE DETECTED:`);
+        console.debug(`   - Referenced ID: ${item.id}`);
+        console.debug(
           `   - Available IDs: [${items.map((i) => i.id).join(", ")}]`,
         );
-        console.log(
+        console.debug(
           `   - This reference points to a deleted/non-existent item`,
         );
-        console.log(
+        console.debug(
           `   - Member data:`,
           memberData.map((ref) => ref.id),
         );
-        console.log(
+        console.debug(
           `   - Items type: ${items[0]?.fields?.name ? "industries" : "focuses" || "unknown"}`,
         );
-        console.log(`---`);
+        console.debug(`---`);
       }
 
       return (
