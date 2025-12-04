@@ -126,19 +126,30 @@ export default function ThankYou({ pageTitle, focuses, industries, members }) {
     if (!carouselApi) return;
 
     const updateVisible = () => {
-      // slidesInView returns indexes of slides currently visible
-      const inView =
-        typeof carouselApi.slidesInView === "function"
-          ? carouselApi.slidesInView()
-          : [carouselApi.selectedScrollSnap()];
-      setVisibleIndexes(inView);
+      // slidesInView() method returns indexes of slides currently visible
+      try {
+        const inView =
+          typeof carouselApi.slidesInView === "function"
+            ? carouselApi.slidesInView()
+            : [carouselApi.selectedScrollSnap()];
+        setVisibleIndexes(inView);
+      } catch (error) {
+        // Fallback to selected slide if slidesInView fails
+        setVisibleIndexes([carouselApi.selectedScrollSnap()]);
+      }
     };
 
+    // Update immediately to capture initial visible slides
     updateVisible();
+
+    // Listen to slidesInView event for reliable updates when slides enter/exit viewport
+    carouselApi.on("slidesInView", updateVisible);
+    // Also listen to select and reInit for additional coverage
     carouselApi.on("select", updateVisible);
     carouselApi.on("reInit", updateVisible);
 
     return () => {
+      carouselApi.off("slidesInView", updateVisible);
       carouselApi.off("select", updateVisible);
       carouselApi.off("reInit", updateVisible);
     };
@@ -167,20 +178,26 @@ export default function ThankYou({ pageTitle, focuses, industries, members }) {
       industriesSelected: normalizedIndustries,
     };
 
-    // If Embla hasn't reported visible slides yet, assume the first two slides
-    // are visible so we generate copy for the initial view.
+    // If Embla hasn't reported visible slides yet, determine initial visible slides
+    // based on carousel configuration (typically 2 slides visible on md+ screens)
     const effectiveIndexes =
-      visibleIndexes.length > 0 ? visibleIndexes : [0, 1];
+      visibleIndexes.length > 0
+        ? visibleIndexes
+        : recommendedMembers.length <= 2
+          ? recommendedMembers.map((_, i) => i)
+          : [0, 1];
 
     const visibleMembers = effectiveIndexes
       .map((index) => recommendedMembers[index])
       .filter((m) => !!m) as MemberPublic[];
 
     visibleMembers.forEach((member) => {
+      // Skip if we already have the message, there's an error, or a fetch is already in progress
+      // This prevents duplicate fetches when the effect re-runs
       if (
         aiMessages[member.id] ||
-        aiLoadingIds.includes(member.id) ||
-        aiErrorIds.includes(member.id)
+        aiErrorIds.includes(member.id) ||
+        aiLoadingIds.includes(member.id)
       ) {
         return;
       }
@@ -229,7 +246,6 @@ export default function ThankYou({ pageTitle, focuses, industries, members }) {
     industriesSelected,
     yearsExperience,
     aiMessages,
-    aiLoadingIds,
     aiErrorIds,
   ]);
 
