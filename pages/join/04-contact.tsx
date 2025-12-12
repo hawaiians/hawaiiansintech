@@ -117,6 +117,9 @@ export default function JoinStep4({ pageTitle }) {
           // Passes the selected values to the thank-you page
           focusesSelected: focusesSelected,
           industriesSelected: industriesSelected,
+          location: location,
+          yearsExperience: yearsExperience,
+          title: title,
         },
       });
     } else if (res.status === 422) {
