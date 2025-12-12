@@ -1,7 +1,6 @@
-import { Clock, MapPin, Briefcase, Sparkles } from "lucide-react";
+import { Clock, Sparkles } from "lucide-react";
 import { MemberPublic } from "@/lib/firebase-helpers/interfaces";
 import Link from "next/link";
-import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface MatchCriterion {
@@ -46,28 +45,28 @@ export default function ConnectionCard({
   const displayTitle = company ? `${role} @ ${company}` : role;
 
   return (
-    <div className="bg-white rounded-3xl p-6 shadow-xl max-w-sm w-full">
+    <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl">
       {/* Suggested badge */}
-      <div className="flex items-center gap-2 text-orange-500 mb-5">
-        <Sparkles className="w-5 h-5" strokeWidth={2.5} />
-        <span className="font-semibold text-sm">Suggested for you</span>
+      <div className="mb-5 flex items-center gap-2 text-orange-500">
+        <Sparkles className="h-5 w-5" strokeWidth={2.5} />
+        <span className="text-sm font-semibold">Suggested for you</span>
       </div>
 
       {/* Name and role */}
       <div className="mb-5">
-        <h2 className="text-2xl font-bold text-stone-900 mb-1">
+        <h2 className="mb-1 text-2xl font-bold text-stone-900">
           {member.name || "Member"}
         </h2>
-        <p className="text-stone-500 text-lg">{displayTitle || "No title"}</p>
+        <p className="text-lg text-stone-500">{displayTitle || "No title"}</p>
       </div>
 
       {/* Match criteria */}
-      <div className="space-y-3 mb-6">
+      <div className="mb-6 space-y-3">
         {matchCriteria.map((item, i) => {
           const Icon = item.icon;
           return (
             <div key={i} className="flex items-center gap-3">
-              <Icon className="w-5 h-5 text-orange-500" strokeWidth={1.5} />
+              <Icon className="h-5 w-5 text-orange-500" strokeWidth={1.5} />
               <span className="font-medium text-stone-800">{item.label}</span>
               <span className="text-stone-400">·</span>
               <span className="text-stone-400">{item.detail}</span>
@@ -78,8 +77,8 @@ export default function ConnectionCard({
 
       {/* Why this match section */}
       <div className="mb-6">
-        <h3 className="text-orange-500 font-semibold mb-2">Why this match?</h3>
-        <p className="text-stone-600 leading-relaxed">{whyMatchText}</p>
+        <h3 className="mb-2 font-semibold text-orange-500">Why this match?</h3>
+        <p className="leading-relaxed text-stone-600">{whyMatchText}</p>
       </div>
 
       {/* CTA Button */}
@@ -88,7 +87,7 @@ export default function ConnectionCard({
           href={member.link}
           target="_blank"
           className={cn(
-            "w-full bg-orange-100 hover:bg-orange-200 text-stone-900 font-semibold py-4 px-6 rounded-2xl transition-colors inline-block text-center",
+            "inline-block w-full rounded-2xl bg-orange-100 px-6 py-4 text-center font-semibold text-stone-900 transition-colors hover:bg-orange-200",
             "plausible-event-name=Connection+Card+Click",
           )}
         >
@@ -97,7 +96,7 @@ export default function ConnectionCard({
       ) : (
         <button
           disabled
-          className="w-full bg-stone-100 text-stone-400 font-semibold py-4 px-6 rounded-2xl cursor-not-allowed"
+          className="w-full cursor-not-allowed rounded-2xl bg-stone-100 px-6 py-4 font-semibold text-stone-400"
         >
           Start a Conversation
         </button>
@@ -105,4 +104,3 @@ export default function ConnectionCard({
     </div>
   );
 }
-

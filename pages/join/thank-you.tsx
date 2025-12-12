@@ -63,13 +63,7 @@ export async function getStaticProps() {
 
 export default function ThankYou({ pageTitle, focuses, industries, members }) {
   const router = useRouter();
-  const {
-    focusesSelected,
-    industriesSelected,
-    yearsExperience,
-    location,
-    title,
-  } = router.query;
+  const { focusesSelected, industriesSelected, yearsExperience } = router.query;
   const [similarFocuses, setSimilarFocuses] = useState<Filter[]>([]);
   const [similarIndustries, setSimilarIndustries] = useState<Filter[]>([]);
   const [recommendedMembers, setRecommendedMembers] = useState<MemberPublic[]>(
@@ -139,7 +133,7 @@ export default function ThankYou({ pageTitle, focuses, industries, members }) {
             ? carouselApi.slidesInView()
             : [carouselApi.selectedScrollSnap()];
         setVisibleIndexes(inView);
-      } catch (error) {
+      } catch {
         // Fallback to selected slide if slidesInView fails
         setVisibleIndexes([carouselApi.selectedScrollSnap()]);
       }
