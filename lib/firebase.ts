@@ -2,7 +2,6 @@ import { getFirestore } from "firebase/firestore";
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { getStorage } from "firebase/storage";
-import { ENV_CONFIG } from "@/lib/config/environment";
 
 export const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -28,7 +27,7 @@ let auth = null;
 let db = null;
 let storage = null;
 
-if (!ENV_CONFIG.isDevelopment && isFirebaseConfigValid()) {
+if (isFirebaseConfigValid()) {
   app = initializeApp(firebaseConfig);
   provider = new GoogleAuthProvider();
   auth = getAuth(app);
@@ -36,7 +35,7 @@ if (!ENV_CONFIG.isDevelopment && isFirebaseConfigValid()) {
   storage = getStorage(app);
 } else {
   console.warn(
-    "Firebase config not provided or in development mode. Firebase functionality is disabled.",
+    "Firebase config not provided. Firebase functionality is disabled.",
   );
 }
 

@@ -174,12 +174,59 @@ export async function getMembers({
           memberObject["lastModified"] = lastModified.toDate().toLocaleString();
         }
 
-        memberObject["focus"] = includeFilters
+        // Debug logging for focus processing
+        const focusResult = includeFilters
           ? filterLookup(focusesData, focuses)
           : focuses.map((focus) => focus.id);
-        memberObject["industry"] = includeFilters
+
+        // Check for null values in focus result
+        if (
+          focusResult &&
+          Array.isArray(focusResult) &&
+          focusResult.includes(null)
+        ) {
+          console.log(`🚨 MEMBER WITH BROKEN FOCUS REFERENCES:`);
+          console.log(`   - Member ID: ${member.id}`);
+          console.log(`   - Member Name: ${member.name}`);
+          console.log(
+            `   - Member Focus References: [${focuses.map((ref) => ref.id).join(", ")}]`,
+          );
+          console.log(
+            `   - Available Focus IDs: [${focusesData.map((item) => item.id).join(", ")}]`,
+          );
+          console.log(`   - Focus Result:`, focusResult);
+          console.log(`   - Null entries indicate deleted focus references`);
+          console.log(`---`);
+        }
+
+        memberObject["focus"] = focusResult;
+
+        // Debug logging for industry processing
+        const industryResult = includeFilters
           ? filterLookup(industriesData, industries)
           : industries.map((industry) => industry.id);
+
+        // Check for null values in industry result
+        if (
+          industryResult &&
+          Array.isArray(industryResult) &&
+          industryResult.includes(null)
+        ) {
+          console.log(`🚨 MEMBER WITH BROKEN INDUSTRY REFERENCES:`);
+          console.log(`   - Member ID: ${member.id}`);
+          console.log(`   - Member Name: ${member.name}`);
+          console.log(
+            `   - Member Industry References: [${industries.map((ref) => ref.id).join(", ")}]`,
+          );
+          console.log(
+            `   - Available Industry IDs: [${industriesData.map((item) => item.id).join(", ")}]`,
+          );
+          console.log(`   - Industry Result:`, industryResult);
+          console.log(`   - Null entries indicate deleted industry references`);
+          console.log(`---`);
+        }
+
+        memberObject["industry"] = industryResult;
         memberObject["regions"] = includeFilters
           ? filterLookup(regionsData, regions)
           : regions.map((region) => region?.id);

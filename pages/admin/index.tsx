@@ -7,12 +7,11 @@ import MetaTags from "@/components/Metatags";
 import Plausible from "@/components/Plausible";
 import { StorageEnum } from "@/lib/enums";
 import { useIsAdmin } from "@/lib/hooks";
-import { getAuth } from "firebase/auth";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { useAuthState } from "react-firebase-hooks/auth";
-import { signInWithGoogle, signOutWithGoogle } from "../../lib/firebase";
+import { auth, signInWithGoogle, signOutWithGoogle } from "../../lib/firebase";
 
 export async function getStaticProps() {
   return {
@@ -24,7 +23,6 @@ export async function getStaticProps() {
 }
 
 export default function AdminPage(props: { pageTitle }) {
-  const auth = getAuth();
   const [user, loading] = useAuthState(auth);
   const [isAdmin, isAdminLoading] = useIsAdmin(user, loading);
   const router = useRouter();

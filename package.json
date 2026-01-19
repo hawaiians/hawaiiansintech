@@ -52,7 +52,7 @@
     "lodash": "^4.17.21",
     "lucide-react": "^0.295",
     "moment": "^2.29.1",
-    "next": "15.4.5",
+    "next": "15.4.8",
     "next-absolute-url": "^1.2.2",
     "postcss": "^8.4.24",
     "prettier": "^3.0.3",
